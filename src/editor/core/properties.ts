@@ -297,7 +297,7 @@ export const PROPERTY_DESCRIPTORS: Readonly<Record<string, PropertyDescriptor>> 
 		label: 'Shadow Color',
 		shape: 'vec4',
 		channels: ['R', 'G', 'B', 'A'],
-		defaultValue: [0, 0, 0, 0],
+		defaultValue: [0, 0, 0, 0.6],
 		min: 0,
 		max: 1,
 		unit: '',
