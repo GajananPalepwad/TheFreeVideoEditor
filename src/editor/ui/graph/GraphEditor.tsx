@@ -375,6 +375,13 @@ export default function GraphEditor() {
 				if (k) {
 					if (k.interpolation === 'hold') return 'hold';
 					if (k.interpolation === 'linear') return 'linear';
+					if (
+						k.interpolation === 'spring' ||
+						k.interpolation === 'elastic' ||
+						k.interpolation === 'bounce'
+					) {
+						return k.interpolation;
+					}
 					if (k.easeIn && k.easeOut) return 'ease-both';
 					if (k.easeIn) return 'ease-in';
 					if (k.easeOut) return 'ease-out';
@@ -1111,6 +1118,23 @@ export default function GraphEditor() {
 						>
 							Hold
 						</button>
+						{(
+							[
+								['spring', 'Spring', 'Spring (overshoots and settles)'],
+								['elastic', 'Elastic', 'Elastic (swings past the target)'],
+								['bounce', 'Bounce', 'Bounce (rebounds off the target)']
+							] as const
+						).map(([preset, label, hint]) => (
+							<button
+								key={preset}
+								type="button"
+								className={`graph-preset-btn ${selectedInterpolation === preset ? 'is-active' : ''}`}
+								onClick={() => store.getState().setKeyframeInterpolation(preset)}
+								title={hint}
+							>
+								{label}
+							</button>
+						))}
 					</div>
 				</div>
 
