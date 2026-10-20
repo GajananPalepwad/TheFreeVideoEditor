@@ -280,6 +280,103 @@ describe('Sequence Operations (CRUD, Nest, Expand, Make Unique)', () => {
 		expect(unnestedClips?.[1]!.duration).toBe(2_000_000);
 	});
 
+	describe('expandSequenceInstance with several layers', () => {
+		/** A host timeline holding one instance of a sequence that has `layers` video tracks. */
+		function hostWithLayers(layers: number) {
+			const { project: base, sequenceId } = createSequence(makeEmptyProject(), 'Layers');
+			const extraTracks: Track[] = Array.from({ length: layers - 1 }, (_, index) => ({
+				id: `layer-${index + 2}` as Track['id'],
+				kind: 'video',
+				name: `Layer ${index + 2}`,
+				muted: false,
+				locked: false,
+				hidden: false,
+				clips: []
+			}));
+			const nested = applyToSequence(base, sequenceId, (view) => {
+				const tracks = [...view.tracks];
+				const firstVideo = tracks.findIndex((track) => track.kind === 'video');
+				tracks.splice(firstVideo + 1, 0, ...extraTracks);
+				let layer = 0;
+				return {
+					...view,
+					tracks: tracks.map((track) =>
+						track.kind === 'video'
+							? { ...track, clips: [makeSolidClip(`layer-clip-${(layer += 1)}`, 0, 2_000_000)] }
+							: track
+					)
+				};
+			});
+			const { project, videoClipId } = addSequenceInstance(
+				nested,
+				ROOT_SEQUENCE_ID,
+				sequenceId,
+				1_000_000
+			);
+			return { project, instanceId: videoClipId! };
+		}
+
+		const videoTracks = (project: Project) =>
+			project.tracks.filter((track) => track.kind === 'video');
+
+		it('keeps every layer on its own track', () => {
+			const { project, instanceId } = hostWithLayers(2);
+
+			const expanded = expandSequenceInstance(project, ROOT_SEQUENCE_ID, instanceId);
+
+			const tracksWithClips = videoTracks(expanded).filter((track) => track.clips.length > 0);
+			expect(tracksWithClips).toHaveLength(2);
+			expect(tracksWithClips.flatMap((track) => track.clips)).toHaveLength(2);
+		});
+
+		it('keeps the layer order and the timing of each layer', () => {
+			const { project, instanceId } = hostWithLayers(2);
+
+			const expanded = expandSequenceInstance(project, ROOT_SEQUENCE_ID, instanceId);
+
+			const tracksWithClips = videoTracks(expanded).filter((track) => track.clips.length > 0);
+			const sourceTracks = videoTracks({
+				...project,
+				tracks: Object.values(project.sequences!)[0]!.tracks
+			});
+			// The first nested track is the top layer, so it stays on the first host track.
+			expect(tracksWithClips[0]!.clips[0]!.start).toBe(1_000_000);
+			expect(tracksWithClips[1]!.clips[0]!.start).toBe(1_000_000);
+			expect(tracksWithClips[0]!.clips[0]!.duration).toBe(sourceTracks[0]!.clips[0]!.duration);
+		});
+
+		it('never overlaps clips on one track, even next to existing clips', () => {
+			const { project, instanceId } = hostWithLayers(3);
+			const occupied = makeSolidClip('already-there', 1_500_000, 1_000_000);
+			const withNeighbour = {
+				...project,
+				tracks: [
+					...project.tracks,
+					{
+						id: 'busy' as Track['id'],
+						kind: 'video' as const,
+						name: 'Busy',
+						muted: false,
+						locked: false,
+						hidden: false,
+						clips: [occupied]
+					}
+				]
+			};
+
+			const expanded = expandSequenceInstance(withNeighbour, ROOT_SEQUENCE_ID, instanceId);
+
+			for (const track of expanded.tracks) {
+				const sorted = [...track.clips].sort((a, b) => a.start - b.start);
+				for (let index = 1; index < sorted.length; index += 1) {
+					const previous = sorted[index - 1]!;
+					expect(sorted[index]!.start).toBeGreaterThanOrEqual(previous.start + previous.duration);
+				}
+			}
+			expect(videoTracks(expanded).flatMap((track) => track.clips)).toHaveLength(4);
+		});
+	});
+
 	it('makes an instance unique', () => {
 		const project = makeEmptyProject();
 		const { project: p2, sequenceId } = createSequence(project, 'Shared Seq');
