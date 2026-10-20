@@ -1042,6 +1042,53 @@ export function TextSection({
 				onStartDisableConfirm={onStartDisableConfirm}
 				onCancelDisableConfirm={onCancelDisableConfirm}
 			/>
+
+			<div className="text-divider">
+				<span className="text-divider-title">Shadow</span>
+				<div className="timeline-counter-badge" style={{ margin: 0 }}>
+					<span className="timeline-badge-dot" aria-hidden="true" />4 channels
+				</div>
+			</div>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.shadowColor"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.shadowBlur"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.shadowOffsetX"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.shadowOffsetY"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
 		</div>
 	);
 }
