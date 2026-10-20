@@ -75,7 +75,7 @@ test.describe('number parameters', () => {
 
 		const slider = page.locator('.motion-template-slider').first();
 		await expect(slider).toBeVisible();
-		await slider.fill('100');
+		await slider.fill('70');
 
 		await expect
 			.poll(() =>
@@ -87,7 +87,7 @@ test.describe('number parameters', () => {
 					return Object.values(clip.source.paramOverrides ?? {});
 				}, instanceId)
 			)
-			.toContain(100);
+			.toContain(70);
 	});
 });
 
