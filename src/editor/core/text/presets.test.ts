@@ -6,6 +6,7 @@ import {
 	applyTextTemplatePreset,
 	clearTextAnimations
 } from './presets';
+import { GRAPHIC_ANIMATION_PRESETS, applyAnimationPresetToClip } from './graphicsTemplates';
 import { createTextClip } from '../adjustment';
 import { evaluate } from '../animation';
 import type { Keyframe } from '../types';
@@ -111,5 +112,41 @@ describe('Text Presets & Templates', () => {
 		const cleared = clearTextAnimations(animated);
 		expect('keyframes' in (cleared.properties?.['scale'] ?? {})).toBe(false);
 		expect((cleared.properties?.['scale'] as { value: unknown })?.value).toBeDefined();
+	});
+});
+
+function keyTimes(clip: ReturnType<typeof createTextClip>, propertyId: string): number[] {
+	const curve = clip.properties?.[propertyId];
+	return curve && 'keyframes' in curve ? curve.keyframes.map((key) => key.time) : [];
+}
+
+describe('animation presets on clips shorter than the preset', () => {
+	it('squeezes an in preset into the clip', () => {
+		const clip = createTextClip(0, 250_000, 'Short');
+		// pop-in lasts 500 ms, so every key must be halved to land inside 250 ms.
+		const full = keyTimes(
+			applyTextAnimationPreset(createTextClip(0, 4_000_000, 'Long'), 'pop-in'),
+			'scale'
+		);
+		const fitted = keyTimes(applyTextAnimationPreset(clip, 'pop-in'), 'scale');
+		expect(fitted).toEqual(full.map((time) => Math.round(time / 2)));
+	});
+
+	it('squeezes an out preset so it still ends on the last frame', () => {
+		const clip = createTextClip(0, 200_000, 'Short');
+		const times = keyTimes(applyTextAnimationPreset(clip, 'fade-out'), 'opacity');
+		expect(times).toEqual([0, 200_000]);
+	});
+
+	it('leaves presets that already fit untouched', () => {
+		const clip = createTextClip(0, 500_000, 'Exact');
+		expect(keyTimes(applyTextAnimationPreset(clip, 'fade-in'), 'opacity')).toEqual([0, 500_000]);
+	});
+
+	it('squeezes graphic presets too, measured from where they start', () => {
+		const preset = GRAPHIC_ANIMATION_PRESETS.find((candidate) => candidate.id === 'bounce-in')!;
+		const clip = createTextClip(0, 300_000, 'Short');
+		const times = keyTimes(applyAnimationPresetToClip(clip, preset, 0), 'position');
+		expect(times).toEqual([0, 210_000, 300_000]);
 	});
 });

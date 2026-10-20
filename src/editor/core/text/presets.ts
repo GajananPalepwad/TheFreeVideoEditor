@@ -604,14 +604,35 @@ export const TEXT_ANIMATION_PRESETS: readonly TextAnimationPreset[] = [
 	}
 ];
 
+/** Squeezes a preset into `available` microseconds so its keys never land past the clip end. */
+export function fitPresetToDuration(
+	preset: TextAnimationPreset,
+	available: number
+): TextAnimationPreset {
+	if (available <= 0 || preset.duration <= available) return preset;
+	const scale = available / preset.duration;
+	return {
+		...preset,
+		duration: available,
+		keyframes: Object.fromEntries(
+			Object.entries(preset.keyframes).map(([propertyId, keys]) => [
+				propertyId,
+				keys.map((key) => ({ ...key, time: Math.round(key.time * scale) }))
+			])
+		)
+	};
+}
+
 /**
  * Applies an animation preset to a clip.
  * For 'in' presets, keyframes start at time 0.
  * For 'out' presets, keyframes start at (clip.duration - preset.duration).
+ * A preset longer than the clip is squeezed to the clip's length.
  */
 export function applyTextAnimationPreset(clip: Clip, presetId: string): Clip {
-	const preset = TEXT_ANIMATION_PRESETS.find((p) => p.id === presetId);
-	if (!preset) return clip;
+	const found = TEXT_ANIMATION_PRESETS.find((p) => p.id === presetId);
+	if (!found) return clip;
+	const preset = fitPresetToDuration(found, clip.duration);
 
 	const properties = { ...(clip.properties ?? {}) };
 	const isOut = preset.kind === 'out';
