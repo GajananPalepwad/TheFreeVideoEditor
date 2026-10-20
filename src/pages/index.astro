@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FeaturesShowcase from '../components/FeaturesShowcase.astro';
 import BuyMeACoffee from '../components/BuyMeACoffee.astro';
+import Contributors from '../components/Contributors.astro';
 
 const seoTitle =
 	'The Free Video Editor — Free Online Video Editor & AI Video Editor in Your Browser';
@@ -139,6 +140,7 @@ const faqJsonLd = {
 					No upload. No account. Your files stay on this device.
 				</p>
 			</div>
+			<Contributors />
 		</section>
 
 		<!-- Complete Pro Feature Suite Showcase -->
@@ -485,12 +487,20 @@ const faqJsonLd = {
 	.home-hero {
 		position: relative;
 		display: grid;
+		grid-template-rows: 1fr auto;
 		min-height: 100vh;
 		min-height: 100dvh;
 		place-items: center;
-		padding: var(--spacing-lg);
+		padding: 5.5rem var(--spacing-lg) 1.5rem;
 		overflow: hidden;
 		perspective: 1000px;
+		box-sizing: border-box;
+	}
+
+	@media (max-width: 768px) {
+		.home-hero {
+			padding: 4.75rem var(--spacing-md) 1.5rem;
+		}
 	}
 
 	/* Ambient space lighting */
