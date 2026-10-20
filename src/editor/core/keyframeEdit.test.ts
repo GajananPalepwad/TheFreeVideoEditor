@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { isAnimated } from './animation';
+import { bounceEase, elasticEase, springEase } from './easing';
 import {
 	copyKeyframes,
 	deleteKeyframes,
 	disableAnimation,
 	enableAnimation,
 	hasKeyframeAt,
+	keyframesOf,
 	moveKeyframes,
 	nextKeyframeTime,
 	pasteKeyframes,
@@ -20,6 +22,8 @@ import {
 } from './keyframeEdit';
 import { propertyCurve, readProperty } from './properties';
 import type { AssetId, Clip, ClipId, PropertyId } from './types';
+
+const CLOSED_FORM = { spring: springEase, elastic: elasticEase, bounce: bounceEase };
 
 function makeClip(duration = 5_000_000): Clip {
 	return {
@@ -189,6 +193,23 @@ describe('keyframeEdit core operations', () => {
 		const bezierCurve = propertyCurve(clip, 'rotation');
 		if (bezierCurve && isAnimated(bezierCurve)) {
 			expect(bezierCurve.keyframes[0]?.easeOut?.x).toBe(0.3);
+		}
+	});
+
+	it('applies spring, elastic and bounce presets and drops bezier handles they replace', () => {
+		for (const preset of ['spring', 'elastic', 'bounce'] as const) {
+			let clip = makeClip();
+			clip = enableAnimation(clip, 'rotation', 0, fps);
+			clip = setPropertyAtTime(clip, 'rotation', 1_000_000, 100, { autoKey: true, fps });
+			clip = setKeyframeInterpolation(clip, [{ propertyId: 'rotation', time: 0 }], 'ease-out');
+			clip = setKeyframeInterpolation(clip, [{ propertyId: 'rotation', time: 0 }], preset);
+			const first = keyframesOf(propertyCurve(clip, 'rotation')!)[0]!;
+			expect(first.interpolation).toBe(preset);
+			expect(first.easeOut).toBeUndefined();
+			expect(readProperty(clip, 'rotation', 500_000)).toBeCloseTo(
+				100 * CLOSED_FORM[preset](0.5),
+				6
+			);
 		}
 	});
 

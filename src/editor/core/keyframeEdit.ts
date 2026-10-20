@@ -46,7 +46,15 @@ export interface KeyframeRef {
 }
 
 export type InterpolationPreset =
-	'linear' | 'hold' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bezier';
+	| 'linear'
+	| 'hold'
+	| 'ease-in'
+	| 'ease-out'
+	| 'ease-in-out'
+	| 'bezier'
+	| 'spring'
+	| 'elastic'
+	| 'bounce';
 
 export interface KeyframeClipboardEntry {
 	propertyId: PropertyId;
@@ -396,6 +404,12 @@ function applyPreset(
 	if (preset === 'linear' || preset === 'hold') {
 		const { easeIn: _in, easeOut: _out, ...plain } = key;
 		void _in;
+		void _out;
+		keys[index] = { ...plain, interpolation: preset };
+		return;
+	}
+	if (preset === 'spring' || preset === 'elastic' || preset === 'bounce') {
+		const { easeOut: _out, ...plain } = key;
 		void _out;
 		keys[index] = { ...plain, interpolation: preset };
 		return;
