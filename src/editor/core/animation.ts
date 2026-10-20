@@ -402,8 +402,9 @@ export function retimeAnimatedValue<T>(
 
 /**
  * Re-times the end-anchored keys after a tail trim or extension so an out animation still finishes
- * on the last frame. Keys the moved group would run into are dropped, and a group longer than the
- * clip is squeezed into it. Curves with no anchored keys are returned as they are.
+ * on the last frame. A trim drops the keys the moved group would run into and squeezes a group longer
+ * than the clip into it; an extension only adds room, so it keeps every other key. Curves with no
+ * anchored keys are returned as they are.
  */
 export function retimeAnimatedValueTail<T>(
 	animated: AnimatedValue<T>,
@@ -424,9 +425,16 @@ export function retimeAnimatedValueTail<T>(
 		const time = Math.round(lastMoved - (lastTime - key.time) * squeeze);
 		if (moved[moved.length - 1]?.time !== time) moved.push({ ...key, time });
 	}
-	const kept = animated.keyframes.filter(
-		(key) => key.anchor !== 'end' && key.time < moved[0]!.time
-	);
+	const movedTimes = new Set(moved.map((key) => key.time));
+	const others = animated.keyframes.filter((key) => key.anchor !== 'end');
+	if (delta > 0) {
+		const kept = others.filter((key) => !movedTimes.has(key.time));
+		return withKeyframes(
+			animated,
+			[...kept, ...moved].sort((a, b) => a.time - b.time)
+		);
+	}
+	const kept = others.filter((key) => key.time < moved[0]!.time);
 	return withKeyframes(animated, [...kept, ...moved]);
 }
 

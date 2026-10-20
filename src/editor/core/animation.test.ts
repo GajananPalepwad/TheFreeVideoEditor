@@ -361,6 +361,19 @@ describe('tail retiming of end-anchored keys', () => {
 		expect(times(trimmed)).toEqual([0, 400_000, 900_000]);
 	});
 
+	it('keeps every other key when the end is extended', () => {
+		const curve: AnimatedValue<number> = {
+			keyframes: [
+				{ time: 0, value: 0, interpolation: 'linear' },
+				{ time: 1_000_000, value: 1, interpolation: 'linear', anchor: 'end' },
+				{ time: 1_400_000, value: 0.5, interpolation: 'linear' },
+				{ time: 2_000_000, value: 0, interpolation: 'linear', anchor: 'end' }
+			]
+		};
+		const longer = retimeAnimatedValueTail(curve, 2_000_000, 2_200_000);
+		expect(times(longer)).toEqual([0, 1_200_000, 1_400_000, 2_200_000]);
+	});
+
 	it('keeps the anchor flag through the project schema', () => {
 		const curve = fadeOutCurve(2_000_000);
 		expect(animatedValueSchema.parse(curve)).toEqual(curve);
