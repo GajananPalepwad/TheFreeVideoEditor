@@ -303,7 +303,14 @@ export default function Inspector() {
 						</span>
 					</button>
 					{isShapeExpanded && (
-						<ShapeSection clip={selectedClip} localTime={localTime} fps={project.settings.fps} />
+						<ShapeSection
+							clip={selectedClip}
+							localTime={localTime}
+							fps={project.settings.fps}
+							confirmDisable={confirmDisable}
+							onStartDisableConfirm={setConfirmDisable}
+							onCancelDisableConfirm={() => setConfirmDisable(null)}
+						/>
 					)}
 				</section>
 			)}
