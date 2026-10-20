@@ -285,6 +285,17 @@
       "defaultValue": "Montserrat"
     },
     {
+      "id": "param_text_size",
+      "name": "Text Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 68,
+      "min": 34,
+      "max": 136,
+      "step": 1
+    },
+    {
       "id": "param_text_color",
       "name": "Text Color",
       "type": "color",

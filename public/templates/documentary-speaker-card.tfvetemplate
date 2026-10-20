@@ -247,6 +247,17 @@
       "defaultValue": "Inter"
     },
     {
+      "id": "param_text_size",
+      "name": "Text Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 50,
+      "min": 25,
+      "max": 100,
+      "step": 1
+    },
+    {
       "id": "param_text_color",
       "name": "Text Color",
       "type": "color",

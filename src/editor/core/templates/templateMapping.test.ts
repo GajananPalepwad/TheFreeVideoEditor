@@ -279,6 +279,68 @@ describe('template data mapping', () => {
 		});
 	});
 
+	describe('number parameters', () => {
+		const sizeParams = (template: MotionGraphicTemplate) =>
+			template.publishedParams.filter((param) => param.targetProperty === 'text.fontSize');
+
+		it('publishes the text size of every template as a slider', () => {
+			for (const template of BUILTIN_MOTION_TEMPLATES) {
+				const params = sizeParams(template);
+				expect(params.length, template.id).toBeGreaterThan(0);
+				for (const param of params) {
+					const size = Number(param.defaultValue);
+					expect(param.type, template.id).toBe('number');
+					expect(param.min, template.id).toBeLessThan(size);
+					expect(param.max, template.id).toBeGreaterThan(size);
+					expect(param.step, template.id).toBeGreaterThan(0);
+				}
+			}
+		});
+
+		it('publishes the size the text is drawn at', () => {
+			for (const template of BUILTIN_MOTION_TEMPLATES) {
+				expect(sizeParams(template).length, template.id).toBeGreaterThan(0);
+				for (const param of sizeParams(template)) {
+					const clip = template.tracks
+						.flatMap((track) => track.clips)
+						.find((candidate) => candidate.id === param.targetClipId)!;
+					const drawn = (clip.properties?.['text.fontSize'] as { value: number }).value;
+					expect(param.defaultValue, template.id).toBe(drawn);
+				}
+			}
+		});
+
+		it('resizes the drawn text when the slider moves', () => {
+			const template = getBuiltinMotionTemplate('cinematic-blockbuster')!;
+			const param = sizeParams(template)[0]!;
+			const { project, params } = instantiate(template);
+			const instanceParam = params.find(
+				(candidate) => candidate.targetProperty === 'text.fontSize'
+			)!;
+			const resized = {
+				...project,
+				tracks: project.tracks.map((track) => ({
+					...track,
+					clips: track.clips.map((clip) =>
+						clip.source?.type === 'sequence'
+							? {
+									...clip,
+									source: {
+										...clip.source,
+										paramOverrides: { [instanceParam.id]: param.max }
+									}
+								}
+							: clip
+					)
+				}))
+			};
+
+			const text = nestedLayers(resized, SETTLED).find((layer) => layer.kind === 'text')!;
+
+			expect(text.textData!.fontSize).toBe(param.max);
+		});
+	});
+
 	describe('layer order', () => {
 		it('stacks the text above its background shape (the first track is the top layer)', () => {
 			for (const template of BUILTIN_MOTION_TEMPLATES) {

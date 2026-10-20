@@ -133,6 +133,17 @@
       "defaultValue": "Roboto Mono"
     },
     {
+      "id": "param_text_size",
+      "name": "Text Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 52,
+      "min": 26,
+      "max": 104,
+      "step": 1
+    },
+    {
       "id": "param_text_color",
       "name": "Text Color",
       "type": "color",
