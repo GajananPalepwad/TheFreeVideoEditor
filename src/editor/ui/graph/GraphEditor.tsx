@@ -13,8 +13,10 @@ import { findClipInSequence } from '../../core/sequences/access';
 import { trackFeatureUsed } from '../../../services/activityTracking';
 import {
 	descriptorFor,
+	channelKeyValue,
 	evaluate,
 	graphPropertyIds,
+	nearestChannel,
 	isAnimated,
 	propertyCurve,
 	readProperty,
@@ -813,10 +815,21 @@ export default function GraphEditor() {
 		const snappedTime = safeFramesToTicks(safeTicksToFrames(time, fps), fps);
 		const displayVal = yToVal(clickY);
 
-		const activeCurve = curves[0]!;
-		const internalVal = displayVal / (activeCurve.desc.displayFactor || 1);
-
-		store.getState().addKeyframeAtTime(selectedClip.id, activeCurve.propertyId, snappedTime, internalVal);
+		const target = nearestChannel(
+			selectedClip,
+			curves.map((curve) => ({ ...curve, displayFactor: curve.desc.displayFactor })),
+			snappedTime,
+			displayVal
+		);
+		if (!target) return;
+		store
+			.getState()
+			.addKeyframeAtTime(
+				selectedClip.id,
+				target.propertyId,
+				snappedTime,
+				channelKeyValue(selectedClip, target, snappedTime, displayVal)
+			);
 	};
 
 	// Wheel Zoom & Pan
@@ -1133,7 +1146,10 @@ export default function GraphEditor() {
 						className="graph-icon-btn"
 						onClick={() => {
 							if (selectedClip && curves.length > 0) {
-								store.getState().toggleKeyframe(selectedClip.id, curves[0]!.propertyId);
+								const keyed = selectedKeyframeRefs.find((ref) => ref.clipId === selectedClip.id);
+								store
+									.getState()
+									.toggleKeyframe(selectedClip.id, keyed?.propertyId ?? curves[0]!.propertyId);
 							}
 						}}
 						title="Add / Toggle Keyframe at Playhead"
