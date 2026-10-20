@@ -1008,7 +1008,7 @@ export default function GraphEditor() {
 			{/* Modern Toolbar */}
 			<div className="graph-editor-toolbar">
 				{/* Property Pills */}
-				<div className="graph-toolbar-group">
+				<div className="graph-toolbar-group graph-toolbar-pills">
 					{availableFilterProperties.map((propId) => {
 						const desc = descriptorFor(propId);
 						if (!desc) return null;
