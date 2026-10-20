@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	ROOT_SEQUENCE_ID,
 	applyToSequence,
+	findClipInSequence,
 	getSequence,
 	isRootSequence,
 	viewProject
@@ -98,6 +99,35 @@ describe('Sequence Access & View Projection', () => {
 		expect(vTrack?.clips[0]!.id).toBe('clip-inside');
 		// Root tracks remain untouched
 		expect(updatedProject.tracks.find((t) => t.kind === 'video')?.clips.length).toBe(0);
+	});
+
+	it('finds a clip in the sequence it belongs to', () => {
+		const { project: base, sequenceId } = createSequence(makeEmptyProject(), 'Scene 1');
+		const inner = makeSolidClip('clip-inside', 0, 1_000_000);
+		const project = applyToSequence(base, sequenceId, (view) => ({
+			...view,
+			tracks: view.tracks.map((t) => (t.kind === 'video' ? { ...t, clips: [inner] } : t))
+		}));
+
+		expect(findClipInSequence(project, sequenceId, inner.id)?.id).toBe(inner.id);
+	});
+
+	it('does not find a nested clip from the root, nor a root clip from a sequence', () => {
+		const { project: base, sequenceId } = createSequence(makeEmptyProject(), 'Scene 1');
+		const inner = makeSolidClip('clip-inside', 0, 1_000_000);
+		const outer = makeSolidClip('clip-outside', 0, 1_000_000);
+		const nested = applyToSequence(base, sequenceId, (view) => ({
+			...view,
+			tracks: view.tracks.map((t) => (t.kind === 'video' ? { ...t, clips: [inner] } : t))
+		}));
+		const project = {
+			...nested,
+			tracks: nested.tracks.map((t) => (t.kind === 'video' ? { ...t, clips: [outer] } : t))
+		};
+
+		expect(findClipInSequence(project, ROOT_SEQUENCE_ID, inner.id)).toBeNull();
+		expect(findClipInSequence(project, sequenceId, outer.id)).toBeNull();
+		expect(findClipInSequence(project, ROOT_SEQUENCE_ID, outer.id)?.id).toBe(outer.id);
 	});
 });
 
