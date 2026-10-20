@@ -291,6 +291,17 @@
       "defaultValue": "Playfair Display"
     },
     {
+      "id": "param_text_size",
+      "name": "Text Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 46,
+      "min": 23,
+      "max": 58,
+      "step": 1
+    },
+    {
       "id": "param_text_color",
       "name": "Text Color",
       "type": "color",

@@ -167,6 +167,53 @@ describe('template data mapping', () => {
 			expect(fill.keyframes!.map((keyframe) => keyframe.value[3])).toEqual([0, 1]);
 		});
 
+		it('recolours the text outline through text.stroke', () => {
+			const targetId = template.publishedParams[0]!.targetClipId;
+			const outlined: MotionGraphicTemplate = {
+				...template,
+				publishedParams: [
+					...template.publishedParams,
+					{
+						id: 'param_outline',
+						name: 'Outline',
+						type: 'color',
+						targetClipId: targetId,
+						targetProperty: 'text.stroke',
+						defaultValue: { r: 0, g: 0, b: 0, a: 1 }
+					}
+				],
+				tracks: template.tracks.map((track) => ({
+					...track,
+					clips: track.clips.map((clip) =>
+						clip.id === targetId
+							? {
+									...clip,
+									properties: {
+										...clip.properties,
+										'text.strokeWidth': { value: 4 },
+										'text.strokeColor': { value: [0, 0, 0, 1] }
+									}
+								}
+							: clip
+					)
+				}))
+			};
+
+			const stroke = (overrides: Record<string, unknown>) =>
+				nestedLayers(withOverrides(outlined, overrides), SETTLED).find(
+					(layer) => layer.kind === 'text'
+				)!.textData!;
+
+			expect(stroke({}).strokeColor).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+			expect(stroke({ param_outline: { r: 1, g: 0.5, b: 0, a: 1 } }).strokeColor).toEqual({
+				r: 1,
+				g: 0.5,
+				b: 0,
+				a: 1
+			});
+			expect(stroke({ param_outline: { r: 1, g: 0.5, b: 0, a: 1 } }).strokeWidth).toBe(4);
+		});
+
 		it('only recolours the colour runs that used the template colour', () => {
 			const textClip = template.tracks
 				.flatMap((track) => track.clips)
@@ -229,6 +276,68 @@ describe('template data mapping', () => {
 			});
 			const shape = nestedLayers(project).find((layer) => layer.kind === 'shape')!;
 			expect(shape.shapeData!.fillColor).toMatchObject({ r: 0, g: 0, b: 1 });
+		});
+	});
+
+	describe('number parameters', () => {
+		const sizeParams = (template: MotionGraphicTemplate) =>
+			template.publishedParams.filter((param) => param.targetProperty === 'text.fontSize');
+
+		it('publishes the text size of every template as a slider', () => {
+			for (const template of BUILTIN_MOTION_TEMPLATES) {
+				const params = sizeParams(template);
+				expect(params.length, template.id).toBeGreaterThan(0);
+				for (const param of params) {
+					const size = Number(param.defaultValue);
+					expect(param.type, template.id).toBe('number');
+					expect(param.min, template.id).toBeLessThan(size);
+					expect(param.max, template.id).toBeGreaterThan(size);
+					expect(param.step, template.id).toBeGreaterThan(0);
+				}
+			}
+		});
+
+		it('publishes the size the text is drawn at', () => {
+			for (const template of BUILTIN_MOTION_TEMPLATES) {
+				expect(sizeParams(template).length, template.id).toBeGreaterThan(0);
+				for (const param of sizeParams(template)) {
+					const clip = template.tracks
+						.flatMap((track) => track.clips)
+						.find((candidate) => candidate.id === param.targetClipId)!;
+					const drawn = (clip.properties?.['text.fontSize'] as { value: number }).value;
+					expect(param.defaultValue, template.id).toBe(drawn);
+				}
+			}
+		});
+
+		it('resizes the drawn text when the slider moves', () => {
+			const template = getBuiltinMotionTemplate('cinematic-blockbuster')!;
+			const param = sizeParams(template)[0]!;
+			const { project, params } = instantiate(template);
+			const instanceParam = params.find(
+				(candidate) => candidate.targetProperty === 'text.fontSize'
+			)!;
+			const resized = {
+				...project,
+				tracks: project.tracks.map((track) => ({
+					...track,
+					clips: track.clips.map((clip) =>
+						clip.source?.type === 'sequence'
+							? {
+									...clip,
+									source: {
+										...clip.source,
+										paramOverrides: { [instanceParam.id]: param.max }
+									}
+								}
+							: clip
+					)
+				}))
+			};
+
+			const text = nestedLayers(resized, SETTLED).find((layer) => layer.kind === 'text')!;
+
+			expect(text.textData!.fontSize).toBe(param.max);
 		});
 	});
 

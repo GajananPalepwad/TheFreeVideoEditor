@@ -40,6 +40,29 @@ function arrayToRgba(arr?: unknown): { r: number; g: number; b: number; a: numbe
 	return { r: 1, g: 1, b: 1, a: 1 };
 }
 
+/**
+ * A slider for the size of one text layer, from half to 1.25 times the size it is drawn at. Larger
+ * text no longer fits the template's measured bounds, so it would be cut off.
+ */
+function textSizeParam(
+	id: string,
+	name: string,
+	targetClipId: ClipId,
+	size: number
+): PublishedTemplateParam {
+	return {
+		id,
+		name,
+		type: 'number',
+		targetClipId,
+		targetProperty: 'text.fontSize',
+		defaultValue: size,
+		min: Math.round(size / 2),
+		max: Math.round(size * 1.25),
+		step: 1
+	};
+}
+
 export function mapCategory(cat: GraphicCategory): TemplateCategory {
 	switch (cat) {
 		case 'kinetic':
@@ -315,6 +338,12 @@ export function convertGraphicTemplateToMotionTemplate(
 			targetProperty: 'text.fontFamily',
 			defaultValue: template.style.fontFamily || 'Montserrat'
 		},
+		textSizeParam(
+			'param_text_size',
+			'Text Size',
+			textClip.id,
+			(textClip.properties?.['text.fontSize'] as { value?: number } | undefined)?.value ?? 56
+		),
 		{
 			id: 'param_text_color',
 			name: 'Text Color',
@@ -716,6 +745,7 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			targetProperty: 'text.fontFamily',
 			defaultValue: 'Montserrat'
 		},
+		textSizeParam('param_title_size', 'Title Size', 'tpl_clip_title' as ClipId, 58),
 		{
 			id: 'param_title_color',
 			name: 'Title Color',
@@ -732,6 +762,7 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			targetProperty: 'text.content',
 			defaultValue: 'ART DEPARTMENT ASSISTANT'
 		},
+		textSizeParam('param_subtitle_size', 'Subtitle Size', 'tpl_clip_subtitle' as ClipId, 22),
 		{
 			id: 'param_subtitle_color',
 			name: 'Subtitle Color',

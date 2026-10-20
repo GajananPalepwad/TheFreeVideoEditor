@@ -256,6 +256,17 @@
       "defaultValue": "Bebas Neue"
     },
     {
+      "id": "param_text_size",
+      "name": "Text Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 62,
+      "min": 31,
+      "max": 78,
+      "step": 1
+    },
+    {
       "id": "param_text_color",
       "name": "Text Color",
       "type": "color",

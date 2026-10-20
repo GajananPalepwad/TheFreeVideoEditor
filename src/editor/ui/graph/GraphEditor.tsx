@@ -202,7 +202,21 @@ export default function GraphEditor() {
 				'text.letterSpacing',
 				'text.lineHeight',
 				'text.reveal',
-				'text.strokeWidth'
+				'text.strokeWidth',
+				'text.shadowBlur',
+				'text.shadowOffsetX',
+				'text.shadowOffsetY'
+			);
+		}
+		if (selectedClip?.source?.type === 'shape') {
+			props.push(
+				'shape.width',
+				'shape.height',
+				'shape.strokeWidth',
+				'shape.cornerRadius',
+				'shape.shadowBlur',
+				'shape.shadowOffsetX',
+				'shape.shadowOffsetY'
 			);
 		}
 		if (selectedClip?.masks) {

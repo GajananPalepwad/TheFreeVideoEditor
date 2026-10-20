@@ -687,6 +687,17 @@
       "defaultValue": "Montserrat"
     },
     {
+      "id": "param_title_size",
+      "name": "Title Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_title",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 58,
+      "min": 29,
+      "max": 73,
+      "step": 1
+    },
+    {
       "id": "param_title_color",
       "name": "Title Color",
       "type": "color",
@@ -706,6 +717,17 @@
       "targetClipId": "tpl_clip_subtitle",
       "targetProperty": "text.content",
       "defaultValue": "ART DEPARTMENT ASSISTANT"
+    },
+    {
+      "id": "param_subtitle_size",
+      "name": "Subtitle Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_subtitle",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 22,
+      "min": 11,
+      "max": 28,
+      "step": 1
     },
     {
       "id": "param_subtitle_color",

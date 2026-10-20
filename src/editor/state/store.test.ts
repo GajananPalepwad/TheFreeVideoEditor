@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createEmptyProject, readProperty } from '../core';
+import { createEmptyProject, isAnimated, propertyCurve, readProperty } from '../core';
 import type {
 	AssetId,
 	ClipId,
@@ -1235,6 +1235,40 @@ LUT_3D_SIZE 2
 			expect(instanceClips(store)).toHaveLength(0);
 		});
 	});
+
+	describe('editing a shape that has keyframes', () => {
+		async function shapeStore() {
+			const store = createEditorStore();
+			await store.getState().createProject({ name: 'Shape keys' });
+			const clipId = store.getState().addShapeClip({ cornerRadius: 10 })!;
+			return { store, clipId };
+		}
+		const shapeClip = (store: ReturnType<typeof createEditorStore>, clipId: ClipId) =>
+			store
+				.getState()
+				.project!.tracks.flatMap((track) => track.clips)
+				.find((clip) => clip.id === clipId)!;
+
+		it('keeps an animated property animated when the Shape panel changes it', async () => {
+			const { store, clipId } = await shapeStore();
+			store.getState().enableAnimation(clipId, 'shape.cornerRadius');
+
+			store.getState().updateShapeProperties(clipId, { cornerRadius: 40 });
+
+			const clip = shapeClip(store, clipId);
+			const curve = propertyCurve(clip, 'shape.cornerRadius');
+			expect(curve && isAnimated(curve)).toBe(true);
+			expect(readProperty(clip, 'shape.cornerRadius', 0)).toBe(40);
+		});
+
+		it('still stores a plain property as a constant', async () => {
+			const { store, clipId } = await shapeStore();
+
+			store.getState().updateShapeProperties(clipId, { cornerRadius: 40 });
+
+			const curve = propertyCurve(shapeClip(store, clipId), 'shape.cornerRadius');
+			expect(curve && isAnimated(curve)).toBe(false);
+			expect(readProperty(shapeClip(store, clipId), 'shape.cornerRadius', 0)).toBe(40);
+		});
+	});
 });
-
-

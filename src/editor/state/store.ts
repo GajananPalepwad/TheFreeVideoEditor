@@ -6843,44 +6843,38 @@ export function createEditorStore() {
 												...currentSource,
 												...updates
 											};
-											const newProps = { ...c.properties };
-											if (updates.width !== undefined) {
-												newProps['shape.width'] = { value: updates.width };
-											}
-											if (updates.height !== undefined) {
-												newProps['shape.height'] = { value: updates.height };
-											}
-											if (updates.fillColor !== undefined) {
-												newProps['shape.fillColor'] = {
-													value: [
-														updates.fillColor.r,
-														updates.fillColor.g,
-														updates.fillColor.b,
-														updates.fillColor.a
-													]
-												};
-											}
+											// Keep the property the renderer reads in step with the source. A property that is
+											// animated stays animated: the edit becomes a keyframe at the playhead.
+											const mirrored: Array<[PropertyId, number | number[]]> = [];
+											const rgba = (color: { r: number; g: number; b: number; a: number }) => [
+												color.r,
+												color.g,
+												color.b,
+												color.a
+											];
+											if (updates.width !== undefined) mirrored.push(['shape.width', updates.width]);
+											if (updates.height !== undefined) mirrored.push(['shape.height', updates.height]);
+											if (updates.fillColor !== undefined) mirrored.push(['shape.fillColor', rgba(updates.fillColor)]);
 											if (updates.strokeColor !== undefined) {
-												newProps['shape.strokeColor'] = {
-													value: [
-														updates.strokeColor.r,
-														updates.strokeColor.g,
-														updates.strokeColor.b,
-														updates.strokeColor.a
-													]
-												};
+												mirrored.push(['shape.strokeColor', rgba(updates.strokeColor)]);
 											}
-											if (updates.strokeWidth !== undefined) {
-												newProps['shape.strokeWidth'] = { value: updates.strokeWidth };
-											}
+											if (updates.strokeWidth !== undefined) mirrored.push(['shape.strokeWidth', updates.strokeWidth]);
 											if (updates.cornerRadius !== undefined) {
-												newProps['shape.cornerRadius'] = { value: updates.cornerRadius };
+												mirrored.push(['shape.cornerRadius', updates.cornerRadius]);
 											}
-											return {
-												...c,
-												source: newSource,
-												properties: newProps
-											};
+											const localTime = get().timeline.playhead - c.start;
+											let next: Clip = { ...c, source: newSource, properties: { ...c.properties } };
+											for (const [id, value] of mirrored) {
+												const current = propertyCurve(next, id);
+												next =
+													current && isAnimated(current)
+														? setPropertyAtTime(next, id, localTime, value, {
+																autoKey: true,
+																fps: view.settings.fps
+															})
+														: { ...next, properties: { ...next.properties, [id]: { value } } };
+											}
+											return next;
 										})
 									}))
 								})),

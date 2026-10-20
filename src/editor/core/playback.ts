@@ -594,6 +594,11 @@ export function resolveFrame(
 				const reveal = Math.min(1, Math.max(0, finite(read('text.reveal', 1), 1)));
 
 				const rawShadow = read('text.shadowColor', null);
+				const shadowBlur = finite(read('text.shadowBlur', 0), 0);
+				const shadowOffsetX = finite(read('text.shadowOffsetX', 0), 0);
+				const shadowOffsetY = finite(read('text.shadowOffsetY', 0), 0);
+				// A shadow with a size or offset but no colour of its own uses the default drop shadow.
+				const hasShadowShape = shadowBlur > 0 || shadowOffsetX !== 0 || shadowOffsetY !== 0;
 				const shadowColor =
 					Array.isArray(rawShadow) && rawShadow.length >= 4
 						? {
@@ -602,10 +607,9 @@ export function resolveFrame(
 								b: finite(rawShadow[2], 0),
 								a: finite(rawShadow[3], 1)
 							}
-						: undefined;
-				const shadowBlur = finite(read('text.shadowBlur', 0), 0);
-				const shadowOffsetX = finite(read('text.shadowOffsetX', 0), 0);
-				const shadowOffsetY = finite(read('text.shadowOffsetY', 0), 0);
+						: hasShadowShape
+							? { r: 0, g: 0, b: 0, a: 0.6 }
+							: undefined;
 
 				const rawBg = read('text.backgroundBoxColor', null);
 				const backgroundBoxColor =

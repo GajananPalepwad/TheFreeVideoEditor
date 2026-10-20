@@ -825,6 +825,20 @@ export function applyParamOverridesToSequence(
 							}
 							break;
 
+						case 'text.stroke':
+							if (clip.source?.type === 'text') {
+								const color = toRgba(value, { r: 0, g: 0, b: 0, a: 1 });
+								// As with the fill, only runs that carried the template's outline colour change.
+								const base = toRgba(param.defaultValue, color);
+								for (const run of clip.source.colorRuns ?? []) {
+									if (run.strokeColor && sameColor(toRgba(run.strokeColor, base), base)) {
+										run.strokeColor = color;
+									}
+								}
+								recolorProperty(clip, 'text.strokeColor', color);
+							}
+							break;
+
 						case 'text.accentBarColor':
 							if (clip.source?.type === 'text') {
 								if (!clip.source.box) {

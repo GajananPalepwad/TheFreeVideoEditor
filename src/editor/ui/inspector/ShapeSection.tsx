@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { Clip, Time } from '../../core';
+import type { Clip, PropertyId, Time } from '../../core';
 import type { ShapeConfig } from '../../core/shapes/shapeTypes';
 import { useEditorStoreApi } from '../../state/EditorProvider';
 import { ColorPickerField } from './ColorPickerField';
+import { PropertyRow, type ConfirmDisableState } from './Inspector';
 import {
 	ShapeIcon,
 	LinkAspectIcon,
@@ -14,9 +15,33 @@ interface ShapeSectionProps {
 	clip: Clip;
 	localTime: Time;
 	fps: number;
+	confirmDisable: ConfirmDisableState | null;
+	onStartDisableConfirm: (state: ConfirmDisableState) => void;
+	onCancelDisableConfirm: () => void;
 }
 
-export function ShapeSection({ clip }: ShapeSectionProps) {
+/** The shape properties that can be keyframed, in the order they are listed. */
+const ANIMATABLE_SHAPE_PROPERTIES: PropertyId[] = [
+	'shape.width',
+	'shape.height',
+	'shape.fillColor',
+	'shape.strokeColor',
+	'shape.strokeWidth',
+	'shape.cornerRadius',
+	'shape.shadowColor',
+	'shape.shadowBlur',
+	'shape.shadowOffsetX',
+	'shape.shadowOffsetY'
+];
+
+export function ShapeSection({
+	clip,
+	localTime,
+	fps,
+	confirmDisable,
+	onStartDisableConfirm,
+	onCancelDisableConfirm
+}: ShapeSectionProps) {
 	const store = useEditorStoreApi();
 	const shapeSource = clip.source?.type === 'shape' ? clip.source : null;
 	const [linkAspect, setLinkAspect] = useState(false);
@@ -363,6 +388,30 @@ export function ShapeSection({ clip }: ShapeSectionProps) {
 						</div>
 					</>
 				)}
+			</div>
+
+			{/* Keyframes: each row edits the value at the playhead and has its own stopwatch. */}
+			<div
+				className="property-group shape-group-divider"
+				style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+			>
+				<span className="shape-field-heading" style={{ marginBottom: 0 }}>
+					Animate
+				</span>
+				{ANIMATABLE_SHAPE_PROPERTIES.filter(
+					(propertyId) => propertyId !== 'shape.fillColor' || shapeType !== 'line'
+				).map((propertyId) => (
+					<PropertyRow
+						key={propertyId}
+						clip={clip}
+						propertyId={propertyId}
+						localTime={localTime}
+						fps={fps}
+						confirmDisable={confirmDisable}
+						onStartDisableConfirm={onStartDisableConfirm}
+						onCancelDisableConfirm={onCancelDisableConfirm}
+					/>
+				))}
 			</div>
 		</div>
 	);
