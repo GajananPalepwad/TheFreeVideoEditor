@@ -235,6 +235,35 @@ describe('keyframeEdit core operations', () => {
 		expect(hasKeyframeAt(pastedClip, 'opacity', 1_400_000)).toBe(true);
 	});
 
+	it('keeps the end anchor of out-animation keyframes through copy and paste', () => {
+		let clip = makeClip();
+		clip = enableAnimation(clip, 'opacity', 4_500_000, fps);
+		clip = setPropertyAtTime(clip, 'opacity', 5_000_000, 0, { autoKey: true, fps });
+		const curve = propertyCurve(clip, 'opacity')!;
+		clip = {
+			...clip,
+			properties: {
+				...clip.properties,
+				opacity: {
+					...curve,
+					keyframes: keyframesOf(curve).map((key) => ({ ...key, anchor: 'end' as const }))
+				}
+			}
+		};
+
+		const clipboard: KeyframeClipboard = copyKeyframes(clip, [
+			{ propertyId: 'opacity', time: 4_500_000 },
+			{ propertyId: 'opacity', time: 5_000_000 }
+		]);
+		expect(clipboard.entries.map((entry) => entry.anchor)).toEqual(['end', 'end']);
+
+		const { clip: pasted } = pasteKeyframes(makeClip(), clipboard, 500_000);
+		expect(keyframesOf(propertyCurve(pasted, 'opacity')!).map((key) => key.anchor)).toEqual([
+			'end',
+			'end'
+		]);
+	});
+
 	it('migrates legacy transform on first edit into constant properties', () => {
 		const legacyClip: Clip = {
 			...makeClip(),
