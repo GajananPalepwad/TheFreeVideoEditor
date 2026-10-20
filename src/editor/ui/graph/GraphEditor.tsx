@@ -16,6 +16,7 @@ import {
 	channelKeyValue,
 	evaluate,
 	graphPropertyIds,
+	TRANSFORM_PROPERTIES,
 	nearestChannel,
 	isAnimated,
 	propertyCurve,
@@ -87,8 +88,6 @@ function safeFramesToTicks(frames: number, fps: number): Time {
 	return Math.round((wholeFrames / safeFps) * 1_000_000);
 }
 
-const FILTER_PROPERTIES: PropertyId[] = ['position', 'scale', 'rotation', 'opacity', 'crop'];
-
 interface ViewportBounds {
 	minT: number;
 	maxT: number;
@@ -140,7 +139,7 @@ export default function GraphEditor() {
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
 	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
 	const visibleProperties = useEditorStore(
-		(state) => state.keyframes.graph.visibleProperties ?? FILTER_PROPERTIES
+		(state) => state.keyframes.graph.visibleProperties ?? TRANSFORM_PROPERTIES
 	);
 	const selectedKeyframeRefs = useEditorStore((state) => state.keyframes.selection);
 
@@ -201,7 +200,7 @@ export default function GraphEditor() {
 
 	// Filter properties available for this clip
 	const availableFilterProperties: PropertyId[] = useMemo(
-		() => (selectedClip ? graphPropertyIds(selectedClip) : FILTER_PROPERTIES),
+		() => (selectedClip ? graphPropertyIds(selectedClip) : TRANSFORM_PROPERTIES),
 		[selectedClip]
 	);
 

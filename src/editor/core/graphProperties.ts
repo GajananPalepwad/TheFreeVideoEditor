@@ -3,7 +3,7 @@ import { getEffectDefinition } from './effects/registry';
 import { readProperty, type PropertyValue } from './properties';
 import type { Clip, PropertyId, Time } from './types';
 
-const TRANSFORM_PROPERTIES: PropertyId[] = ['position', 'scale', 'rotation', 'opacity', 'crop'];
+export const TRANSFORM_PROPERTIES: PropertyId[] = ['position', 'scale', 'rotation', 'opacity', 'crop'];
 
 const PLOTTABLE_EFFECT_PARAMS = new Set(['number', 'angle', 'point']);
 
