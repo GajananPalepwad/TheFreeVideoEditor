@@ -1,7 +1,14 @@
+import { bounceEase, elasticEase, springEase, type EasingFunction } from './easing';
 import type { AnimatedValue, BezierHandle, Interpolation, Keyframe, Time } from './types';
 
 export const DEFAULT_EASE_OUT: BezierHandle = { x: 0.42, y: 0 };
 export const DEFAULT_EASE_IN: BezierHandle = { x: 0.58, y: 1 };
+
+const CLOSED_FORM_EASINGS: Partial<Record<Interpolation, EasingFunction>> = {
+	spring: springEase,
+	elastic: elasticEase,
+	bounce: bounceEase
+};
 
 type Lerpable = number | readonly number[] | Readonly<Record<string, number>>;
 
@@ -149,13 +156,16 @@ export function evaluate<T>(animated: AnimatedValue<T>, localTime: Time): T {
 	if (localTime === from.time) return from.value;
 	if (from.interpolation === 'hold') return from.value;
 	const linear = (localTime - from.time) / (to.time - from.time);
+	const closedForm = CLOSED_FORM_EASINGS[from.interpolation];
 	const amount =
 		from.interpolation === 'bezier'
 			? (() => {
 					const handles = handlesFor(from, to);
 					return cubicBezierEase(handles.out, handles.in, linear);
 				})()
-			: linear;
+			: closedForm
+				? closedForm(linear)
+				: linear;
 	return lerpValue(from.value, to.value, amount, animated.angleMode === 'shortest');
 }
 
@@ -259,6 +269,33 @@ function splitCubic(
 	return { left: [p0, p01, p012, p0123], right: [p0123, p123, p23, p3] };
 }
 
+const BAKE_STEPS = 64;
+
+/**
+ * Replaces the segment after keyframe `index` with short linear steps that follow its curve. A
+ * closed-form easing cannot be cut in two the way a bezier can, so splitting bakes it first.
+ */
+function bakeSegment<T>(animated: AnimatedValue<T>, index: number): AnimatedValue<T> {
+	if (!isAnimated(animated)) return animated;
+	const keyframes = animated.keyframes;
+	const from = keyframes[index]!;
+	const to = keyframes[index + 1]!;
+	const steps: Keyframe<T>[] = [];
+	for (let step = 1; step < BAKE_STEPS; step += 1) {
+		const time = from.time + Math.round(((to.time - from.time) * step) / BAKE_STEPS);
+		if (time <= (steps[steps.length - 1]?.time ?? from.time) || time >= to.time) continue;
+		steps.push({ time, value: evaluate(animated, time), interpolation: 'linear' });
+	}
+	const { easeOut: _out, ...plain } = from;
+	void _out;
+	return withKeyframes(animated, [
+		...keyframes.slice(0, index),
+		{ ...plain, interpolation: 'linear' },
+		...steps,
+		...keyframes.slice(index + 1)
+	]);
+}
+
 /**
  * Splits at a clip-local time. The left side keeps its time base; the right side is shifted so
  * the split point becomes time 0. Cubic-bezier segments are cut with de Casteljau so both sides
@@ -292,6 +329,9 @@ export function splitAnimatedValue<T>(
 	while (keyframes[index + 1]!.time < atLocalTime) index += 1;
 	const from = keyframes[index]!;
 	const to = keyframes[index + 1]!;
+	if (CLOSED_FORM_EASINGS[from.interpolation]) {
+		return splitAnimatedValue(bakeSegment(animated, index), atLocalTime);
+	}
 	const boundaryValue = evaluate(animated, atLocalTime);
 	const leftKeys = keyframes.slice(0, index + 1);
 	const rightKeys = keyframes.slice(index + 1);

@@ -78,7 +78,7 @@ export interface Asset {
 	audio?: AssetAudioMetadata;
 }
 
-export type Interpolation = 'linear' | 'hold' | 'bezier';
+export type Interpolation = 'linear' | 'hold' | 'bezier' | 'spring' | 'elastic' | 'bounce';
 
 /** Cubic-bezier control point in normalized segment space; x must stay within [0, 1]. */
 export interface BezierHandle {

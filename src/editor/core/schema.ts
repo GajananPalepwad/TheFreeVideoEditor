@@ -49,7 +49,7 @@ const bezierHandleSchema = z.object({ x: z.number(), y: z.number() });
 const keyframeSchema = z.object({
 	time: timeSchema,
 	value: z.unknown().refine((value) => value !== undefined, 'Keyframe value is required.'),
-	interpolation: z.enum(['linear', 'hold', 'bezier']),
+	interpolation: z.enum(['linear', 'hold', 'bezier', 'spring', 'elastic', 'bounce']),
 	easeOut: bezierHandleSchema.optional(),
 	easeIn: bezierHandleSchema.optional()
 });

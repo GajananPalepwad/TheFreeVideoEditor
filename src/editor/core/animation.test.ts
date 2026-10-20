@@ -11,6 +11,8 @@ import {
 	solveBezierParameter,
 	splitAnimatedValue
 } from './animation';
+import { bounceEase, elasticEase, springEase } from './easing';
+import { animatedValueSchema } from './schema';
 import type { AnimatedValue, Keyframe } from './types';
 
 function numberCurve(...frames: Array<[number, number, Keyframe<number>['interpolation']?]>) {
@@ -237,6 +239,72 @@ describe('split and retime', () => {
 		const trimmed = retimeAnimatedValue(curve, 400);
 		for (const absolute of [400, 700, 1000]) {
 			expect(evaluate(trimmed, absolute - 400)).toBeCloseTo(evaluate(curve, absolute), 9);
+		}
+	});
+});
+
+describe('spring, elastic and bounce interpolation', () => {
+	const kinds = [
+		['spring', springEase],
+		['elastic', elasticEase],
+		['bounce', bounceEase]
+	] as const;
+
+	for (const [kind, ease] of kinds) {
+		it(`${kind} eases a number between its keyframes`, () => {
+			const curve = numberCurve([0, 10, kind], [1000, 110]);
+			for (const time of [100, 250, 500, 800]) {
+				expect(evaluate(curve, time)).toBeCloseTo(10 + 100 * ease(time / 1000), 9);
+			}
+			expect(evaluate(curve, 0)).toBe(10);
+			expect(evaluate(curve, 1000)).toBe(110);
+		});
+
+		it(`${kind} eases vectors component-wise`, () => {
+			const curve: AnimatedValue<number[]> = {
+				keyframes: [
+					{ time: 0, value: [0, 100], interpolation: kind },
+					{ time: 1000, value: [50, 0], interpolation: 'linear' }
+				]
+			};
+			const [x, y] = evaluate(curve, 400);
+			expect(x).toBeCloseTo(50 * ease(0.4), 9);
+			expect(y).toBeCloseTo(100 - 100 * ease(0.4), 9);
+		});
+
+		it(`${kind} round-trips through the project schema`, () => {
+			const curve = numberCurve([0, 0, kind], [1000, 1]);
+			expect(animatedValueSchema.parse(curve)).toEqual(curve);
+		});
+
+		it(`${kind} keeps its shape on both sides of a split`, () => {
+			const curve = numberCurve([0, 0, kind], [1000, 100], [2000, 40]);
+			for (const at of [250, 600, 1000]) {
+				const [left, right] = splitAnimatedValue(curve, at);
+				for (let time = 0; time <= 2000; time += 25) {
+					const actual = time <= at ? evaluate(left, time) : evaluate(right, time - at);
+					expect(Math.abs(actual - evaluate(curve, time))).toBeLessThan(2.5);
+				}
+			}
+		});
+	}
+
+	it('keeps the incoming ease of the key it bakes', () => {
+		const curve: AnimatedValue<number> = {
+			keyframes: [
+				{ time: 0, value: 0, interpolation: 'bezier' },
+				{
+					time: 1000,
+					value: 100,
+					interpolation: 'spring',
+					easeIn: { x: 0.2, y: 0.9 }
+				},
+				{ time: 2000, value: 0, interpolation: 'linear' }
+			]
+		};
+		const [left] = splitAnimatedValue(curve, 1500);
+		for (const time of [250, 500, 750]) {
+			expect(evaluate(left, time)).toBeCloseTo(evaluate(curve, time), 9);
 		}
 	});
 });
