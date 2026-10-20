@@ -150,3 +150,26 @@ describe('animation presets on clips shorter than the preset', () => {
 		expect(times).toEqual([0, 210_000, 300_000]);
 	});
 });
+
+describe('end anchoring of out presets', () => {
+	function anchors(clip: ReturnType<typeof createTextClip>, propertyId: string): unknown[] {
+		const curve = clip.properties?.[propertyId];
+		return curve && 'keyframes' in curve ? curve.keyframes.map((key) => key.anchor) : [];
+	}
+
+	it('anchors the keys of an out preset to the clip end', () => {
+		const clip = applyTextAnimationPreset(createTextClip(0, 4_000_000, 'Out'), 'fade-out');
+		expect(anchors(clip, 'opacity')).toEqual(['end', 'end']);
+	});
+
+	it('does not anchor in presets', () => {
+		const clip = applyTextAnimationPreset(createTextClip(0, 4_000_000, 'In'), 'fade-in');
+		expect(anchors(clip, 'opacity')).toEqual([undefined, undefined]);
+	});
+
+	it('anchors graphic out presets too', () => {
+		const preset = { ...GRAPHIC_ANIMATION_PRESETS[0]!, kind: 'out' as const };
+		const clip = applyAnimationPresetToClip(createTextClip(0, 4_000_000, 'Out'), preset, 3_000_000);
+		expect(anchors(clip, 'opacity').every((anchor) => anchor === 'end')).toBe(true);
+	});
+});

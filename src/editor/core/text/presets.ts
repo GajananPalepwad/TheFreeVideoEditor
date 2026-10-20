@@ -641,7 +641,8 @@ export function applyTextAnimationPreset(clip: Clip, presetId: string): Clip {
 	for (const [propId, keyframes] of Object.entries(preset.keyframes)) {
 		const offsetKeyframes = keyframes.map((kf) => ({
 			...kf,
-			time: baseTime + kf.time
+			time: baseTime + kf.time,
+			...(preset.kind === 'out' ? { anchor: 'end' as const } : {})
 		}));
 
 		// Keep any existing keyframes that don't collide with the preset time range

@@ -989,7 +989,8 @@ export function applyAnimationPresetToClip(
 	for (const [propId, keyframes] of Object.entries(preset.keyframes)) {
 		const offsetKeyframes = keyframes.map((kf) => ({
 			...kf,
-			time: baseTime + kf.time
+			time: baseTime + kf.time,
+			...(preset.kind === 'out' ? { anchor: 'end' as const } : {})
 		}));
 
 		const existing = properties[propId];
