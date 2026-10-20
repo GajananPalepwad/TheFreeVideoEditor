@@ -93,6 +93,8 @@ export interface Keyframe<T> {
 	interpolation: Interpolation;
 	easeOut?: BezierHandle;
 	easeIn?: BezierHandle;
+	/** Follows the clip's end when it is trimmed or extended, as an out animation's keys do. */
+	anchor?: 'end';
 }
 
 export type AngleMode = 'unwrapped' | 'shortest';

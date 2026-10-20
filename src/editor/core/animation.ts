@@ -221,7 +221,12 @@ export function setInterpolation<T>(
 		animated,
 		animated.keyframes.map((item) => {
 			if (item.time !== time) return item;
-			const rest: Keyframe<T> = { time: item.time, value: item.value, interpolation };
+			const rest: Keyframe<T> = {
+				time: item.time,
+				value: item.value,
+				interpolation,
+				...(item.anchor ? { anchor: item.anchor } : {})
+			};
 			return {
 				...rest,
 				...(handles.easeIn ? { easeIn: clampHandle(handles.easeIn) } : {}),
@@ -284,7 +289,12 @@ function bakeSegment<T>(animated: AnimatedValue<T>, index: number): AnimatedValu
 	for (let step = 1; step < BAKE_STEPS; step += 1) {
 		const time = from.time + Math.round(((to.time - from.time) * step) / BAKE_STEPS);
 		if (time <= (steps[steps.length - 1]?.time ?? from.time) || time >= to.time) continue;
-		steps.push({ time, value: evaluate(animated, time), interpolation: 'linear' });
+		steps.push({
+			time,
+			value: evaluate(animated, time),
+			interpolation: 'linear',
+			...(from.anchor && to.anchor ? { anchor: 'end' as const } : {})
+		});
 	}
 	const { easeOut: _out, ...plain } = from;
 	void _out;
@@ -335,16 +345,19 @@ export function splitAnimatedValue<T>(
 	const boundaryValue = evaluate(animated, atLocalTime);
 	const leftKeys = keyframes.slice(0, index + 1);
 	const rightKeys = keyframes.slice(index + 1);
+	const anchor = from.anchor && to.anchor ? { anchor: 'end' as const } : {};
 	let leftFrom: Keyframe<T> = from;
 	let leftBoundary: Keyframe<T> = {
 		time: atLocalTime,
 		value: boundaryValue,
-		interpolation: from.interpolation
+		interpolation: from.interpolation,
+		...anchor
 	};
 	let rightBoundary: Keyframe<T> = {
 		time: atLocalTime,
 		value: boundaryValue,
-		interpolation: from.interpolation
+		interpolation: from.interpolation,
+		...anchor
 	};
 	let rightTo: Keyframe<T> = to;
 
@@ -385,6 +398,36 @@ export function retimeAnimatedValue<T>(
 ): AnimatedValue<T> {
 	if (trimmed === 0) return animated;
 	return splitAnimatedValue(animated, trimmed)[1];
+}
+
+/**
+ * Re-times the end-anchored keys after a tail trim or extension so an out animation still finishes
+ * on the last frame. Keys the moved group would run into are dropped, and a group longer than the
+ * clip is squeezed into it. Curves with no anchored keys are returned as they are.
+ */
+export function retimeAnimatedValueTail<T>(
+	animated: AnimatedValue<T>,
+	oldDuration: Time,
+	newDuration: Time
+): AnimatedValue<T> {
+	if (!isAnimated(animated) || oldDuration === newDuration) return animated;
+	const anchored = animated.keyframes.filter((key) => key.anchor === 'end');
+	const first = anchored[0];
+	if (!first) return animated;
+	const delta = newDuration - oldDuration;
+	const lastTime = anchored[anchored.length - 1]!.time;
+	const lastMoved = Math.max(0, lastTime + delta);
+	const span = lastTime - first.time;
+	const squeeze = span > 0 && first.time + delta < 0 ? lastMoved / span : 1;
+	const moved: Keyframe<T>[] = [];
+	for (const key of anchored) {
+		const time = Math.round(lastMoved - (lastTime - key.time) * squeeze);
+		if (moved[moved.length - 1]?.time !== time) moved.push({ ...key, time });
+	}
+	const kept = animated.keyframes.filter(
+		(key) => key.anchor !== 'end' && key.time < moved[0]!.time
+	);
+	return withKeyframes(animated, [...kept, ...moved]);
 }
 
 export function evaluateOr<T>(
