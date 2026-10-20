@@ -30,6 +30,7 @@ import { TextSection } from './TextSection';
 import { ShapeSection } from './ShapeSection';
 import { MotionTemplateSection } from './MotionTemplateSection';
 import { isMotionTemplateClip } from '../../core/templates/templateTypes';
+import { findClipInSequence } from '../../core/sequences/access';
 import { TransitionInspector } from './TransitionInspector';
 import { audioEffectRegistry } from '../../core/audio/effects';
 import { ColorPickerField } from './ColorPickerField';
@@ -47,6 +48,7 @@ export default function Inspector() {
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
 	const selectedTransitionId = useEditorStore((state) => state.timeline.selection.transitionId);
 	const inspector = useEditorStore((state) => state.inspector);
+	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
 
 	const [confirmDisable, setConfirmDisable] = useState<ConfirmDisableState | null>(null);
 
@@ -68,7 +70,7 @@ export default function Inspector() {
 	// Find the single selected clip
 	const selectedClip: Clip | null =
 		project && selectedClipIds.length === 1
-			? (project.tracks.flatMap((t) => t.clips).find((c) => c.id === selectedClipIds[0]) ?? null)
+			? findClipInSequence(project, activeSequenceId, selectedClipIds[0]!)
 			: null;
 
 	if (!project) {
