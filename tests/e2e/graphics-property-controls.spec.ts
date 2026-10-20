@@ -90,3 +90,45 @@ test.describe('number parameters', () => {
 			.toContain(100);
 	});
 });
+
+test.describe('shape keyframes', () => {
+	test('a shape property can be animated from the Inspector', async ({ page }) => {
+		await openProject(page);
+		const clipId = await page.evaluate(() => {
+			const state = (window as any).__TFVE_STORE__.getState();
+			const id = state.addShapeClip({ cornerRadius: 10 });
+			(window as any).__TFVE_STORE__.getState().selectClips([id]);
+			return id as string;
+		});
+
+		await page.getByRole('button', { name: 'Enable animation for Corner Radius' }).first().click();
+
+		await expect(
+			page.getByRole('button', { name: 'Disable animation for Corner Radius' }).first()
+		).toBeVisible();
+		expect(JSON.stringify(await clipProperty(page, clipId, 'shape.cornerRadius'))).toContain(
+			'keyframes'
+		);
+	});
+
+	test('editing the Shape panel afterwards keeps the keyframes', async ({ page }) => {
+		await openProject(page);
+		const clipId = await page.evaluate(() => {
+			const state = (window as any).__TFVE_STORE__.getState();
+			const id = state.addShapeClip({ cornerRadius: 10 });
+			state.enableAnimation(id, 'shape.cornerRadius');
+			(window as any).__TFVE_STORE__.getState().selectClips([id]);
+			return id as string;
+		});
+
+		await page.evaluate(
+			(id) =>
+				(window as any).__TFVE_STORE__.getState().updateShapeProperties(id, { cornerRadius: 30 }),
+			clipId
+		);
+
+		expect(JSON.stringify(await clipProperty(page, clipId, 'shape.cornerRadius'))).toContain(
+			'keyframes'
+		);
+	});
+});
