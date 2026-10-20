@@ -7,7 +7,8 @@ import { BUILTIN_MOTION_TEMPLATES, getBuiltinMotionTemplate } from './builtinTem
 import {
 	applyParamOverridesToSequence,
 	instantiateTemplateIntoProject,
-	offsetClipPosition
+	offsetClipPosition,
+	unpackTemplateInstanceClip
 } from './templateService';
 import type { MotionGraphicTemplate } from './templateTypes';
 
@@ -301,5 +302,34 @@ describe('template data mapping', () => {
 			);
 			expect(moved.transform).toMatchObject({ x: -23, y: -31 });
 		});
+	});
+
+	describe('unpacking a template instance', () => {
+		const layered = BUILTIN_MOTION_TEMPLATES.filter(
+			(template) => template.tracks.flatMap((track) => track.clips).length > 1
+		);
+
+		it('has multi-layer templates to check', () => {
+			expect(layered.length).toBeGreaterThan(0);
+		});
+
+		for (const template of layered) {
+			it(`${template.id}: keeps every layer and never overlaps clips on a track`, () => {
+				const { project } = instantiate(template);
+				const instance = project.tracks.flatMap((track) => track.clips)[0]!;
+				const layers = template.tracks.flatMap((track) => track.clips).length;
+
+				const unpacked = unpackTemplateInstanceClip(project, 'root' as SequenceId, instance.id);
+
+				expect(unpacked.tracks.flatMap((track) => track.clips)).toHaveLength(layers);
+				for (const track of unpacked.tracks) {
+					const sorted = [...track.clips].sort((a, b) => a.start - b.start);
+					for (let index = 1; index < sorted.length; index += 1) {
+						const previous = sorted[index - 1]!;
+						expect(sorted[index]!.start).toBeGreaterThanOrEqual(previous.start + previous.duration);
+					}
+				}
+			});
+		}
 	});
 });
