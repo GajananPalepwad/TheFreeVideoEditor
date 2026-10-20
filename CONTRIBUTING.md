@@ -1,153 +1,250 @@
-# Contributing to The Free Video Editor (TFVE)
+<div align="center">
 
-Thank you for your interest in contributing to **The Free Video Editor**! We welcome contributions from developers, designers, video editors, and technical writers of all experience levels.
+# 🤝 Contributing to The Free Video Editor
 
-This document provides a set of guidelines and instructions for contributing to this project.
+### _Thank you for helping build the future of free, private, web-native video editing!_
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](./CONTRIBUTING.md)
+[![First Timers Friendly](https://img.shields.io/badge/First--timers--friendly-yes-green.svg?style=for-the-badge)](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues)
+[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)
+
+<p align="center">
+  <a href="#-code-of-conduct"><strong>Code of Conduct</strong></a> •
+  <a href="#-where-can-i-help"><strong>Where Can I Help?</strong></a> •
+  <a href="#-getting-started"><strong>Getting Started</strong></a> •
+  <a href="#-architectural-principles--invariants"><strong>Architecture</strong></a> •
+  <a href="#-development-workflow"><strong>Dev Workflow</strong></a> •
+  <a href="#-submitting-a-pull-request"><strong>PR Checklist</strong></a>
+</p>
+
+</div>
 
 ---
 
-## Code of Conduct
-
-We are committed to providing a welcoming, inclusive, and harassment-free environment for everyone. Please be respectful and considerate in your interactions with fellow contributors and maintainers.
+We welcome contributions from developers, video editors, designers, and technical writers of all backgrounds and experience levels. Whether you are fixing a small CSS glitch, crafting a WebGL shader transition, tuning audio DSP equations, or improving documentation, every contribution makes an impact.
 
 ---
 
-## Getting Started
+## 📜 Code of Conduct
+
+We are committed to providing a welcoming, inclusive, harassment-free, and respectful environment for everyone.
+
+- **Be Respectful**: Treat fellow contributors, maintainers, and community members with empathy and kindness.
+- **Constructive Communication**: Focus on constructive feedback, collaborative problem-solving, and shared learning.
+- **Inclusivity**: Welcome beginners and experienced developers alike.
+
+---
+
+## 🧭 Where Can I Help?
+
+Find an area that matches your skills and passions:
+
+| Domain                    | Key Technologies                         | What You Can Work On                                                                                            |
+| :------------------------ | :--------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| 🎨 **UI / UX & React**    | React 19, Tailwind CSS, Radix UI, Lucide | Timeline controls, inspector panels, color pickers, modal dialogs, keyboard navigation, and responsive layouts. |
+| 🧪 **WebGL2 & Shaders**   | WebGL2, GLSL, Shaders, Canvas2D          | Real-time transitions, blend modes, LUT color grading, motion graphics, and chroma key (green screen).          |
+| 🔊 **Audio & DSP**        | Web Audio API, Biquad Filters            | Parametric EQ visualizers, dynamic compressors, limiter algorithms, audio ducking, and stereo metering.         |
+| 📐 **Core Math & Engine** | Pure TypeScript, Zod, Microsecond Math   | Non-destructive timeline operations, collision detection, ripple edits, snapping, and marker range logic.       |
+| 🤖 **AI & Speech**        | Transformers.js, ONNX, WebGPU            | On-device Whisper AI speech-to-text models, word synchronization, and animated subtitle presets.                |
+| 🔄 **Interchange & I/O**  | XML, OTIO, WebCodecs, OPFS               | Final Cut Pro XML (`FCPXML`), OpenTimelineIO (`OTIO`), EDL, MP4 muxing, and high-performance video export.      |
+| 📝 **Docs & Tutorials**   | Markdown, Astro, Technical Writing       | Video editing guides, shortcut documentation, API references, and feature walkthroughs.                         |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js**: `>= 22.12.0` (Recommended: latest LTS)
-- **npm**: `>= 10.0.0`
-- **Modern Browser**: Chrome / Chromium 120+, Edge 120+, Safari 17.4+, or Firefox 128+ with WebCodecs and WebGL2 support.
+Before you start, make sure you have installed:
 
-### Setup Instructions
+- **Node.js**: `>= 22.12.0` (LTS recommended)
+- **Package Manager**: `npm` (`v10+`)
+- **Modern Web Browser**: Google Chrome 120+, Microsoft Edge 120+, or Apple Safari 17.4+
 
-1. **Fork the repository** on GitHub: [https://github.com/GajananPalepwad/TheFreeVideoEditor](https://github.com/GajananPalepwad/TheFreeVideoEditor)
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/<your-username>/TheFreeVideoEditor.git
-   cd TheFreeVideoEditor
-   ```
-3. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-4. **Start the local development server**:
-   ```bash
-   npm run dev
-   ```
-5. Open [http://localhost:4321](http://localhost:4321) in your browser.
+### Setup in 4 Steps
+
+```bash
+# 1. Fork the repository on GitHub, then clone your fork locally:
+git clone https://github.com/<your-username>/TheFreeVideoEditor.git
+cd TheFreeVideoEditor
+
+# 2. Add the upstream repository remote to stay synchronized:
+git remote add upstream https://github.com/GajananPalepwad/TheFreeVideoEditor.git
+
+# 3. Install project dependencies:
+npm install
+
+# 4. Start the local development server:
+npm run dev
+```
+
+Open [**http://localhost:4321**](http://localhost:4321) in your browser. Navigating to `/editor` launches the full editing suite.
 
 > [!NOTE]
-> **Deployment Access**: Contributors do not have access to deploy the application to Cloudflare Workers or production infrastructure. Testing and verification are done locally (`npm run dev`, `npm test`, `npm run preview`). Deployments are handled exclusively by maintainers.
+> **Deployment Access**: Deployment keys and Cloudflare Workers production hosting are restricted to core maintainers. Contributors do not need deployment access; all development and verification are done locally via `npm run dev`, `npm test`, and `npm run preview`.
 
 ---
 
-## Architectural Principles & Invariants
+## 📐 Architectural Principles & Invariants
 
-Before contributing code, please familiarize yourself with the architectural layers:
+To keep the application fast, deterministic, and maintainable, our codebase enforces strict architectural layer boundaries. Please review these rules before submitting code:
 
-### Layer Separation
-1. **`src/editor/core/` (Pure Logic & Math)**:
-   - Contains pure data structures, timeline math, timecode calculations, project models, and serialization.
-   - **Rule**: Never import UI components, React hooks, or browser-specific rendering elements into `core/`. Core must remain deterministic and testable.
-2. **`src/editor/services/` (Hardware & Subsystems)**:
-   - Houses WebCodecs decoders/encoders, WebGL2 compositors, Web Audio DSP pipelines, OPFS caching, and Web Workers.
-   - **Rule**: Encapsulate Web APIs, resource disposal (`dispose()`, `close()`), and memory management (GPU textures, AudioBuffers) cleanly.
-3. **`src/editor/state/` (Application State)**:
-   - Zustand stores, history stacks (undo/redo), and reactive hooks.
-   - **Rule**: State mutations must be deterministic, atomic, and serializable.
-4. **`src/editor/ui/` & `src/components/` (Presentation)**:
-   - React components, Astro layouts, Tailwind CSS styling, Radix UI primitives, Lucide icons.
-   - **Rule**: Keep UI components thin. Delegate computations to `core` and state mutations to `state`.
+```mermaid
+flowchart TD
+    Core["1. Core Layer (src/editor/core/)<br/>Pure Math & Business Logic"]
+    Services["2. Services Layer (src/editor/services/)<br/>Hardware APIs, WebCodecs, WebGL2, Web Audio"]
+    State["3. State Layer (src/editor/state/)<br/>Zustand Store & Coalescing Undo/Redo"]
+    UI["4. Presentation Layer (src/editor/ui/)<br/>React UI, Timeline, Inspector, Panels"]
 
-### Core Invariants
-- **Non-destructive Editing**: Media files are never modified in-place; all edits (cuts, transitions, effects) are non-destructive representations over raw media references.
-- **Track Overlap Invariant**: Clips placed on the same track must not overlap unless explicitly handled by transition semantics.
-- **Zero Frame Drift**: Time calculations must use exact microsecond/rational timestamps (`BigInt` or microsecond integers) to avoid floating-point drift across long timelines.
-- **Privacy First**: All processing, AI inference (Whisper/ONNX), decoding, and exporting occur strictly locally on the client machine. No video or audio data may be dispatched to external servers.
+    Core --> State
+    Services --> State
+    State --> UI
+    UI -.->|"Dispatches Actions Only"| State
+```
+
+### Layer Separation Rules
+
+#### 1. `src/editor/core/` — Pure Business Logic & Math
+
+- **Role**: Pure data models, microsecond timeline math, collision resolution, and file serialization.
+- **Rule**: **Zero UI or Browser API dependencies.** Never import React, hooks, DOM elements, WebCodecs, or WebGL into `core/`. Core functions must remain 100% deterministic and unit-testable in Node.js.
+
+#### 2. `src/editor/services/` — Hardware & Browser Services
+
+- **Role**: WebCodecs video decoders/encoders, WebGL2 compositors, Web Audio DSP graph, OPFS file storage, and Web Workers.
+- **Rule**: Clean resource lifecycles. Always implement `dispose()` or `close()` methods to release GPU textures, AudioBuffers, and worker threads to prevent memory leaks.
+
+#### 3. `src/editor/state/` — Application State Management
+
+- **Role**: Zustand reactive state store and undo/redo history stacks.
+- **Rule**: Mutations must be atomic, serializable, and predictable. Group high-frequency continuous mutations (like dragging sliders) with action coalescing.
+
+#### 4. `src/editor/ui/` — Presentation Layer
+
+- **Role**: React components, virtualized timeline views, inspector inputs, canvas monitors, and modals.
+- **Rule**: Keep components thin. Delegate timeline and project calculations to `core/` and state changes to `state/`.
 
 ---
 
-## Development Workflow
+### Core Engineering Invariants
 
-### Creating a Branch
-Create a descriptive feature or bugfix branch off `main`:
+> [!IMPORTANT]
+> **Every contribution must respect these invariants:**
+>
+> 1. **Non-destructive Editing**: Raw media files are never altered on disk. Edits are non-destructive representations over media references.
+> 2. **Track Overlap Invariant**: Clips placed on the same track must not overlap unless explicitly governed by a transition.
+> 3. **Zero Frame Drift**: Time calculations must use exact microsecond integers (`1,000,000 µs = 1s`) or rational numbers to prevent floating-point drift over long projects.
+> 4. **100% Client-Side Privacy**: All processing, AI transcription, video decoding, and MP4 rendering must execute strictly on the client machine. No user media or telemetry may ever be transmitted to external servers.
+
+---
+
+## 🛠️ Development Workflow
+
+### 1. Branch Naming Conventions
+
+Create a topic branch branched off the latest `main`:
+
 ```bash
 git checkout -b feat/add-magnetic-timeline
 # or
-git checkout -b fix/webcodecs-decoder-stall
+git fix/webcodecs-decoder-stall
 ```
 
-### Commit Messages
-We follow conventional commit guidelines:
-- `feat:` A new feature or capability
-- `fix:` A bug fix
-- `perf:` Performance improvements
-- `refactor:` Code restructuring without behavior changes
-- `test:` Adding or updating tests
-- `docs:` Documentation improvements
-- `chore:` Dependency bumps, build script changes
+Use standard prefixes:
 
-*Example:* `feat(timeline): implement ripple delete keyboard shortcut (Shift+X)`
+- `feat/` for new features or capabilities
+- `fix/` for bug fixes and patches
+- `perf/` for performance optimizations
+- `docs/` for documentation improvements
+- `refactor/` for code refactoring with no behavioral change
 
-### Running Quality Checks
-Before submitting a pull request, ensure all tests, linting, and type checks pass:
+---
+
+### 2. Commit Message Standards
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```text
+<type>(<scope>): <short description>
+```
+
+| Type       | When to Use              | Example                                                                  |
+| :--------- | :----------------------- | :----------------------------------------------------------------------- |
+| `feat`     | Adding a new feature     | `feat(inspector): add text shadow controls and blur keyframing`          |
+| `fix`      | Resolving a bug          | `fix(timeline): prevent clip collision during magnetic ripple edit`      |
+| `perf`     | Optimizing performance   | `perf(render): reuse WebGL framebuffers during canvas playback`          |
+| `test`     | Adding or updating tests | `test(audio): add unit tests for 3-band parametric EQ biquad filters`    |
+| `docs`     | Documentation changes    | `docs(readme): add browser compatibility matrix and shortcut cheatsheet` |
+| `refactor` | Code restructuring       | `refactor(state): modularize sequence-scoped editing actions`            |
+
+---
+
+### 3. Quality Assurance Checks
+
+Before creating a pull request, run the automated verification suite:
 
 ```bash
-# Type check TypeScript files
-npm run typecheck
+# 1. Typecheck the entire codebase
+npx tsc --noEmit
 
-# Run test suite with Vitest
+# 2. Run unit and property tests (Vitest)
 npm test
 
-# Run tests with coverage
-npm run test:coverage
-
-# Run linter
+# 3. Run ESLint code checks
 npm run lint
 
-# Check Astro build
-npm run build
+# 4. Check formatting with Prettier
+npx prettier --check .
+
+# 5. Run end-to-end browser tests (Playwright)
+npm run test:e2e
 ```
 
 ---
 
-## Adding New Features
+## 📋 Pull Request Checklist
 
-### Adding a WebGL Filter / Transition
-1. Place GLSL shader code or transition definitions in `src/editor/services/render/`.
-2. Ensure uniforms are properly managed and shader resources are cleaned up on disposal.
-3. Add corresponding UI controls in `src/editor/ui/inspector/`.
+When you are ready to open your pull request, please make sure you have:
 
-### Adding Audio DSP Effects
-1. Implement the node or effect processor under `src/editor/services/audio/`.
-2. Connect to the master Web Audio graph cleanly.
-3. Ensure offline audio rendering matches real-time playback output.
-
-### Adding New Keyboard Shortcuts
-1. Register the action and default keybinding in `src/editor/state/` or keyboard management registry.
-2. Avoid hardcoding keycodes; check for modifier keys (`Ctrl`, `Meta`, `Shift`, `Alt`) appropriately for cross-platform compatibility (macOS vs Windows/Linux).
+- [ ] Forked the repository and created your branch from `main`.
+- [ ] Run `npm install` to ensure dependencies are in sync.
+- [ ] Kept business logic isolated in `src/editor/core/` without UI dependencies.
+- [ ] Preserved all core invariants (zero frame drift, non-destructive editing, client-side privacy).
+- [ ] Verified that `npx tsc --noEmit` reports **0 errors**.
+- [ ] Verified that `npm test` passes all unit and property tests.
+- [ ] Included unit tests or Playwright E2E tests for new functionality.
+- [ ] Added clear before-and-after screenshots or screen recordings for any UI changes.
+- [ ] Linked any related GitHub issues (`Fixes #123`).
 
 ---
 
-## Submitting a Pull Request (PR)
+## 🗺️ Pull Request Lifecycle
 
-1. **Push your branch** to your GitHub fork:
-   ```bash
-   git push origin feat/your-feature-name
-   ```
-2. **Open a Pull Request** against the `main` branch of `TheFreeVideoEditor`.
-3. **Fill out the PR template**:
-   - Provide a concise description of the change.
-   - Mention relevant issue numbers (`Fixes #123`).
-   - Include before/after screenshots or screen recordings for UI changes.
-   - Confirm that all checks pass (`npm run typecheck`, `npm test`).
-4. **Code Review**: Maintainers will review your pull request, suggest improvements, and merge once approved.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Contributor as You (Contributor)
+    participant Fork as Your Fork
+    participant Repo as Upstream Repo
+    participant CI as GitHub CI Checks
+    participant Reviewer as Maintainers
+
+    Contributor->>Fork: Push branch (git push origin feat/my-feature)
+    Contributor->>Repo: Open Pull Request
+    Repo->>CI: Trigger Automated Checks (tsc, lint, vitest, e2e)
+    CI-->>Repo: Checks PASS ✅
+    Reviewer->>Contributor: Review & Feedback
+    Contributor->>Fork: Push refinements (if requested)
+    Reviewer->>Repo: Approve & Merge 🎉
+```
 
 ---
 
-## Questions and Support
+## 💬 Community & Questions
 
-Feel free to open an [Issue](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues) or Pull Request at [https://github.com/GajananPalepwad/TheFreeVideoEditor](https://github.com/GajananPalepwad/TheFreeVideoEditor) if you have any questions or need guidance!
+Need help or have ideas? We'd love to chat!
 
+- 💡 **Open an Issue**: For feature proposals, bug reports, and discussion, open a [GitHub Issue](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues).
+- 📖 **Read the Guides**: Technical architecture guides and RFCs live in [`docs/`](./docs/).
+
+Thank you for contributing to **The Free Video Editor**! 🎬✨

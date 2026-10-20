@@ -1,145 +1,244 @@
-# The Free Video Editor
+<div align="center">
 
-> **A professional, 100% free, private, web-native non-linear video editor built on modern Web standards (WebCodecs, WebGL2, Web Audio API, and OPFS).**
+# 🎬 The Free Video Editor
 
-The Free Video Editor is an open-source video editing studio that runs completely inside the browser. Media never leaves your machine—no cloud uploads, no server rendering queues, no subscriptions, and no watermarks.
+### _A professional, 100% free, private, web-native non-linear video editing suite._
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Astro](https://img.shields.io/badge/Astro-5.0+-FF5D01?style=for-the-badge&logo=astro&logoColor=white)](https://astro.build)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![WebCodecs](https://img.shields.io/badge/WebCodecs-Hardware_Accelerated-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://w3c.github.io/webcodecs/)
+[![WebGL2](https://img.shields.io/badge/WebGL2-GPU_Compositor-990000?style=for-the-badge&logo=opengl&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](./CONTRIBUTING.md)
 
-## 🌟 Key Features
+<p align="center">
+  <a href="#-key-features"><strong>Explore Features</strong></a> •
+  <a href="#-quickstart"><strong>Quickstart</strong></a> •
+  <a href="#-keyboard-shortcuts"><strong>Shortcuts</strong></a> •
+  <a href="#-architecture"><strong>Architecture</strong></a> •
+  <a href="./docs/"><strong>Documentation</strong></a> •
+  <a href="./CONTRIBUTING.md"><strong>Contribute</strong></a>
+</p>
 
-- **🔒 100% Local & Private Processing**: Everything executes locally via [WebCodecs](https://w3c.github.io/webcodecs/) hardware decoders/encoders and [Origin Private File System (OPFS)](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system).
-- **⏱️ Professional Multi-Track Timeline**:
-  - Magnetic snapping, ripple edit, razor tool (`C`), rolling edits, slip & slide.
-  - Unlimited video, audio, adjustment layers, text, and nested sequence tracks.
-  - Sequence markers & Clip markers with 8 standard colors, comments, duration ranges, and quick keyboard navigation.
-  - Timecode display, frame-by-frame precision, audio waveforms, and snap-to-marker toggles.
-- **🎨 Real-Time GPU Compositor (WebGL2)**:
-  - Hardware-accelerated clip transforms, opacity, blend modes, motion graphics, and chroma key / green screen.
-  - Multi-point masking (pen bezier, rectangular, elliptical), tracking & stabilization.
-  - LUT import (.cube), curves, color grading, adjustment layers, and realtime preview.
-- **🔊 Multi-Channel Audio Mixer & DSP**:
-  - Per-track and master audio bus routing, volume/pan faders, and stereo meters.
-  - Parametric 3-band EQ, dynamic compressor/limiter with interactive visual response curves.
-  - Audio fades, automatic ducking, and pitch-preserving time-stretching.
-- **🤖 On-Device AI Automatic Captions**:
-  - Local speech-to-text generation via Whisper and HuggingFace Transformers.js with WebGPU / WebAssembly.
-  - Word-level timing, customizable caption templates, animations, and SRT / VTT export.
-- **🔄 Interoperability & Formats**:
-  - Native lossless `.tfve` project archives (schema-versioned with zero data loss).
-  - Best-effort interchange import/export for Final Cut Pro XML (`FCPXML`), Premiere/EDL, OpenTimelineIO (`OTIO`), and Final Cut Pro 7 XML (`xmeml`).
-  - High-performance MP4 (H.264 / AAC), WebM, and ProRes encoding with resolution and bitrate controls.
+</div>
 
 ---
 
-## 🗂️ Code Structure
+**The Free Video Editor (TFVE)** is an open-source, full-featured desktop-class non-linear video editor that runs entirely inside your modern web browser. **Your media never leaves your computer**—no cloud uploads, no server queues, no subscriptions, and zero watermarks.
 
-```text
-TheFreeVideoEditor/
-├── public/                     # Static public assets (favicons, manifests, robots.txt)
-├── src/
-│   ├── components/             # Reusable Astro & UI components (Header, Footer, BrandIcon)
-│   ├── layouts/                # Base Astro HTML document layout & SEO metadata
-│   ├── pages/                  # Astro Multi-Page Application (MPA) routes:
-│   │   ├── index.astro         # Marketing landing page & features
-│   │   ├── editor.astro        # Editor studio mounting point (<astro-island>)
-│   │   ├── about.astro         # About Us & technical architecture overview
-│   │   ├── contact.astro       # Support & contact page
-│   │   ├── privacy.astro       # Privacy policy
-│   │   ├── terms.astro         # Terms of service
-│   │   ├── 404.astro           # Custom 404 Not Found error page
-│   │   ├── 500.astro           # Custom 500 Server Error page
-│   │   └── sitemap.xml.ts      # Dynamic XML sitemap generator
-│   ├── styles/                 # Global CSS variables, reset, design tokens
-│   └── editor/                 # 🎬 Core Editor Application Engine
-│       ├── core/               # Pure business logic & immutable timeline math:
-│       │   ├── schema.ts       # Zod project schema definitions
-│       │   ├── types.ts        # TypeScript data model types
-│       │   ├── timeline.ts     # Track/clip math, placement invariants, collision logic
-│       │   ├── markers/        # Marker models, range queries, clip marker mapping
-│       │   ├── tracking/       # Feature tracking, homography, point tracker algorithms
-│       │   ├── captions/       # SRT/VTT parsing and caption segmentation math
-│       │   ├── audio/          # Audio DSP math, ducking, EQ filters, biquad coeffs
-│       │   └── proxy/          # Proxy generation planners and dimensions
-│       ├── services/           # Browser runtime services, workers & I/O:
-│       │   ├── playback/       # WebCodecs video frame clock, compositor, audio engine
-│       │   ├── render/         # WebGL2 shader pipelines, render passes, text rasterizer
-│       │   ├── export/         # Video rendering & MP4 muxing export pipeline
-│       │   ├── captions/       # Web Workers & AI Speech-to-Text inference
-│       │   ├── storage/        # OPFS storage layer & IndexedDB caching
-│       │   ├── keyboard/       # Hotkey command registry & platform shortcut bindings
-│       │   └── interop/        # FCPXML, EDL, OTIO, and xmeml serialization/parsers
-│       ├── state/              # Global state management:
-│       │   ├── store.ts        # Zustand reactive state store & actions
-│       │   └── history.ts      # Undo / Redo history stack with action coalescing
-│       └── ui/                 # React UI presentation layer:
-│           ├── shell/          # Topbar, menu bar, workspace bar, status bar chrome
-│           ├── timeline/       # Virtualized multi-track timeline, ruler, playhead, tools
-│           ├── preview/        # Program monitor canvas & Source monitor players
-│           ├── inspector/      # Properties panel (Transform, Color, Audio, Tracking)
-│           ├── audio/          # Audio mixer panel, VU meters, EQ/Compressor popups
-│           ├── captions/       # Subtitles & Captions generation/editing panel
-│           ├── effects/        # Effects library & transitions inspector
-│           ├── media-library/  # Media bin, asset previews, drag-and-drop targets
-│           └── dialogs/        # Modal dialogs (Marker, Export, Shortcuts, Workspaces)
-├── docs/                       # Technical design specs & subsystem documentation
-├── tests/                      # Test suites:
-│   ├── e2e/                    # Playwright end-to-end browser specifications
-│   └── fixtures/               # Test media and project JSON fixtures
-├── astro.config.mjs            # Astro build & Vite bundler configuration
-├── wrangler.toml               # Cloudflare Workers static assets configuration
-└── package.json                # Project dependencies and script runner
-```
+> [!NOTE]
+> Powered by cutting-edge Web standards: **WebCodecs** for ultra-fast hardware decoding and encoding, **WebGL2** for 60fps GPU compositing and GLSL shaders, **Web Audio API** for real-time DSP mixing, and the **Origin Private File System (OPFS)** for high-throughput zero-latency storage.
 
 ---
 
-## 🛠️ Prerequisites
+## 📑 Table of Contents
 
-- **Node.js**: `v22.12.0` or higher
-- **Package Manager**: `npm` (v10+)
-- **Modern Browser**: Chrome 116+, Edge 116+, or Safari 17.4+ (supporting WebCodecs, WebGL2, and OPFS)
+- [✨ Key Features](#-key-features)
+- [🌐 Browser Compatibility](#-browser-compatibility)
+- [🚀 Quickstart](#-quickstart)
+- [⌨️ Keyboard Shortcuts](#-keyboard-shortcuts)
+- [🏗️ System Architecture](#️-system-architecture)
+- [🗂️ Project Structure](#️-project-structure)
+- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
+- [📦 Building & Production](#-building--production)
+- [📚 Deep-Dive Documentation](#-deep-dive-documentation)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ---
 
-## 🚀 Getting Started
+## ✨ Key Features
 
-### 1. Clone the repository
+| Capability                         | Highlights                                                                                                                                                                                                  |
+| :--------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔒 **100% Client-Side Privacy**    | Zero cloud uploads or external telemetry. All decoding, rendering, AI speech transcription, and MP4 muxing execute locally via hardware decoders and the **Origin Private File System (OPFS)**.             |
+| ⏱️ **Pro Multi-Track Timeline**    | Virtualized timeline engine with magnetic snapping, ripple edit, rolling edit, slip & slide, razor cutting (`C`), nested sequences, multi-clip selection, and 8-color sequence/clip markers.                |
+| 🎨 **Real-Time GPU Compositor**    | WebGL2 render pipeline featuring hardware-accelerated transforms, opacity, blend modes, 3D motion graphics, chroma key (green screen), LUT color grading (`.cube`), and bezier pen masking.                 |
+| 🔊 **Multi-Channel Audio Mixer**   | Per-track and master audio bus routing, volume/pan faders, stereo peak meters, 3-band parametric EQ, dynamic limiter/compressor, automatic ducking, and pitch-preserving time stretching.                   |
+| 🤖 **On-Device AI Captions**       | Whisper AI speech-to-text transcription running entirely in-browser via Transformers.js with WebGPU / WebAssembly acceleration. Generates word-level timestamps, animated text styles, and SRT/VTT exports. |
+| 🔄 **Professional Interchange**    | Import and export industry-standard timelines: Final Cut Pro XML (`FCPXML`), OpenTimelineIO (`OTIO`), Premiere/EDL, and FCP7 XML (`xmeml`). Lossless `.tfve` project archives with zero data loss.          |
+| ⚡ **Hardware Accelerated Export** | High-performance MP4 (H.264 / AAC), WebM (VP9 / Opus), and ProRes video rendering with custom resolution, framerate, and variable/constant bitrate controls.                                                |
+
+---
+
+## 🌐 Browser Compatibility
+
+The Free Video Editor leverages modern browser APIs (WebCodecs, WebGL2, OPFS). For the best performance and codec compatibility:
+
+| Browser              | Minimum Version | Hardware Decoding |    WebCodecs Export     | OPFS Storage |
+| :------------------- | :-------------: | :---------------: | :---------------------: | :----------: |
+| **Google Chrome**    |     `116+`      |      ✅ Full      |         ✅ Full         |   ✅ Full    |
+| **Microsoft Edge**   |     `116+`      |      ✅ Full      |         ✅ Full         |   ✅ Full    |
+| **Brave / Chromium** |     `116+`      |      ✅ Full      |         ✅ Full         |   ✅ Full    |
+| **Apple Safari**     |     `17.4+`     |      ✅ Full      |       ✅ Partial        |   ✅ Full    |
+| **Mozilla Firefox**  |     `128+`      |    ⚠️ Limited     | ⚠️ WebAssembly Fallback |   ✅ Full    |
+
+---
+
+## 🚀 Quickstart
+
+Get your local development studio up and running in under 2 minutes:
+
+### Prerequisites
+
+- **Node.js**: `v22.12.0` or higher (LTS recommended)
+- **Package Manager**: `npm` (`v10+`)
+- **Browser**: Chrome 120+, Edge 120+, or Safari 17.4+
+
+### 1. Clone & Install
+
 ```bash
-git clone https://github.com/your-username/TheFreeVideoEditor.git
+# Clone the repository
+git clone https://github.com/GajananPalepwad/TheFreeVideoEditor.git
+
+# Navigate to project root
 cd TheFreeVideoEditor
-```
 
-### 2. Install dependencies
-```bash
+# Install dependencies
 npm install
 ```
 
-### 3. Start the development server
+### 2. Launch Local Dev Server
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:4321](http://localhost:4321) in your browser.
+
+Visit [`http://localhost:4321`](http://localhost:4321) in your browser. The Astro landing page and full `/editor` studio will be live with instant hot-module replacement (HMR).
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+The timeline and playback engines implement standard Non-Linear Editor (NLE) hotkeys for rapid editing:
+
+|                              Shortcut                              | Action               | Description                                                              |
+| :----------------------------------------------------------------: | :------------------- | :----------------------------------------------------------------------- |
+|                          <kbd>Space</kbd>                          | **Play / Pause**     | Toggle playback on the active timeline                                   |
+|             <kbd>J</kbd> / <kbd>K</kbd> / <kbd>L</kbd>             | **Shuttle Controls** | Rewind (<kbd>J</kbd>), Pause (<kbd>K</kbd>), Fast Forward (<kbd>L</kbd>) |
+|                            <kbd>V</kbd>                            | **Selection Tool**   | Default arrow tool to select and drag clips                              |
+|                            <kbd>C</kbd>                            | **Razor Tool**       | Split clip at cursor or playhead position                                |
+|                            <kbd>B</kbd>                            | **Ripple Edit**      | Trim clip and ripple close subsequent gaps                               |
+|                            <kbd>M</kbd>                            | **Add Marker**       | Add sequence or clip marker with comments and color                      |
+|                    <kbd>I</kbd> / <kbd>O</kbd>                     | **Mark In / Out**    | Set sequence in/out work area range                                      |
+|                  <kbd>Shift</kbd> + <kbd>G</kbd>                   | **Graph Editor**     | Toggle keyframe curve graph editor                                       |
+|          <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>Z</kbd>           | **Undo**             | Undo last timeline mutation                                              |
+| <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | **Redo**             | Redo last undone action                                                  |
+|          <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>E</kbd>           | **Export Dialog**    | Open video and timeline export modal                                     |
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Browser ["Web Browser Environment"]
+        subgraph Storage ["Storage & File System"]
+            OPFS["Origin Private File System (OPFS)"]
+            IDB["IndexedDB Project Metadata"]
+        end
+
+        subgraph Core ["Deterministic Core Engine (Pure TS)"]
+            Schema["Zod Schema & Project Model"]
+            TimelineMath["Timeline Placement & Collision Math"]
+            Interop["FCPXML / OTIO / EDL Parsers"]
+        end
+
+        subgraph Services ["Runtime Services & Hardware APIs"]
+            WebCodecs["WebCodecs Hardware Decoders"]
+            WebGL2["WebGL2 Shader Compositor"]
+            WebAudio["Web Audio API & DSP Graph"]
+            Whisper["Whisper AI (Transformers.js / WebGPU)"]
+            Exporter["Worker Video Encoder & MP4 Muxer"]
+        end
+
+        subgraph StateUI ["State & Presentation Layer"]
+            Zustand["Zustand Reactive Store & History Stack"]
+            ReactUI["React UI (Timeline, Inspector, Mixer)"]
+            Astro["Astro Multi-Page Shell"]
+        end
+    end
+
+    OPFS <--> WebCodecs
+    WebCodecs --> WebGL2
+    WebCodecs --> WebAudio
+    WebGL2 --> ReactUI
+    WebAudio --> ReactUI
+    Whisper --> Zustand
+    Core <--> Zustand
+    Zustand <--> ReactUI
+    ReactUI --> Exporter
+    Exporter --> OPFS
+```
+
+---
+
+## 🗂️ Project Structure
+
+```text
+TheFreeVideoEditor/
+├── public/                     # Static assets, fonts, icons, manifest
+├── src/
+│   ├── components/             # Reusable Astro marketing & layout components
+│   ├── layouts/                # Base document HTML layouts & SEO tags
+│   ├── pages/                  # Astro Multi-Page Application (MPA) routes
+│   │   ├── index.astro         # Product landing page & feature highlights
+│   │   ├── editor.astro        # Editor studio mounting point (<astro-island>)
+│   │   └── guides/             # In-depth video editing tutorials and guides
+│   ├── styles/                 # Global styling, tokens, and CSS variables
+│   └── editor/                 # 🎬 Core Video Editing Engine
+│       ├── core/               # Pure immutable business logic (zero UI dependencies)
+│       │   ├── schema.ts       # Zod schemas for projects, tracks, and clips
+│       │   ├── timeline.ts     # Track/clip math, placement invariants, snapping
+│       │   ├── markers/        # Marker models, range queries, clip markers
+│       │   ├── templates/      # Motion graphic templates & parameter mapping
+│       │   ├── tracking/       # Point tracking, stabilization, homography
+│       │   └── audio/          # DSP equations, parametric EQ filters, ducking
+│       ├── services/           # Hardware I/O, Web APIs, and worker threads
+│       │   ├── playback/       # Microsecond clock, video frame synchronizer
+│       │   ├── render/         # WebGL2 shader pipelines, LUTs, blurs, transitions
+│       │   ├── export/         # Multi-threaded WebCodecs video encoding & muxing
+│       │   ├── captions/       # In-browser Whisper AI speech-to-text inference
+│       │   ├── storage/        # OPFS storage layer and stream buffers
+│       │   └── interop/        # FCPXML, EDL, OTIO, and xmeml parsers
+│       ├── state/              # Zustand reactive stores, coalescing undo/redo
+│       └── ui/                 # React UI presentation components
+│           ├── shell/          # Topbar, workspace layouts, status bars
+│           ├── timeline/       # Virtualized multi-track timeline, playhead, tools
+│           ├── preview/        # Program & source monitor canvases
+│           ├── inspector/      # Inspector controls (Transform, Color, Shape, Audio)
+│           ├── audio/          # Audio mixer, parametric EQ visualizer, meters
+│           ├── captions/       # Captions transcription & styling panel
+│           └── graph/          # Curve graph editor for keyframe interpolation
+├── docs/                       # Technical design specifications & documentation
+├── tests/                      # Automated Vitest and Playwright test suites
+│   ├── e2e/                    # Playwright end-to-end browser specifications
+│   └── fixtures/               # Test media assets and reference project files
+├── astro.config.mjs            # Astro build & Vite bundler configuration
+└── package.json                # Project dependencies and script commands
+```
 
 ---
 
 ## 🧪 Testing & Quality Assurance
 
-We maintain a strict zero-regression test suite covering both deterministic math and end-to-end browser workflows:
+We maintain a rigorous test suite to guarantee zero regression on timeline math, color accuracy, and export fidelity:
 
 ```bash
-# Run unit & property tests (475+ tests via Vitest)
+# Run unit & mathematical property tests (120+ tests via Vitest)
 npm test
 
-# Run TypeScript typechecks and Astro diagnostics
-npm run typecheck
+# Run TypeScript typechecks across the entire codebase
+npx tsc --noEmit
 
-# Run ESLint check
+# Run ESLint code quality checks
 npm run lint
 
-# Check code formatting (Prettier)
-npm run format:check
+# Verify code formatting with Prettier
+npx prettier --check .
 
-# Run Playwright E2E browser tests
+# Run Playwright End-to-End browser test suite
 npm run test:e2e
 ```
 
@@ -147,7 +246,7 @@ npm run test:e2e
 
 ## 📦 Building & Production
 
-To compile the application to optimized static HTML/JS/CSS assets in `./dist`:
+To compile the application to optimized, production-ready static assets in `./dist`:
 
 ```bash
 npm run build
@@ -161,37 +260,39 @@ npm run preview
 
 ---
 
-## 🌐 Deployment (Maintainers Only)
+## 📚 Deep-Dive Documentation
 
-The production site is hosted on Cloudflare Workers Static Assets.
+Explore our comprehensive technical specifications located in the [`docs/`](./docs/) directory:
 
-> [!IMPORTANT]
-> **Contributors will not have access to deploy.** Deployment keys and infrastructure environments are restricted exclusively to core project maintainers. Contributors should test changes locally using `npm run dev` and `npm run preview`.
-
-For project maintainers with active deployment credentials:
-```bash
-# Build and deploy to Cloudflare Workers (Maintainers only)
-npm run deploy
-```
+- 🎨 [**Rendering & WebGL2 Compositor**](./docs/RENDERING.md): Shader pipelines, blend modes, and color spaces.
+- 🔊 [**Audio Architecture & DSP**](./docs/AUDIO.md): Web Audio graph, limiter/compressors, and audio waveforms.
+- 🎞️ [**Codecs & Container Support**](./docs/CODECS.md): WebCodecs hardware profiles, container muxers, and fallbacks.
+- ⏱️ [**Timeline Math & Invariants**](./docs/TIMELINE.md): Collision avoidance, track invariants, and ripple math.
+- 🤖 [**AI Transcription & Captions**](./docs/CAPTIONS.md): In-browser Whisper ONNX runtime and word synchronization.
+- 📐 [**Motion Graphics & Templates**](./docs/TEMPLATES.md): Reusable graphic templates and parameter controls.
+- 🔄 [**Interchange & XML Formats**](./docs/INTERCHANGE.md): FCPXML, OTIO, EDL, and xmeml schemas.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions from the open-source community are warmly welcomed!
+Contributions from the community are what make The Free Video Editor great! Whether you are fixing a typo, building a new WebGL filter, or optimizing audio DSP filters, your help is welcome.
 
-- **GitHub Repository**: [https://github.com/GajananPalepwad/TheFreeVideoEditor](https://github.com/GajananPalepwad/TheFreeVideoEditor)
-- **Contribution Guide**: Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for architectural invariants, coding conventions, and pull request steps.
+Please check out our [**CONTRIBUTING.md**](./CONTRIBUTING.md) guide for:
 
-1. Fork the Project: [https://github.com/GajananPalepwad/TheFreeVideoEditor/fork](https://github.com/GajananPalepwad/TheFreeVideoEditor/fork)
-2. Create your Feature Branch (`git checkout -b feature/amazing-feature`)
-3. Test locally (`npm run dev`) and run verification checks (`npm run typecheck && npm test && npm run lint`)
-4. Commit your Changes (`git commit -m 'Add amazing feature'`)
-5. Push to your Fork (`git push origin feature/amazing-feature`)
-6. Open a Pull Request on the main repository
+- Architectural invariants and layer separation rules
+- Local environment setup and dev commands
+- Git branch and conventional commit standards
+- Step-by-step Pull Request checklist
+
+---
+
+## 👥 Built with the Community
+
+Thank you to all the amazing contributors who help make high-quality, privacy-focused video editing free for everyone around the world!
 
 ---
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](./LICENSE).
+This project is open-source software licensed under the **[MIT License](./LICENSE)**. You are free to inspect, modify, and distribute the code in accordance with the license conditions.
