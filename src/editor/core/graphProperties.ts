@@ -1,6 +1,7 @@
 import { isAnimated } from './animation';
 import { getEffectDefinition } from './effects/registry';
-import type { Clip, PropertyId } from './types';
+import { readProperty, type PropertyValue } from './properties';
+import type { Clip, PropertyId, Time } from './types';
 
 const TRANSFORM_PROPERTIES: PropertyId[] = ['position', 'scale', 'rotation', 'opacity', 'crop'];
 
@@ -52,4 +53,49 @@ export function graphPropertyIds(clip: Clip): PropertyId[] {
 		}
 	}
 	return ids;
+}
+
+export interface GraphChannel {
+	propertyId: PropertyId;
+	channelIdx: number;
+	/** Stored value times this factor is what the graph shows. */
+	displayFactor: number;
+}
+
+function channelDisplayValue(clip: Clip, channel: GraphChannel, time: Time): number {
+	const value = readProperty(clip, channel.propertyId, time);
+	const component = Array.isArray(value) ? (value[channel.channelIdx] ?? 0) : value;
+	return component * channel.displayFactor;
+}
+
+/** The channel whose curve passes closest to a point clicked on the graph. */
+export function nearestChannel<T extends GraphChannel>(
+	clip: Clip,
+	channels: readonly T[],
+	time: Time,
+	displayValue: number
+): T | undefined {
+	let best: T | undefined;
+	let bestDistance = Infinity;
+	for (const channel of channels) {
+		const distance = Math.abs(channelDisplayValue(clip, channel, time) - displayValue);
+		if (distance < bestDistance) {
+			best = channel;
+			bestDistance = distance;
+		}
+	}
+	return best;
+}
+
+/** The stored value for a key placed at a displayed height, leaving a vector's other channels as they are. */
+export function channelKeyValue(
+	clip: Clip,
+	channel: GraphChannel,
+	time: Time,
+	displayValue: number
+): PropertyValue {
+	const stored = displayValue / (channel.displayFactor || 1);
+	const current = readProperty(clip, channel.propertyId, time);
+	if (!Array.isArray(current)) return stored;
+	return current.map((component, index) => (index === channel.channelIdx ? stored : component));
 }
