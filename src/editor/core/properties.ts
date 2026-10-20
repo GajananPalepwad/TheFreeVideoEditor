@@ -339,6 +339,126 @@ export const PROPERTY_DESCRIPTORS: Readonly<Record<string, PropertyDescriptor>> 
 		unit: 'px',
 		displayFactor: 1,
 		step: 1
+	},
+	'shape.width': {
+		id: 'shape.width',
+		label: 'Width',
+		shape: 'number',
+		channels: ['Width'],
+		defaultValue: 300,
+		min: 1,
+		max: 8192,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'shape.height': {
+		id: 'shape.height',
+		label: 'Height',
+		shape: 'number',
+		channels: ['Height'],
+		defaultValue: 200,
+		min: 1,
+		max: 8192,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'shape.fillColor': {
+		id: 'shape.fillColor',
+		label: 'Fill Color',
+		shape: 'vec4',
+		channels: ['R', 'G', 'B', 'A'],
+		defaultValue: [1, 1, 1, 1],
+		min: 0,
+		max: 1,
+		unit: '',
+		displayFactor: 1,
+		step: 0.01
+	},
+	'shape.strokeColor': {
+		id: 'shape.strokeColor',
+		label: 'Stroke Color',
+		shape: 'vec4',
+		channels: ['R', 'G', 'B', 'A'],
+		defaultValue: [1, 1, 1, 1],
+		min: 0,
+		max: 1,
+		unit: '',
+		displayFactor: 1,
+		step: 0.01
+	},
+	'shape.strokeWidth': {
+		id: 'shape.strokeWidth',
+		label: 'Stroke Width',
+		shape: 'number',
+		channels: ['Width'],
+		defaultValue: 0,
+		min: 0,
+		max: 50,
+		unit: 'px',
+		displayFactor: 1,
+		step: 0.5
+	},
+	'shape.cornerRadius': {
+		id: 'shape.cornerRadius',
+		label: 'Corner Radius',
+		shape: 'number',
+		channels: ['Radius'],
+		defaultValue: 0,
+		min: 0,
+		max: 2000,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'shape.shadowColor': {
+		id: 'shape.shadowColor',
+		label: 'Shadow Color',
+		shape: 'vec4',
+		channels: ['R', 'G', 'B', 'A'],
+		defaultValue: [0, 0, 0, 0.6],
+		min: 0,
+		max: 1,
+		unit: '',
+		displayFactor: 1,
+		step: 0.01
+	},
+	'shape.shadowBlur': {
+		id: 'shape.shadowBlur',
+		label: 'Shadow Blur',
+		shape: 'number',
+		channels: ['Blur'],
+		defaultValue: 0,
+		min: 0,
+		max: 100,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'shape.shadowOffsetX': {
+		id: 'shape.shadowOffsetX',
+		label: 'Shadow Offset X',
+		shape: 'number',
+		channels: ['X'],
+		defaultValue: 0,
+		min: -100,
+		max: 100,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'shape.shadowOffsetY': {
+		id: 'shape.shadowOffsetY',
+		label: 'Shadow Offset Y',
+		shape: 'number',
+		channels: ['Y'],
+		defaultValue: 0,
+		min: -100,
+		max: 100,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
 	}
 };
 
@@ -503,6 +623,38 @@ export function legacyValue(clip: Clip, id: PropertyId): PropertyValue | undefin
 	}
 }
 
+/** The shape clip's own (static) value for a `shape.*` property, so animating starts from what is drawn. */
+function shapeSourceValue(clip: Clip, id: PropertyId): PropertyValue | undefined {
+	const source = clip.source;
+	if (source?.type !== 'shape' || !id.startsWith('shape.')) return undefined;
+	const color = (value: { r: number; g: number; b: number; a: number } | undefined) =>
+		value ? [value.r, value.g, value.b, value.a] : undefined;
+	switch (id) {
+		case 'shape.width':
+			return source.width;
+		case 'shape.height':
+			return source.height;
+		case 'shape.fillColor':
+			return color(source.fillColor);
+		case 'shape.strokeColor':
+			return color(source.strokeColor);
+		case 'shape.strokeWidth':
+			return source.strokeWidth;
+		case 'shape.cornerRadius':
+			return source.cornerRadius;
+		case 'shape.shadowColor':
+			return color(source.shadowColor);
+		case 'shape.shadowBlur':
+			return source.shadowBlur;
+		case 'shape.shadowOffsetX':
+			return source.shadowOffsetX;
+		case 'shape.shadowOffsetY':
+			return source.shadowOffsetY;
+		default:
+			return undefined;
+	}
+}
+
 export function propertyCurve(
 	clip: Clip,
 	id: PropertyId
@@ -552,6 +704,8 @@ export function readProperty(clip: Clip, id: PropertyId, localTime: Time): Prope
 	const descriptor = descriptorFor(id);
 	const legacy = legacyValue(clip, id);
 	if (legacy !== undefined) return legacy;
+	const fromSource = shapeSourceValue(clip, id);
+	if (fromSource !== undefined) return fromSource;
 	if (!descriptor) throw new RangeError(`Unknown property "${id}".`);
 	return defaultValueOf(descriptor);
 }
