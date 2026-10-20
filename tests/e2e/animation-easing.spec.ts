@@ -59,3 +59,25 @@ test.describe('spring, elastic and bounce easing', () => {
 		});
 	}
 });
+
+test.describe('graph editor curves', () => {
+	test('a keyframed text colour shows one curve per channel', async ({ page }) => {
+		await openProject(page);
+		await page.evaluate(() => {
+			const store = (window as any).__TFVE_STORE__;
+			const id = store.getState().addTextClip({ text: 'Colour' }) as string;
+			const start = store.getState().project.tracks.flatMap((t: any) => t.clips)[0].start;
+			store.getState().selectClips([id]);
+			store.getState().setPlayhead(start);
+			store.getState().toggleKeyframe(id, 'text.fillColor');
+			store.getState().setPlayhead(start + 1_000_000);
+			store.getState().toggleKeyframe(id, 'text.fillColor');
+			store.getState().setKeyframeValue(id, 'text.fillColor', 1_000_000, [1, 0, 0, 1]);
+			store.getState().toggleGraphEditor();
+		});
+
+		const panel = page.locator('.graph-editor-panel');
+		await panel.locator('.graph-filter-btn', { hasText: 'Fill Color' }).first().click();
+		await expect(panel.locator('.graph-curve-path')).toHaveCount(4);
+	});
+});

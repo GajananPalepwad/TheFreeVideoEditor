@@ -14,6 +14,7 @@ import { trackFeatureUsed } from '../../../services/activityTracking';
 import {
 	descriptorFor,
 	evaluate,
+	graphPropertyIds,
 	isAnimated,
 	propertyCurve,
 	readProperty,
@@ -65,6 +66,9 @@ const PROPERTY_COLORS: Record<string, string> = {
 	'text.reveal': '#fbbf24',
 	'text.strokeWidth': '#f43f5e'
 };
+
+/** Fallback per channel: X/R red, Y/G green, B blue, A grey. */
+const CHANNEL_COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#9ca3af'];
 
 function safeTicksToSeconds(ticks: number): number {
 	return Math.max(0, ticks) / 1_000_000;
@@ -194,40 +198,10 @@ export default function GraphEditor() {
 	}, [project, selectedClipIds, activeSequenceId]);
 
 	// Filter properties available for this clip
-	const availableFilterProperties: PropertyId[] = useMemo(() => {
-		const props: PropertyId[] = [...FILTER_PROPERTIES];
-		if (selectedClip?.source?.type === 'text') {
-			props.push(
-				'text.fontSize',
-				'text.letterSpacing',
-				'text.lineHeight',
-				'text.reveal',
-				'text.strokeWidth',
-				'text.shadowBlur',
-				'text.shadowOffsetX',
-				'text.shadowOffsetY'
-			);
-		}
-		if (selectedClip?.source?.type === 'shape') {
-			props.push(
-				'shape.width',
-				'shape.height',
-				'shape.strokeWidth',
-				'shape.cornerRadius',
-				'shape.shadowBlur',
-				'shape.shadowOffsetX',
-				'shape.shadowOffsetY'
-			);
-		}
-		if (selectedClip?.masks) {
-			for (const mask of selectedClip.masks) {
-				props.push(`mask:${mask.id}:feather` as PropertyId);
-				props.push(`mask:${mask.id}:expansion` as PropertyId);
-				props.push(`mask:${mask.id}:opacity` as PropertyId);
-			}
-		}
-		return props;
-	}, [selectedClip]);
+	const availableFilterProperties: PropertyId[] = useMemo(
+		() => (selectedClip ? graphPropertyIds(selectedClip) : FILTER_PROPERTIES),
+		[selectedClip]
+	);
 
 	// Extract curves for animated channels on this clip
 	const curves: GraphEditorCurve[] = useMemo(() => {
@@ -272,7 +246,7 @@ export default function GraphEditor() {
 			} else {
 				desc.channels.forEach((chanLabel, chanIdx) => {
 					const colorKey = `${propId}:${chanIdx}`;
-					const color = PROPERTY_COLORS[colorKey] ?? (chanIdx === 0 ? '#ef4444' : '#22c55e');
+					const color = PROPERTY_COLORS[colorKey] ?? CHANNEL_COLORS[chanIdx] ?? '#22c55e';
 					result.push({
 						id: colorKey,
 						propertyId: propId,
