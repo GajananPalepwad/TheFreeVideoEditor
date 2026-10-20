@@ -167,6 +167,53 @@ describe('template data mapping', () => {
 			expect(fill.keyframes!.map((keyframe) => keyframe.value[3])).toEqual([0, 1]);
 		});
 
+		it('recolours the text outline through text.stroke', () => {
+			const targetId = template.publishedParams[0]!.targetClipId;
+			const outlined: MotionGraphicTemplate = {
+				...template,
+				publishedParams: [
+					...template.publishedParams,
+					{
+						id: 'param_outline',
+						name: 'Outline',
+						type: 'color',
+						targetClipId: targetId,
+						targetProperty: 'text.stroke',
+						defaultValue: { r: 0, g: 0, b: 0, a: 1 }
+					}
+				],
+				tracks: template.tracks.map((track) => ({
+					...track,
+					clips: track.clips.map((clip) =>
+						clip.id === targetId
+							? {
+									...clip,
+									properties: {
+										...clip.properties,
+										'text.strokeWidth': { value: 4 },
+										'text.strokeColor': { value: [0, 0, 0, 1] }
+									}
+								}
+							: clip
+					)
+				}))
+			};
+
+			const stroke = (overrides: Record<string, unknown>) =>
+				nestedLayers(withOverrides(outlined, overrides), SETTLED).find(
+					(layer) => layer.kind === 'text'
+				)!.textData!;
+
+			expect(stroke({}).strokeColor).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+			expect(stroke({ param_outline: { r: 1, g: 0.5, b: 0, a: 1 } }).strokeColor).toEqual({
+				r: 1,
+				g: 0.5,
+				b: 0,
+				a: 1
+			});
+			expect(stroke({ param_outline: { r: 1, g: 0.5, b: 0, a: 1 } }).strokeWidth).toBe(4);
+		});
+
 		it('only recolours the colour runs that used the template colour', () => {
 			const textClip = template.tracks
 				.flatMap((track) => track.clips)
