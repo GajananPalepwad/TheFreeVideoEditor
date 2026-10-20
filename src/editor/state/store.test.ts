@@ -993,6 +993,28 @@ LUT_3D_SIZE 2
 		}
 	});
 
+	it('addKeyframeAtTime on a static property starts an animation instead of rewriting the value', async () => {
+		const store = createEditorStore();
+		await store.getState().createProject({ name: 'Static Keyframe Test' });
+		const solidId = store.getState().addSolidLayer('#ffffff')!;
+		const find = () =>
+			store
+				.getState()
+				.project?.tracks.flatMap((t) => t.clips)
+				.find((c) => c.id === solidId);
+		expect(isAnimated(propertyCurve(find()!, 'opacity') ?? { value: 1 })).toBe(false);
+
+		store.getState().addKeyframeAtTime(solidId, 'opacity', 1_000_000, 0.4);
+
+		const curve = propertyCurve(find()!, 'opacity');
+		expect(curve && isAnimated(curve)).toBe(true);
+		const keys = curve && isAnimated(curve) ? curve.keyframes : [];
+		expect(keys.map((key) => [key.time, key.value])).toEqual([[1_000_000, 0.4]]);
+		expect(store.getState().keyframes.selection).toEqual([
+			{ clipId: solidId, propertyId: 'opacity', time: 1_000_000 }
+		]);
+	});
+
 	it('supports GraphEditor keyframe manipulations: addKeyframeAtTime, setKeyframeValue, and setBezierHandles', async () => {
 		const store = createEditorStore();
 		await store.getState().createProject({ name: 'Keyframe Graph Test' });

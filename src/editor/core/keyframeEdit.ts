@@ -46,7 +46,15 @@ export interface KeyframeRef {
 }
 
 export type InterpolationPreset =
-	'linear' | 'hold' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bezier';
+	| 'linear'
+	| 'hold'
+	| 'ease-in'
+	| 'ease-out'
+	| 'ease-in-out'
+	| 'bezier'
+	| 'spring'
+	| 'elastic'
+	| 'bounce';
 
 export interface KeyframeClipboardEntry {
 	propertyId: PropertyId;
@@ -56,6 +64,7 @@ export interface KeyframeClipboardEntry {
 	interpolation: Interpolation;
 	easeIn?: BezierHandle;
 	easeOut?: BezierHandle;
+	anchor?: 'end';
 }
 
 export interface KeyframeClipboard {
@@ -400,6 +409,12 @@ function applyPreset(
 		keys[index] = { ...plain, interpolation: preset };
 		return;
 	}
+	if (preset === 'spring' || preset === 'elastic' || preset === 'bounce') {
+		const { easeOut: _out, ...plain } = key;
+		void _out;
+		keys[index] = { ...plain, interpolation: preset };
+		return;
+	}
 	const wantsIn = preset === 'ease-in' || preset === 'ease-in-out';
 	const wantsOut = preset === 'ease-out' || preset === 'ease-in-out';
 	let next: Keyframe<PropertyValue> = { ...key };
@@ -493,7 +508,8 @@ export function copyKeyframes(clip: Clip, selection: readonly KeyframeRef[]): Ke
 				value: key.value,
 				interpolation: key.interpolation,
 				...(key.easeIn ? { easeIn: key.easeIn } : {}),
-				...(key.easeOut ? { easeOut: key.easeOut } : {})
+				...(key.easeOut ? { easeOut: key.easeOut } : {}),
+				...(key.anchor ? { anchor: key.anchor } : {})
 			});
 		}
 	}
@@ -538,7 +554,8 @@ export function pasteKeyframes(
 				value: clampPropertyValue(desc, entry.value),
 				interpolation: entry.interpolation,
 				...(entry.easeIn ? { easeIn: entry.easeIn } : {}),
-				...(entry.easeOut ? { easeOut: entry.easeOut } : {})
+				...(entry.easeOut ? { easeOut: entry.easeOut } : {}),
+				...(entry.anchor ? { anchor: entry.anchor } : {})
 			});
 			pasted.push({ propertyId: destination, time });
 		}

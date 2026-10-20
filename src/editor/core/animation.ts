@@ -1,7 +1,14 @@
+import { bounceEase, elasticEase, springEase, type EasingFunction } from './easing';
 import type { AnimatedValue, BezierHandle, Interpolation, Keyframe, Time } from './types';
 
 export const DEFAULT_EASE_OUT: BezierHandle = { x: 0.42, y: 0 };
 export const DEFAULT_EASE_IN: BezierHandle = { x: 0.58, y: 1 };
+
+const CLOSED_FORM_EASINGS: Partial<Record<Interpolation, EasingFunction>> = {
+	spring: springEase,
+	elastic: elasticEase,
+	bounce: bounceEase
+};
 
 type Lerpable = number | readonly number[] | Readonly<Record<string, number>>;
 
@@ -149,13 +156,16 @@ export function evaluate<T>(animated: AnimatedValue<T>, localTime: Time): T {
 	if (localTime === from.time) return from.value;
 	if (from.interpolation === 'hold') return from.value;
 	const linear = (localTime - from.time) / (to.time - from.time);
+	const closedForm = CLOSED_FORM_EASINGS[from.interpolation];
 	const amount =
 		from.interpolation === 'bezier'
 			? (() => {
 					const handles = handlesFor(from, to);
 					return cubicBezierEase(handles.out, handles.in, linear);
 				})()
-			: linear;
+			: closedForm
+				? closedForm(linear)
+				: linear;
 	return lerpValue(from.value, to.value, amount, animated.angleMode === 'shortest');
 }
 
@@ -211,7 +221,12 @@ export function setInterpolation<T>(
 		animated,
 		animated.keyframes.map((item) => {
 			if (item.time !== time) return item;
-			const rest: Keyframe<T> = { time: item.time, value: item.value, interpolation };
+			const rest: Keyframe<T> = {
+				time: item.time,
+				value: item.value,
+				interpolation,
+				...(item.anchor ? { anchor: item.anchor } : {})
+			};
 			return {
 				...rest,
 				...(handles.easeIn ? { easeIn: clampHandle(handles.easeIn) } : {}),
@@ -259,6 +274,38 @@ function splitCubic(
 	return { left: [p0, p01, p012, p0123], right: [p0123, p123, p23, p3] };
 }
 
+const BAKE_STEPS = 64;
+
+/**
+ * Replaces the segment after keyframe `index` with short linear steps that follow its curve. A
+ * closed-form easing cannot be cut in two the way a bezier can, so splitting bakes it first.
+ */
+function bakeSegment<T>(animated: AnimatedValue<T>, index: number): AnimatedValue<T> {
+	if (!isAnimated(animated)) return animated;
+	const keyframes = animated.keyframes;
+	const from = keyframes[index]!;
+	const to = keyframes[index + 1]!;
+	const steps: Keyframe<T>[] = [];
+	for (let step = 1; step < BAKE_STEPS; step += 1) {
+		const time = from.time + Math.round(((to.time - from.time) * step) / BAKE_STEPS);
+		if (time <= (steps[steps.length - 1]?.time ?? from.time) || time >= to.time) continue;
+		steps.push({
+			time,
+			value: evaluate(animated, time),
+			interpolation: 'linear',
+			...(from.anchor && to.anchor ? { anchor: 'end' as const } : {})
+		});
+	}
+	const { easeOut: _out, ...plain } = from;
+	void _out;
+	return withKeyframes(animated, [
+		...keyframes.slice(0, index),
+		{ ...plain, interpolation: 'linear' },
+		...steps,
+		...keyframes.slice(index + 1)
+	]);
+}
+
 /**
  * Splits at a clip-local time. The left side keeps its time base; the right side is shifted so
  * the split point becomes time 0. Cubic-bezier segments are cut with de Casteljau so both sides
@@ -292,19 +339,25 @@ export function splitAnimatedValue<T>(
 	while (keyframes[index + 1]!.time < atLocalTime) index += 1;
 	const from = keyframes[index]!;
 	const to = keyframes[index + 1]!;
+	if (CLOSED_FORM_EASINGS[from.interpolation]) {
+		return splitAnimatedValue(bakeSegment(animated, index), atLocalTime);
+	}
 	const boundaryValue = evaluate(animated, atLocalTime);
 	const leftKeys = keyframes.slice(0, index + 1);
 	const rightKeys = keyframes.slice(index + 1);
+	const anchor = from.anchor && to.anchor ? { anchor: 'end' as const } : {};
 	let leftFrom: Keyframe<T> = from;
 	let leftBoundary: Keyframe<T> = {
 		time: atLocalTime,
 		value: boundaryValue,
-		interpolation: from.interpolation
+		interpolation: from.interpolation,
+		...anchor
 	};
 	let rightBoundary: Keyframe<T> = {
 		time: atLocalTime,
 		value: boundaryValue,
-		interpolation: from.interpolation
+		interpolation: from.interpolation,
+		...anchor
 	};
 	let rightTo: Keyframe<T> = to;
 
@@ -345,6 +398,44 @@ export function retimeAnimatedValue<T>(
 ): AnimatedValue<T> {
 	if (trimmed === 0) return animated;
 	return splitAnimatedValue(animated, trimmed)[1];
+}
+
+/**
+ * Re-times the end-anchored keys after a tail trim or extension so an out animation still finishes
+ * on the last frame. A trim drops the keys the moved group would run into and squeezes a group longer
+ * than the clip into it; an extension only adds room, so it keeps every other key. Curves with no
+ * anchored keys are returned as they are.
+ */
+export function retimeAnimatedValueTail<T>(
+	animated: AnimatedValue<T>,
+	oldDuration: Time,
+	newDuration: Time
+): AnimatedValue<T> {
+	if (!isAnimated(animated) || oldDuration === newDuration) return animated;
+	const anchored = animated.keyframes.filter((key) => key.anchor === 'end');
+	const first = anchored[0];
+	if (!first) return animated;
+	const delta = newDuration - oldDuration;
+	const lastTime = anchored[anchored.length - 1]!.time;
+	const lastMoved = Math.max(0, lastTime + delta);
+	const span = lastTime - first.time;
+	const squeeze = span > 0 && first.time + delta < 0 ? lastMoved / span : 1;
+	const moved: Keyframe<T>[] = [];
+	for (const key of anchored) {
+		const time = Math.round(lastMoved - (lastTime - key.time) * squeeze);
+		if (moved[moved.length - 1]?.time !== time) moved.push({ ...key, time });
+	}
+	const movedTimes = new Set(moved.map((key) => key.time));
+	const others = animated.keyframes.filter((key) => key.anchor !== 'end');
+	if (delta > 0) {
+		const kept = others.filter((key) => !movedTimes.has(key.time));
+		return withKeyframes(
+			animated,
+			[...kept, ...moved].sort((a, b) => a.time - b.time)
+		);
+	}
+	const kept = others.filter((key) => key.time < moved[0]!.time);
+	return withKeyframes(animated, [...kept, ...moved]);
 }
 
 export function evaluateOr<T>(

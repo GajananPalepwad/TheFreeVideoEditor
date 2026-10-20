@@ -6,11 +6,14 @@ import {
 	moveKeyframe,
 	removeKeyframe,
 	retimeAnimatedValue,
+	retimeAnimatedValueTail,
 	setInterpolation,
 	shiftAnimatedValue,
 	solveBezierParameter,
 	splitAnimatedValue
 } from './animation';
+import { bounceEase, elasticEase, springEase } from './easing';
+import { animatedValueSchema } from './schema';
 import type { AnimatedValue, Keyframe } from './types';
 
 function numberCurve(...frames: Array<[number, number, Keyframe<number>['interpolation']?]>) {
@@ -238,5 +241,149 @@ describe('split and retime', () => {
 		for (const absolute of [400, 700, 1000]) {
 			expect(evaluate(trimmed, absolute - 400)).toBeCloseTo(evaluate(curve, absolute), 9);
 		}
+	});
+});
+
+describe('spring, elastic and bounce interpolation', () => {
+	const kinds = [
+		['spring', springEase],
+		['elastic', elasticEase],
+		['bounce', bounceEase]
+	] as const;
+
+	for (const [kind, ease] of kinds) {
+		it(`${kind} eases a number between its keyframes`, () => {
+			const curve = numberCurve([0, 10, kind], [1000, 110]);
+			for (const time of [100, 250, 500, 800]) {
+				expect(evaluate(curve, time)).toBeCloseTo(10 + 100 * ease(time / 1000), 9);
+			}
+			expect(evaluate(curve, 0)).toBe(10);
+			expect(evaluate(curve, 1000)).toBe(110);
+		});
+
+		it(`${kind} eases vectors component-wise`, () => {
+			const curve: AnimatedValue<number[]> = {
+				keyframes: [
+					{ time: 0, value: [0, 100], interpolation: kind },
+					{ time: 1000, value: [50, 0], interpolation: 'linear' }
+				]
+			};
+			const [x, y] = evaluate(curve, 400);
+			expect(x).toBeCloseTo(50 * ease(0.4), 9);
+			expect(y).toBeCloseTo(100 - 100 * ease(0.4), 9);
+		});
+
+		it(`${kind} round-trips through the project schema`, () => {
+			const curve = numberCurve([0, 0, kind], [1000, 1]);
+			expect(animatedValueSchema.parse(curve)).toEqual(curve);
+		});
+
+		it(`${kind} keeps its shape on both sides of a split`, () => {
+			const curve = numberCurve([0, 0, kind], [1000, 100], [2000, 40]);
+			for (const at of [250, 600, 1000]) {
+				const [left, right] = splitAnimatedValue(curve, at);
+				for (let time = 0; time <= 2000; time += 25) {
+					const actual = time <= at ? evaluate(left, time) : evaluate(right, time - at);
+					expect(Math.abs(actual - evaluate(curve, time))).toBeLessThan(2.5);
+				}
+			}
+		});
+	}
+
+	it('keeps the incoming ease of the key it bakes', () => {
+		const curve: AnimatedValue<number> = {
+			keyframes: [
+				{ time: 0, value: 0, interpolation: 'bezier' },
+				{
+					time: 1000,
+					value: 100,
+					interpolation: 'spring',
+					easeIn: { x: 0.2, y: 0.9 }
+				},
+				{ time: 2000, value: 0, interpolation: 'linear' }
+			]
+		};
+		const [left] = splitAnimatedValue(curve, 1500);
+		for (const time of [250, 500, 750]) {
+			expect(evaluate(left, time)).toBeCloseTo(evaluate(curve, time), 9);
+		}
+	});
+});
+
+describe('tail retiming of end-anchored keys', () => {
+	function fadeOutCurve(duration: number, fade = 500_000): AnimatedValue<number> {
+		return {
+			keyframes: [
+				{ time: 0, value: 1, interpolation: 'linear' },
+				{ time: duration - fade, value: 1, interpolation: 'linear', anchor: 'end' },
+				{ time: duration, value: 0, interpolation: 'linear', anchor: 'end' }
+			]
+		};
+	}
+
+	function times(curve: AnimatedValue<number>): number[] {
+		return 'keyframes' in curve ? curve.keyframes.map((key) => key.time) : [];
+	}
+
+	it('leaves curves without anchored keys alone', () => {
+		const curve = numberCurve([0, 0], [1000, 100]);
+		expect(retimeAnimatedValueTail(curve, 2000, 1500)).toBe(curve);
+	});
+
+	it('moves an anchored fade-out with a shorter end', () => {
+		const shorter = retimeAnimatedValueTail(fadeOutCurve(4_000_000), 4_000_000, 3_000_000);
+		expect(times(shorter)).toEqual([0, 2_500_000, 3_000_000]);
+		expect(evaluate(shorter, 3_000_000)).toBe(0);
+	});
+
+	it('moves an anchored fade-out with a longer end', () => {
+		const longer = retimeAnimatedValueTail(fadeOutCurve(4_000_000), 4_000_000, 5_000_000);
+		expect(times(longer)).toEqual([0, 4_500_000, 5_000_000]);
+	});
+
+	it('squeezes the anchored keys when the clip is shorter than the fade', () => {
+		const tiny = retimeAnimatedValueTail(fadeOutCurve(1_000_000), 1_000_000, 300_000);
+		expect(times(tiny)).toEqual([0, 300_000]);
+		expect(evaluate(tiny, 0)).toBe(1);
+		expect(evaluate(tiny, 300_000)).toBe(0);
+	});
+
+	it('drops keys that the moved fade would run into', () => {
+		const curve: AnimatedValue<number> = {
+			keyframes: [
+				{ time: 0, value: 0, interpolation: 'linear' },
+				{ time: 500_000, value: 1, interpolation: 'linear' },
+				{ time: 700_000, value: 1, interpolation: 'linear', anchor: 'end' },
+				{ time: 1_200_000, value: 0, interpolation: 'linear', anchor: 'end' }
+			]
+		};
+		const trimmed = retimeAnimatedValueTail(curve, 1_200_000, 900_000);
+		expect(times(trimmed)).toEqual([0, 400_000, 900_000]);
+	});
+
+	it('keeps every other key when the end is extended', () => {
+		const curve: AnimatedValue<number> = {
+			keyframes: [
+				{ time: 0, value: 0, interpolation: 'linear' },
+				{ time: 1_000_000, value: 1, interpolation: 'linear', anchor: 'end' },
+				{ time: 1_400_000, value: 0.5, interpolation: 'linear' },
+				{ time: 2_000_000, value: 0, interpolation: 'linear', anchor: 'end' }
+			]
+		};
+		const longer = retimeAnimatedValueTail(curve, 2_000_000, 2_200_000);
+		expect(times(longer)).toEqual([0, 1_200_000, 1_400_000, 2_200_000]);
+	});
+
+	it('keeps the anchor flag through the project schema', () => {
+		const curve = fadeOutCurve(2_000_000);
+		expect(animatedValueSchema.parse(curve)).toEqual(curve);
+	});
+
+	it('keeps the anchor when changing interpolation or baking a split', () => {
+		const curve = fadeOutCurve(2_000_000);
+		const changed = setInterpolation(curve, 1_500_000, 'spring');
+		expect('keyframes' in changed && changed.keyframes[1]?.anchor).toBe('end');
+		const [, right] = splitAnimatedValue(curve, 1_750_000);
+		expect('keyframes' in right && right.keyframes.every((key) => key.anchor === 'end')).toBe(true);
 	});
 });

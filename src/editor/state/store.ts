@@ -4583,7 +4583,12 @@ export function createEditorStore() {
 												: curve
 													? evaluate(curve, time)
 													: readProperty(clip, propertyId, time);
-										return setPropertyAtTime(clip, propertyId, time, val, {
+										// A static value has nothing to key into: start the animation first.
+										const animatable =
+											curve && isAnimated(curve)
+												? clip
+												: enableClipAnimation(clip, propertyId, time, proj.settings.fps);
+										return setPropertyAtTime(animatable, propertyId, time, val, {
 											autoKey: true,
 											fps: proj.settings.fps
 										});

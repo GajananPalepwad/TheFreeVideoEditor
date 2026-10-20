@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { isAnimated } from './animation';
+import { bounceEase, elasticEase, springEase } from './easing';
 import {
 	copyKeyframes,
 	deleteKeyframes,
 	disableAnimation,
 	enableAnimation,
 	hasKeyframeAt,
+	keyframesOf,
 	moveKeyframes,
 	nextKeyframeTime,
 	pasteKeyframes,
@@ -20,6 +22,8 @@ import {
 } from './keyframeEdit';
 import { propertyCurve, readProperty } from './properties';
 import type { AssetId, Clip, ClipId, PropertyId } from './types';
+
+const CLOSED_FORM = { spring: springEase, elastic: elasticEase, bounce: bounceEase };
 
 function makeClip(duration = 5_000_000): Clip {
 	return {
@@ -192,6 +196,23 @@ describe('keyframeEdit core operations', () => {
 		}
 	});
 
+	it('applies spring, elastic and bounce presets and drops bezier handles they replace', () => {
+		for (const preset of ['spring', 'elastic', 'bounce'] as const) {
+			let clip = makeClip();
+			clip = enableAnimation(clip, 'rotation', 0, fps);
+			clip = setPropertyAtTime(clip, 'rotation', 1_000_000, 100, { autoKey: true, fps });
+			clip = setKeyframeInterpolation(clip, [{ propertyId: 'rotation', time: 0 }], 'ease-out');
+			clip = setKeyframeInterpolation(clip, [{ propertyId: 'rotation', time: 0 }], preset);
+			const first = keyframesOf(propertyCurve(clip, 'rotation')!)[0]!;
+			expect(first.interpolation).toBe(preset);
+			expect(first.easeOut).toBeUndefined();
+			expect(readProperty(clip, 'rotation', 500_000)).toBeCloseTo(
+				100 * CLOSED_FORM[preset](0.5),
+				6
+			);
+		}
+	});
+
 	it('copies and pastes keyframes with relative times and retargeting', () => {
 		let clip = makeClip();
 		clip = enableAnimation(clip, 'opacity', 200_000, fps);
@@ -212,6 +233,35 @@ describe('keyframeEdit core operations', () => {
 		expect(pasted.length).toBe(2);
 		expect(hasKeyframeAt(pastedClip, 'opacity', 1_000_000)).toBe(true);
 		expect(hasKeyframeAt(pastedClip, 'opacity', 1_400_000)).toBe(true);
+	});
+
+	it('keeps the end anchor of out-animation keyframes through copy and paste', () => {
+		let clip = makeClip();
+		clip = enableAnimation(clip, 'opacity', 4_500_000, fps);
+		clip = setPropertyAtTime(clip, 'opacity', 5_000_000, 0, { autoKey: true, fps });
+		const curve = propertyCurve(clip, 'opacity')!;
+		clip = {
+			...clip,
+			properties: {
+				...clip.properties,
+				opacity: {
+					...curve,
+					keyframes: keyframesOf(curve).map((key) => ({ ...key, anchor: 'end' as const }))
+				}
+			}
+		};
+
+		const clipboard: KeyframeClipboard = copyKeyframes(clip, [
+			{ propertyId: 'opacity', time: 4_500_000 },
+			{ propertyId: 'opacity', time: 5_000_000 }
+		]);
+		expect(clipboard.entries.map((entry) => entry.anchor)).toEqual(['end', 'end']);
+
+		const { clip: pasted } = pasteKeyframes(makeClip(), clipboard, 500_000);
+		expect(keyframesOf(propertyCurve(pasted, 'opacity')!).map((key) => key.anchor)).toEqual([
+			'end',
+			'end'
+		]);
 	});
 
 	it('migrates legacy transform on first edit into constant properties', () => {

@@ -80,6 +80,14 @@
 	flex-shrink: 0;
 }
 
+/* Many properties make a long pill list; it scrolls on its own so the presets stay in view. */
+.graph-toolbar-group.graph-toolbar-pills {
+	flex-shrink: 1;
+	min-width: 0;
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+
 .graph-toolbar-divider {
 	width: 1px;
 	height: 18px;

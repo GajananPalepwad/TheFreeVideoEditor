@@ -8,7 +8,11 @@ import type {
 	TextColorRun,
 	AnimatedValue
 } from '../types';
-import { TEXT_ANIMATION_PRESETS, type TextAnimationPreset } from './presets';
+import {
+	TEXT_ANIMATION_PRESETS,
+	fitPresetToDuration,
+	type TextAnimationPreset
+} from './presets';
 
 export type GraphicCategory =
 	| 'all'
@@ -976,15 +980,17 @@ export function applyGraphicTemplateToClip(
  */
 export function applyAnimationPresetToClip(
 	clip: Clip,
-	preset: TextAnimationPreset,
+	source: TextAnimationPreset,
 	baseTime: number = 0
 ): Clip {
+	const preset = fitPresetToDuration(source, clip.duration - baseTime);
 	const properties = { ...(clip.properties ?? {}) };
 
 	for (const [propId, keyframes] of Object.entries(preset.keyframes)) {
 		const offsetKeyframes = keyframes.map((kf) => ({
 			...kf,
-			time: baseTime + kf.time
+			time: baseTime + kf.time,
+			...(preset.kind === 'out' ? { anchor: 'end' as const } : {})
 		}));
 
 		const existing = properties[propId];

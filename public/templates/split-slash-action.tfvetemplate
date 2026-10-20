@@ -118,12 +118,14 @@
                 {
                   "time": 4500000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
                   "time": 5000000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -223,12 +225,14 @@
                 {
                   "time": 4500000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
                   "time": 5000000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             }

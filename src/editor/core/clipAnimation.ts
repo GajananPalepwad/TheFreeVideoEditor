@@ -2,6 +2,7 @@ import {
 	isAnimatedValue,
 	mapAnimatedRecord,
 	retimeAnimatedValue,
+	retimeAnimatedValueTail,
 	shiftAnimatedValue,
 	splitAnimatedValue
 } from './animation';
@@ -63,4 +64,14 @@ export function retimeClipAnimation(clip: AnimatedFields, trimmed: Time): Animat
 	const transform: Transform = (value) =>
 		trimmed > 0 ? retimeAnimatedValue(value, trimmed) : shiftAnimatedValue(value, -trimmed);
 	return mapFields(clip, transform);
+}
+
+/** Moves the end-anchored keyframes of every animated field after a tail trim or extension. */
+export function retimeClipTail(
+	clip: AnimatedFields,
+	oldDuration: Time,
+	newDuration: Time
+): AnimatedFields {
+	if (oldDuration === newDuration) return {};
+	return mapFields(clip, (value) => retimeAnimatedValueTail(value, oldDuration, newDuration));
 }

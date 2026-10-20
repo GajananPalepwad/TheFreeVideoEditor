@@ -94,6 +94,50 @@ describe('animation across edit operations', () => {
 		expect(trimmed.properties).toEqual(clip.properties);
 	});
 
+	it('tail trim moves an end-anchored fade-out with the new end', () => {
+		const project = animatedProject();
+		const clip = firstClip(project)[0]!;
+		const end = clip.duration;
+		clip.properties = {
+			opacity: {
+				keyframes: [
+					{ time: 0, value: 1, interpolation: 'linear' },
+					{ time: end - 500_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: end, value: 0, interpolation: 'linear', anchor: 'end' }
+				]
+			}
+		};
+		const trimmed = firstClip(trimClip(project, clip.id, 'end', 3_000_000))[0]!;
+		expect(trimmed.duration).toBe(2_000_000);
+		expect(opacity(trimmed, 1_500_000)).toBe(1);
+		expect(opacity(trimmed, 1_750_000)).toBeCloseTo(0.5, 6);
+		expect(opacity(trimmed, 2_000_000)).toBe(0);
+	});
+
+	it('tail trim retimes anchored effect parameters too', () => {
+		const project = animatedProject();
+		const clip = firstClip(project)[0]!;
+		const end = clip.duration;
+		clip.effects = [
+			{
+				id: 'fx-1',
+				type: 'blur',
+				params: {
+					radius: {
+						keyframes: [
+							{ time: end - 400_000, value: 0, interpolation: 'linear', anchor: 'end' },
+							{ time: end, value: 8, interpolation: 'linear', anchor: 'end' }
+						]
+					}
+				}
+			}
+		];
+		const trimmed = firstClip(trimClip(project, clip.id, 'end', 3_000_000))[0]!;
+		const radius = trimmed.effects![0]!.params.radius as AnimatedValue<number>;
+		expect(evaluate(radius, 2_000_000)).toBe(8);
+		expect(evaluate(radius, 1_600_000)).toBe(0);
+	});
+
 	it('duplicate gives masks and effects new ids but keeps the animation', () => {
 		const project = animatedProject();
 		const clip = firstClip(project)[0]!;

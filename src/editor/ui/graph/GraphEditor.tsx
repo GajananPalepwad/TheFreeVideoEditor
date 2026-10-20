@@ -13,7 +13,11 @@ import { findClipInSequence } from '../../core/sequences/access';
 import { trackFeatureUsed } from '../../../services/activityTracking';
 import {
 	descriptorFor,
+	channelKeyValue,
 	evaluate,
+	graphPropertyIds,
+	TRANSFORM_PROPERTIES,
+	nearestChannel,
 	isAnimated,
 	propertyCurve,
 	readProperty,
@@ -66,6 +70,9 @@ const PROPERTY_COLORS: Record<string, string> = {
 	'text.strokeWidth': '#f43f5e'
 };
 
+/** Fallback per channel: X/R red, Y/G green, B blue, A grey. */
+const CHANNEL_COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#9ca3af'];
+
 function safeTicksToSeconds(ticks: number): number {
 	return Math.max(0, ticks) / 1_000_000;
 }
@@ -80,8 +87,6 @@ function safeFramesToTicks(frames: number, fps: number): Time {
 	const safeFps = Math.max(1, fps);
 	return Math.round((wholeFrames / safeFps) * 1_000_000);
 }
-
-const FILTER_PROPERTIES: PropertyId[] = ['position', 'scale', 'rotation', 'opacity', 'crop'];
 
 interface ViewportBounds {
 	minT: number;
@@ -134,7 +139,7 @@ export default function GraphEditor() {
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
 	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
 	const visibleProperties = useEditorStore(
-		(state) => state.keyframes.graph.visibleProperties ?? FILTER_PROPERTIES
+		(state) => state.keyframes.graph.visibleProperties ?? TRANSFORM_PROPERTIES
 	);
 	const selectedKeyframeRefs = useEditorStore((state) => state.keyframes.selection);
 
@@ -194,40 +199,10 @@ export default function GraphEditor() {
 	}, [project, selectedClipIds, activeSequenceId]);
 
 	// Filter properties available for this clip
-	const availableFilterProperties: PropertyId[] = useMemo(() => {
-		const props: PropertyId[] = [...FILTER_PROPERTIES];
-		if (selectedClip?.source?.type === 'text') {
-			props.push(
-				'text.fontSize',
-				'text.letterSpacing',
-				'text.lineHeight',
-				'text.reveal',
-				'text.strokeWidth',
-				'text.shadowBlur',
-				'text.shadowOffsetX',
-				'text.shadowOffsetY'
-			);
-		}
-		if (selectedClip?.source?.type === 'shape') {
-			props.push(
-				'shape.width',
-				'shape.height',
-				'shape.strokeWidth',
-				'shape.cornerRadius',
-				'shape.shadowBlur',
-				'shape.shadowOffsetX',
-				'shape.shadowOffsetY'
-			);
-		}
-		if (selectedClip?.masks) {
-			for (const mask of selectedClip.masks) {
-				props.push(`mask:${mask.id}:feather` as PropertyId);
-				props.push(`mask:${mask.id}:expansion` as PropertyId);
-				props.push(`mask:${mask.id}:opacity` as PropertyId);
-			}
-		}
-		return props;
-	}, [selectedClip]);
+	const availableFilterProperties: PropertyId[] = useMemo(
+		() => (selectedClip ? graphPropertyIds(selectedClip) : TRANSFORM_PROPERTIES),
+		[selectedClip]
+	);
 
 	// Extract curves for animated channels on this clip
 	const curves: GraphEditorCurve[] = useMemo(() => {
@@ -272,7 +247,7 @@ export default function GraphEditor() {
 			} else {
 				desc.channels.forEach((chanLabel, chanIdx) => {
 					const colorKey = `${propId}:${chanIdx}`;
-					const color = PROPERTY_COLORS[colorKey] ?? (chanIdx === 0 ? '#ef4444' : '#22c55e');
+					const color = PROPERTY_COLORS[colorKey] ?? CHANNEL_COLORS[chanIdx] ?? '#22c55e';
 					result.push({
 						id: colorKey,
 						propertyId: propId,
@@ -375,6 +350,13 @@ export default function GraphEditor() {
 				if (k) {
 					if (k.interpolation === 'hold') return 'hold';
 					if (k.interpolation === 'linear') return 'linear';
+					if (
+						k.interpolation === 'spring' ||
+						k.interpolation === 'elastic' ||
+						k.interpolation === 'bounce'
+					) {
+						return k.interpolation;
+					}
 					if (k.easeIn && k.easeOut) return 'ease-both';
 					if (k.easeIn) return 'ease-in';
 					if (k.easeOut) return 'ease-out';
@@ -832,10 +814,21 @@ export default function GraphEditor() {
 		const snappedTime = safeFramesToTicks(safeTicksToFrames(time, fps), fps);
 		const displayVal = yToVal(clickY);
 
-		const activeCurve = curves[0]!;
-		const internalVal = displayVal / (activeCurve.desc.displayFactor || 1);
-
-		store.getState().addKeyframeAtTime(selectedClip.id, activeCurve.propertyId, snappedTime, internalVal);
+		const target = nearestChannel(
+			selectedClip,
+			curves.map((curve) => ({ ...curve, displayFactor: curve.desc.displayFactor })),
+			snappedTime,
+			displayVal
+		);
+		if (!target) return;
+		store
+			.getState()
+			.addKeyframeAtTime(
+				selectedClip.id,
+				target.propertyId,
+				snappedTime,
+				channelKeyValue(selectedClip, target, snappedTime, displayVal)
+			);
 	};
 
 	// Wheel Zoom & Pan
@@ -1014,7 +1007,7 @@ export default function GraphEditor() {
 			{/* Modern Toolbar */}
 			<div className="graph-editor-toolbar">
 				{/* Property Pills */}
-				<div className="graph-toolbar-group">
+				<div className="graph-toolbar-group graph-toolbar-pills">
 					{availableFilterProperties.map((propId) => {
 						const desc = descriptorFor(propId);
 						if (!desc) return null;
@@ -1111,6 +1104,23 @@ export default function GraphEditor() {
 						>
 							Hold
 						</button>
+						{(
+							[
+								['spring', 'Spring', 'Spring (overshoots and settles)'],
+								['elastic', 'Elastic', 'Elastic (swings past the target)'],
+								['bounce', 'Bounce', 'Bounce (rebounds off the target)']
+							] as const
+						).map(([preset, label, hint]) => (
+							<button
+								key={preset}
+								type="button"
+								className={`graph-preset-btn ${selectedInterpolation === preset ? 'is-active' : ''}`}
+								onClick={() => store.getState().setKeyframeInterpolation(preset)}
+								title={hint}
+							>
+								{label}
+							</button>
+						))}
 					</div>
 				</div>
 
@@ -1135,7 +1145,10 @@ export default function GraphEditor() {
 						className="graph-icon-btn"
 						onClick={() => {
 							if (selectedClip && curves.length > 0) {
-								store.getState().toggleKeyframe(selectedClip.id, curves[0]!.propertyId);
+								const keyed = selectedKeyframeRefs.find((ref) => ref.clipId === selectedClip.id);
+								store
+									.getState()
+									.toggleKeyframe(selectedClip.id, keyed?.propertyId ?? curves[0]!.propertyId);
 							}
 						}}
 						title="Add / Toggle Keyframe at Playhead"

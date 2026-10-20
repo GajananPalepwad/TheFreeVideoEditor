@@ -1,4 +1,4 @@
-import { retimeClipAnimation, splitClipAnimation } from '../clipAnimation';
+import { retimeClipAnimation, retimeClipTail, splitClipAnimation } from '../clipAnimation';
 import { createAssetId } from '../ids';
 import { framesToTicks } from '../time';
 import { timelineToSource } from '../timeRemap';
@@ -333,7 +333,9 @@ export function trimClip(
 				duration,
 				sourceIn,
 				sourceOut,
-				...(edge === 'start' ? retimeClipAnimation(member, start - member.start) : {})
+				...(edge === 'start'
+					? retimeClipAnimation(member, start - member.start)
+					: retimeClipTail(member, member.duration, duration))
 			}
 		};
 	});
