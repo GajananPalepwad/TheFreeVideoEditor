@@ -1160,6 +1160,14 @@ export function createEditorStore() {
 				});
 			});
 
+			/**
+			 * Runs a recipe against the sequence open in the timeline (the root when none is open), so an
+			 * edit made inside a template instance changes that sequence and stays one undo entry.
+			 */
+			function scoped(recipe: ProjectRecipe): ProjectRecipe {
+				return (project) => applyToSequence(project, get().activeSequenceId, recipe);
+			}
+
 			function mutateProject(
 				label: string,
 				recipe: ProjectRecipe | null,
@@ -4198,7 +4206,7 @@ export function createEditorStore() {
 
 						mutateProject(
 							label,
-							(proj) => {
+							scoped((proj) => {
 								let updatedTargetClip: Clip | null = null;
 								const nextTracks = proj.tracks.map((track) => ({
 									...track,
@@ -4270,7 +4278,7 @@ export function createEditorStore() {
 									...proj,
 									tracks: nextTracks
 								};
-							},
+							}),
 							{
 								history: 'record',
 								mergeKey,
@@ -4298,7 +4306,7 @@ export function createEditorStore() {
 						let addedKeyTime: Time | null = null;
 						mutateProject(
 							`Animate ${descriptorFor(propertyId)?.label ?? propertyId}`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4318,7 +4326,7 @@ export function createEditorStore() {
 										return updatedClip;
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						if (addedKeyTime !== null) {
@@ -4338,7 +4346,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Remove animation from ${descriptorFor(propertyId)?.label ?? propertyId}`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4348,7 +4356,7 @@ export function createEditorStore() {
 										return disableClipAnimation(clip, propertyId, localTime, mode);
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -4368,7 +4376,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Toggle ${descriptorFor(propertyId)?.label ?? propertyId} keyframe`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4378,7 +4386,7 @@ export function createEditorStore() {
 										return toggleClipKeyframe(clip, propertyId, localTime, proj.settings.fps);
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 					} catch (error) {
@@ -4400,7 +4408,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							selection.length === 1 ? 'Delete keyframe' : `Delete ${selection.length} keyframes`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4411,7 +4419,7 @@ export function createEditorStore() {
 											: clip;
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -4437,7 +4445,7 @@ export function createEditorStore() {
 						let appliedDelta: Time = 0;
 						mutateProject(
 							'Move keyframes',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4451,7 +4459,7 @@ export function createEditorStore() {
 										return clip;
 									})
 								}))
-							}),
+							})),
 							{
 								history: commit ? 'record' : 'skip',
 								mergeKey: !commit ? 'move-keyframes' : undefined,
@@ -4480,7 +4488,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Set keyframe interpolation: ${preset}`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4491,7 +4499,7 @@ export function createEditorStore() {
 											: clip;
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 					} catch (error) {
@@ -4506,7 +4514,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Adjust bezier handles',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4516,7 +4524,7 @@ export function createEditorStore() {
 											: clip
 									)
 								}))
-							}),
+							})),
 							{
 								history: commit ? 'record' : 'skip',
 								mergeKey: !commit ? `bezier:${clipId}:${propertyId}:${time}` : undefined
@@ -4534,7 +4542,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Adjust keyframe value',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4544,7 +4552,7 @@ export function createEditorStore() {
 											: clip
 									)
 								}))
-							}),
+							})),
 							{
 								history: commit ? 'record' : 'skip',
 								mergeKey: !commit ? `keyframe-val:${clipId}:${propertyId}:${time}` : undefined
@@ -4562,7 +4570,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Add ${descriptorFor(propertyId)?.label ?? propertyId} keyframe`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4581,7 +4589,7 @@ export function createEditorStore() {
 										});
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -4599,7 +4607,7 @@ export function createEditorStore() {
 					if (!project || selection.length === 0) return;
 					const clipId = selection[0]!.clipId;
 					let targetClip: Clip | null = null;
-					for (const track of project.tracks) {
+					for (const track of viewProject(project, get().activeSequenceId).tracks) {
 						const clip = track.clips.find((c) => c.id === clipId);
 						if (clip) {
 							targetClip = clip;
@@ -4631,7 +4639,7 @@ export function createEditorStore() {
 						let pastedRefs: KeyframeRef[] = [];
 						mutateProject(
 							'Paste keyframes',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4643,7 +4651,7 @@ export function createEditorStore() {
 										return res.clip;
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						if (pastedRefs.length > 0) {
@@ -4666,7 +4674,7 @@ export function createEditorStore() {
 					if (!project) return;
 					const playhead = get().timeline.playhead;
 					const selectedIds = new Set(get().timeline.selection.clipIds);
-					const targetClips = project.tracks.flatMap((track) =>
+					const targetClips = viewProject(project, get().activeSequenceId).tracks.flatMap((track) =>
 						track.clips.filter((clip) => selectedIds.size === 0 || selectedIds.has(clip.id))
 					);
 					let nextGlobalTime: Time | null = null;
@@ -4694,7 +4702,7 @@ export function createEditorStore() {
 					if (!project) return;
 					const playhead = get().timeline.playhead;
 					const selectedIds = new Set(get().timeline.selection.clipIds);
-					const targetClips = project.tracks.flatMap((track) =>
+					const targetClips = viewProject(project, get().activeSequenceId).tracks.flatMap((track) =>
 						track.clips.filter((clip) => selectedIds.size === 0 || selectedIds.has(clip.id))
 					);
 					let prevGlobalTime: Time | null = null;
