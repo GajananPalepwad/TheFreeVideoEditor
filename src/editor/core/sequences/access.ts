@@ -1,4 +1,4 @@
-import type { Project, ProjectSettings, Sequence, SequenceId } from '../types';
+import type { Clip, ClipId, Project, ProjectSettings, Sequence, SequenceId } from '../types';
 
 export const ROOT_SEQUENCE_ID = 'root' as SequenceId;
 
@@ -81,4 +81,20 @@ export function applyToSequence(
 			[sequenceId]: updatedSequence
 		}
 	};
+}
+
+/**
+ * Find a clip among the tracks of one sequence (or the root). A clip that lives in a different
+ * sequence is not found, which keeps editing surfaces from touching the wrong timeline.
+ */
+export function findClipInSequence(
+	project: Project,
+	sequenceId: SequenceId,
+	clipId: ClipId
+): Clip | null {
+	for (const track of viewProject(project, sequenceId).tracks) {
+		const clip = track.clips.find((candidate) => candidate.id === clipId);
+		if (clip) return clip;
+	}
+	return null;
 }

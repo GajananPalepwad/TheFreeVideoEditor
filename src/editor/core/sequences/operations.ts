@@ -763,12 +763,20 @@ export function expandSequenceInstance(
 	const clipIdMap = new Map<string, string>();
 	const linkIdMap = new Map<string, string>();
 
+	// Every nested track keeps its own host track so no layer is merged into another. The first
+	// nested track of the instance's kind takes the instance's track; the others are inserted right
+	// below it in their original order, which keeps the stacking order and avoids overlaps.
+	const takenKinds = new Set<Track['kind']>();
+	let insertAfter = updatedHostTracks.findIndex((t) => t.id === hostTrack!.id);
+
 	for (const nTrack of nestedSeq.tracks) {
-		let targetHostTrack = updatedHostTracks.find(
-			(t) => t.kind === nTrack.kind && t.id !== hostTrack!.id
-		);
-		if (nTrack.kind === hostTrack.kind) {
+		const firstOfKind = !takenKinds.has(nTrack.kind);
+		takenKinds.add(nTrack.kind);
+		let targetHostTrack: Track | undefined;
+		if (firstOfKind && nTrack.kind === hostTrack.kind) {
 			targetHostTrack = hostTrack;
+		} else if (firstOfKind) {
+			targetHostTrack = updatedHostTracks.find((t) => t.kind === nTrack.kind);
 		}
 		if (!targetHostTrack) {
 			targetHostTrack = makeTrack(
@@ -776,7 +784,12 @@ export function expandSequenceInstance(
 				nTrack.kind,
 				`${nTrack.name} (Expanded)`
 			);
-			updatedHostTracks.push(targetHostTrack);
+			if (nTrack.kind === hostTrack.kind) {
+				insertAfter += 1;
+				updatedHostTracks.splice(insertAfter, 0, targetHostTrack);
+			} else {
+				updatedHostTracks.push(targetHostTrack);
+			}
 		}
 
 		// Insert trimmed shifted clips into targetHostTrack

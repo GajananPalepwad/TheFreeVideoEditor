@@ -7,6 +7,7 @@ import {
 	type GraphicCategory
 } from '../../core/text/graphicsTemplates';
 import { readProperty } from '../../core/properties';
+import { findClipInSequence } from '../../core/sequences/access';
 import { ColorPickerField } from '../inspector/ColorPickerField';
 import type { Clip, GraphicFrameStyle } from '../../core/types';
 import {
@@ -59,6 +60,7 @@ export default function GraphicsPanel() {
 	const store = useEditorStoreApi();
 	const project = useEditorStore((state) => state.project);
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
+	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
 	const playhead = useEditorStore((state) => state.timeline.playhead);
 	const history = useEditorStore((state) => state.history);
 
@@ -121,9 +123,8 @@ export default function GraphicsPanel() {
 	// Currently selected clip on timeline
 	const selectedClip: Clip | null = useMemo(() => {
 		if (!project || selectedClipIds.length === 0) return null;
-		const id = selectedClipIds[0]!;
-		return project.tracks.flatMap((t) => t.clips).find((c) => c.id === id) ?? null;
-	}, [project, selectedClipIds]);
+		return findClipInSequence(project, activeSequenceId, selectedClipIds[0]!);
+	}, [project, selectedClipIds, activeSequenceId]);
 
 	const textSource = selectedClip?.source?.type === 'text' ? selectedClip.source : null;
 	const isTextClipSelected = Boolean(textSource && selectedClip);

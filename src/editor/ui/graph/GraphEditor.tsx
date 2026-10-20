@@ -9,6 +9,7 @@ import {
 	type MouseEvent as ReactMouseEvent
 } from 'react';
 import { useEditorStore, useEditorStoreApi } from '../../state/EditorProvider';
+import { findClipInSequence } from '../../core/sequences/access';
 import { trackFeatureUsed } from '../../../services/activityTracking';
 import {
 	descriptorFor,
@@ -131,6 +132,7 @@ export default function GraphEditor() {
 	const project = useEditorStore((state) => state.project);
 	const playhead = useEditorStore((state) => state.timeline.playhead);
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
+	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
 	const visibleProperties = useEditorStore(
 		(state) => state.keyframes.graph.visibleProperties ?? FILTER_PROPERTIES
 	);
@@ -188,8 +190,8 @@ export default function GraphEditor() {
 	// Find active selected clip
 	const selectedClip: Clip | null = useMemo(() => {
 		if (!project || selectedClipIds.length !== 1) return null;
-		return project.tracks.flatMap((t) => t.clips).find((c) => c.id === selectedClipIds[0]) ?? null;
-	}, [project, selectedClipIds]);
+		return findClipInSequence(project, activeSequenceId, selectedClipIds[0]!);
+	}, [project, selectedClipIds, activeSequenceId]);
 
 	// Filter properties available for this clip
 	const availableFilterProperties: PropertyId[] = useMemo(() => {
@@ -574,7 +576,8 @@ export default function GraphEditor() {
 
 				const currentProject = store.getState().project;
 				const freshClip =
-					currentProject?.tracks.flatMap((t) => t.clips).find((c) => c.id === selectedClip.id) ??
+					(currentProject &&
+						findClipInSequence(currentProject, store.getState().activeSequenceId, selectedClip.id)) ??
 					selectedClip;
 
 				// Update value for the dragged keyframe and co-selected keyframes
@@ -657,7 +660,9 @@ export default function GraphEditor() {
 
 					// Commit final values for all moved keys to history
 					const currentProject = store.getState().project;
-					const freshClip = currentProject?.tracks.flatMap((t) => t.clips).find((c) => c.id === selectedClip.id);
+					const freshClip =
+						currentProject &&
+						findClipInSequence(currentProject, store.getState().activeSequenceId, selectedClip.id);
 					if (freshClip) {
 						for (const k of drag.keyframe.selectedKeys) {
 							const currentKeyTime = k.initialTime + drag.keyframe.appliedDeltaTime;
