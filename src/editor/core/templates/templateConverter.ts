@@ -40,7 +40,10 @@ function arrayToRgba(arr?: unknown): { r: number; g: number; b: number; a: numbe
 	return { r: 1, g: 1, b: 1, a: 1 };
 }
 
-/** A slider for the size of one text layer, from half to double the size it is drawn at. */
+/**
+ * A slider for the size of one text layer, from half to 1.25 times the size it is drawn at. Larger
+ * text no longer fits the template's measured bounds, so it would be cut off.
+ */
 function textSizeParam(
 	id: string,
 	name: string,
@@ -55,7 +58,7 @@ function textSizeParam(
 		targetProperty: 'text.fontSize',
 		defaultValue: size,
 		min: Math.round(size / 2),
-		max: Math.round(size * 2),
+		max: Math.round(size * 1.25),
 		step: 1
 	};
 }

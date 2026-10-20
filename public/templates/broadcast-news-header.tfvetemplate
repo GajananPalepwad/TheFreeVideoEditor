@@ -248,7 +248,7 @@
       "targetProperty": "text.fontSize",
       "defaultValue": 56,
       "min": 28,
-      "max": 112,
+      "max": 70,
       "step": 1
     },
     {
