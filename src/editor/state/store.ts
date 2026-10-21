@@ -5366,7 +5366,9 @@ export function createEditorStore() {
 				addTransition(trackId, type, edge, duration, alignment = 'center', params = {}) {
 					const project = get().project;
 					if (!project) return null;
-					const track = project.tracks.find((t) => t.id === trackId);
+					const track = viewProject(project, get().activeSequenceId).tracks.find(
+						(t) => t.id === trackId
+					);
 					if (!track) return null;
 
 					const def = getTransitionDefinition(type);
@@ -5403,7 +5405,7 @@ export function createEditorStore() {
 
 					mutateProject(
 						`Add Transition (${def?.name ?? type})`,
-						(proj) => ({
+						scoped((proj) => ({
 							...proj,
 							tracks: proj.tracks.map((t) =>
 								t.id === trackId
@@ -5416,7 +5418,7 @@ export function createEditorStore() {
 										}
 									: t
 							)
-						}),
+						})),
 						{ history: 'record' }
 					);
 
@@ -5435,7 +5437,7 @@ export function createEditorStore() {
 					let found = false;
 					mutateProject(
 						'Edit Transition',
-						(proj) => ({
+						scoped((proj) => ({
 							...proj,
 							tracks: proj.tracks.map((t) => ({
 								...t,
@@ -5459,7 +5461,7 @@ export function createEditorStore() {
 									return tr;
 								})
 							}))
-						}),
+						})),
 						{ history: 'record', mergeKey: `transition:${transitionId}` }
 					);
 
@@ -5473,7 +5475,7 @@ export function createEditorStore() {
 					let removed = false;
 					mutateProject(
 						'Remove Transition',
-						(proj) => ({
+						scoped((proj) => ({
 							...proj,
 							tracks: proj.tracks.map((t) => ({
 								...t,
@@ -5485,7 +5487,7 @@ export function createEditorStore() {
 									return true;
 								})
 							}))
-						}),
+						})),
 						{ history: 'record' }
 					);
 

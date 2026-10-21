@@ -414,3 +414,51 @@ describe('mask, fade and audio edits inside a template sequence', () => {
 		expect(innerClip(store, sequenceId).audioEffects).toEqual([]);
 	});
 });
+
+describe('transition edits inside a template sequence', () => {
+	beforeEach(() => {
+		resetServiceMocks();
+	});
+
+	function trackOf(store: Store, sequenceId: SequenceId, clip: Clip) {
+		return store
+			.getState()
+			.project!.sequences![sequenceId]!.tracks.find((track) =>
+				track.clips.some((candidate) => candidate.id === clip.id)
+			)!;
+	}
+
+	it('addTransition puts the transition on the nested track and selects it', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const rootBefore = rootClips(store);
+
+		const id = store
+			.getState()
+			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+				kind: 'head',
+				clipId: target.id
+			});
+
+		expect(id).not.toBeNull();
+		expect(trackOf(store, sequenceId, target).transitions?.map((t) => t.id)).toEqual([id]);
+		expect(store.getState().timeline.selection.transitionId).toBe(id);
+		expect(rootClips(store)).toEqual(rootBefore);
+	});
+
+	it('updateTransition and removeTransition change the nested transition', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const id = store
+			.getState()
+			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+				kind: 'head',
+				clipId: target.id
+			})!;
+
+		expect(store.getState().updateTransition(id, { duration: 400_000 })).toBe(true);
+		expect(trackOf(store, sequenceId, target).transitions![0]!.duration).toBe(400_000);
+		expect(store.getState().removeTransition(id)).toBe(true);
+		expect(trackOf(store, sequenceId, target).transitions ?? []).toEqual([]);
+	});
+});
