@@ -22,7 +22,8 @@ import { SaveTemplateModal } from './SaveTemplateModal';
 import { MotionTemplateCard } from './MotionTemplateCard';
 import {
 	BUILTIN_MOTION_TEMPLATES,
-	filterBuiltinTemplates
+	filterBuiltinTemplates,
+	populatedCategoryIds
 } from '../../core/templates/builtinTemplates';
 import './graphics.css';
 
@@ -37,6 +38,9 @@ const CATEGORIES: Array<{ id: GraphicCategory; label: string }> = [
 	{ id: 'neon', label: 'Neon' },
 	{ id: 'minimal', label: 'Minimal' }
 ];
+
+const POPULATED_CATEGORY_IDS = new Set(populatedCategoryIds(CATEGORIES.map((cat) => cat.id)));
+const VISIBLE_CATEGORIES = CATEGORIES.filter((cat) => POPULATED_CATEGORY_IDS.has(cat.id));
 
 const FRAME_STYLES: Array<{ id: GraphicFrameStyle; label: string }> = [
 	{ id: 'none', label: 'Standard' },
@@ -598,7 +602,7 @@ export default function GraphicsPanel() {
 
 						{/* Category Pills */}
 						<div className="graphics-category-tabs" role="tablist" aria-label="Graphic categories">
-							{CATEGORIES.map((cat) => (
+							{VISIBLE_CATEGORIES.map((cat) => (
 								<button
 									key={cat.id}
 									type="button"

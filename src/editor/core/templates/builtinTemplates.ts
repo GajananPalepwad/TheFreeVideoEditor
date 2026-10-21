@@ -81,3 +81,11 @@ export function filterBuiltinTemplates(
 		);
 	});
 }
+
+/**
+ * The category ids that should get a tab: "all" and every category at least one built-in template
+ * belongs to, so the tab strip never shows a category that is always empty.
+ */
+export function populatedCategoryIds(categoryIds: readonly string[]): string[] {
+	return categoryIds.filter((id) => id === 'all' || filterBuiltinTemplates(id).length > 0);
+}

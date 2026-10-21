@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	BUILTIN_MOTION_TEMPLATES,
 	filterBuiltinTemplates,
+	populatedCategoryIds,
 	getBuiltinMotionTemplate,
 	resolveMotionTemplate
 } from './builtinTemplates';
@@ -91,5 +92,19 @@ describe('filtering the library', () => {
 			filterBuiltinTemplates('all', 'epic adventure').map((template) => template.id)
 		).toContain('cinematic-blockbuster');
 		expect(filterBuiltinTemplates('all', 'zzz-no-match')).toEqual([]);
+	});
+});
+
+describe('category tabs', () => {
+	it('keeps "all" and the categories that hold a template, in the given order', () => {
+		const ids = populatedCategoryIds(['all', 'kinetic', 'lower-third', 'titles', 'neon']);
+		expect(ids[0]).toBe('all');
+		expect(ids).toContain('titles');
+		expect(ids).toContain('lower-third');
+		expect(ids.indexOf('lower-third')).toBeLessThan(ids.indexOf('titles'));
+	});
+
+	it('drops a category that no template belongs to', () => {
+		expect(populatedCategoryIds(['all', 'neon', 'minimal'])).toEqual(['all']);
 	});
 });
