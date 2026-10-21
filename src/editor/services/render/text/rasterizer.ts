@@ -59,6 +59,11 @@ export interface TextRasterConfig {
  * Checks whether the current environment supports ctx.letterSpacing.
  */
 let supportsCanvasLetterSpacing: boolean | null = null;
+/** The reveal unit a config draws with: its own, else its style's, else character by character. */
+function effectiveRevealUnit(config: TextRasterConfig): 'char' | 'word' | 'line' {
+	return config.revealUnit ?? config.style.revealUnit ?? 'char';
+}
+
 export function hasCanvasLetterSpacing(): boolean {
 	if (supportsCanvasLetterSpacing !== null) return supportsCanvasLetterSpacing;
 	if (typeof OffscreenCanvas !== 'undefined') {
@@ -404,7 +409,7 @@ export function rasterizeText(
 
 	// 3. Compute revealed prefix if reveal < 1
 	const revealProgress = config.reveal !== undefined ? Math.max(0, Math.min(1, config.reveal)) : 1;
-	const visibleCharCount = revealCount(text, config.revealUnit ?? 'char', revealProgress);
+	const visibleCharCount = revealCount(text, effectiveRevealUnit(config), revealProgress);
 
 	// Setup font styling
 	ctx.font = fontString;
@@ -686,7 +691,7 @@ export function hashTextConfig(config: TextRasterConfig): string {
 		? `${Math.round(config.strokeColor.r * 255)},${Math.round(config.strokeColor.g * 255)},${Math.round(config.strokeColor.b * 255)},${Math.round(config.strokeColor.a * 255)},${config.strokeWidth || 0}`
 		: '0';
 	const reveal = config.reveal !== undefined ? Math.round(config.reveal * 1000) : 1000;
-	const revealUnit = config.revealUnit || 'char';
+	const revealUnit = effectiveRevealUnit(config);
 	const shadow = config.shadowColor
 		? `${Math.round(config.shadowColor.r * 255)},${Math.round(config.shadowColor.g * 255)},${Math.round(config.shadowColor.b * 255)},${Math.round(config.shadowColor.a * 255)},${config.shadowBlur || 0},${config.shadowOffsetX || 0},${config.shadowOffsetY || 0}`
 		: '0';

@@ -128,6 +128,8 @@ export interface TextStyle {
 	alignment?: 'left' | 'center' | 'right';
 	lineHeight?: number;
 	letterSpacing?: number;
+	/** What a reveal below 1 uncovers at a time. Defaults to character by character. */
+	revealUnit?: 'char' | 'word' | 'line';
 }
 
 export type GraphicFrameStyle =

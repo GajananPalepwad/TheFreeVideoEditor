@@ -124,3 +124,21 @@ describe('graphics fields survive a save and reload', () => {
 		});
 	});
 });
+
+describe('text reveal unit persistence', () => {
+	it('keeps the reveal unit of a text style through a save and reload', () => {
+		const project = projectWith([
+			{
+				...clipBase,
+				id: 'text-reveal' as ClipId,
+				source: {
+					type: 'text',
+					text: 'one two three',
+					style: { fontFamily: 'sans-serif', revealUnit: 'word' }
+				}
+			}
+		]);
+		const [layer] = resolveFrame(saveAndReload(project), 0).videoLayers;
+		expect(layer!.textData!.style.revealUnit).toBe('word');
+	});
+});

@@ -106,7 +106,8 @@ export const textStyleSchema = z.object({
 	fontStyle: z.enum(['normal', 'italic']).optional(),
 	alignment: z.enum(['left', 'center', 'right']).optional(),
 	lineHeight: z.number().positive().optional(),
-	letterSpacing: z.number().optional()
+	letterSpacing: z.number().optional(),
+	revealUnit: z.enum(['char', 'word', 'line']).optional()
 });
 
 export const gradientTypeSchema = z.enum([
