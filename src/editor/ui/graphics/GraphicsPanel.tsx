@@ -1055,15 +1055,21 @@ export default function GraphicsPanel() {
 											className="graphic-apply-btn"
 											style={{ flex: 1, padding: '6px 8px', fontSize: '11px' }}
 											onClick={() => {
-												if (selectedClip) {
-													store
-														.getState()
-														.setProperty(selectedClip.id, 'scale', [1, 1], { autoKey: true });
-													store
-														.getState()
-														.setProperty(selectedClip.id, 'opacity', 1, { autoKey: true });
-													setAnnouncement('Added motion keyframe at playhead.');
+												if (!selectedClip) return;
+												const state = store.getState();
+												const localTime = Math.min(
+													Math.max(0, state.timeline.playhead - selectedClip.start),
+													selectedClip.duration
+												);
+												for (const propertyId of ['scale', 'opacity'] as const) {
+													state.addKeyframeAtTime(
+														selectedClip.id,
+														propertyId,
+														localTime,
+														readProperty(selectedClip, propertyId, localTime)
+													);
 												}
+												setAnnouncement('Added motion keyframes at the playhead.');
 											}}
 										>
 											◆ Keyframe at Playhead
@@ -1081,7 +1087,8 @@ export default function GraphicsPanel() {
 											}}
 											onClick={() => {
 												store.getState().switchWorkspace('editing');
-												setAnnouncement('Opened editing workspace with keyframe graph.');
+												store.getState().setGraphOpen(true);
+												setAnnouncement('Opened the keyframe graph editor.');
 											}}
 										>
 											📈 Open Graph Editor
