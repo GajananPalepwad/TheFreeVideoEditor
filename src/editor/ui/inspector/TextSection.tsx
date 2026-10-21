@@ -1043,6 +1043,26 @@ export function TextSection({
 				onCancelDisableConfirm={onCancelDisableConfirm}
 			/>
 
+			<div className="property-row">
+				<div className="property-header">
+					<span className="property-label">Reveal by</span>
+				</div>
+				<select
+					className="text-select"
+					aria-label="Reveal by"
+					value={textStyle.revealUnit || 'char'}
+					onChange={(e) =>
+						store
+							.getState()
+							.setTextStyle(clip.id, { revealUnit: e.target.value as 'char' | 'word' | 'line' })
+					}
+				>
+					<option value="char">Character</option>
+					<option value="word">Word</option>
+					<option value="line">Line</option>
+				</select>
+			</div>
+
 			<div className="text-divider">
 				<span className="text-divider-title">Shadow</span>
 				<div className="timeline-counter-badge" style={{ margin: 0 }}>
