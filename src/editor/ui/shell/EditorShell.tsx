@@ -1281,6 +1281,15 @@ function EditorShell() {
 									</button>
 									<hr />
 									<a
+										href="https://discord.gg/6MtmjsA53V"
+										target="_blank"
+										rel="noopener noreferrer"
+										role="menuitem"
+										onClick={() => setIsHelpMenuOpen(false)}
+									>
+										Discord Community… <span>💬</span>
+									</a>
+									<a
 										href="https://buymeacoffee.com/beestack"
 										target="_blank"
 										rel="noopener noreferrer"
