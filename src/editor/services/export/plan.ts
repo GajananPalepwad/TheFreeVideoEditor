@@ -18,6 +18,8 @@ export interface ExportSettings {
 	alpha?: boolean;
 	filename: string;
 	range: 'timeline';
+	normalizeAudio?: boolean;
+	loudnessTargetLufs?: number;
 }
 
 export interface ExportPlan {

@@ -142,4 +142,20 @@ describe('export audio mix scheduling', () => {
 			await mixer.dispose();
 		}
 	});
+
+	it('supports planar mixing for loudness normalization calculation', async () => {
+		const project = createEmptyProject({ name: 'Planar mix test' });
+		const track = project.tracks.find((item) => item.kind === 'audio');
+		if (!track) throw new Error('Factory did not create an audio track.');
+		const mixer = new WorkerAudioMixer(project, async () => {
+			throw new Error('No files');
+		});
+		try {
+			const emptyPlanar = await mixer.mixChunkPlanar(0, 1_000_000, 48_000);
+			// Without clips, returns null
+			expect(emptyPlanar).toBeNull();
+		} finally {
+			await mixer.dispose();
+		}
+	});
 });

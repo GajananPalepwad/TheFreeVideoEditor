@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyProject } from '../../core';
 import { buildExportPlan } from './plan';
-import { dimensionsForPreset, sanitizeFilename, settingsForPreset } from './presets';
+import {
+	DESTINATION_PRESETS,
+	dimensionsForPreset,
+	sanitizeFilename,
+	settingsForPreset
+} from './presets';
 
 function projectForTenMinutes(fps: number) {
 	const project = createEmptyProject({ name: `${fps} fps`, settings: { fps } });
@@ -83,5 +88,76 @@ describe('video export planning', () => {
 				filename: 'A cut'
 			}).filename
 		).toBe('A cut.webm');
+	});
+
+	it('configures social media fixed aspect ratio presets correctly', () => {
+		const project = createEmptyProject({
+			name: 'Social Test',
+			settings: { width: 1920, height: 1080 }
+		});
+		expect(dimensionsForPreset(project, '9:16', 'mp4')).toEqual({ width: 1080, height: 1920 });
+		expect(dimensionsForPreset(project, '1:1', 'mp4')).toEqual({ width: 1080, height: 1080 });
+		expect(dimensionsForPreset(project, '4:5', 'mp4')).toEqual({ width: 1080, height: 1350 });
+		expect(dimensionsForPreset(project, '21:9', 'mp4')).toEqual({ width: 2560, height: 1080 });
+	});
+
+	it('defines social destination presets with correct bitrate and -14 LUFS', () => {
+		const destinationMap = Object.fromEntries(DESTINATION_PRESETS.map((d) => [d.id, d]));
+
+		expect(destinationMap['youtube-1080p']).toMatchObject({
+			width: 1920,
+			height: 1080,
+			bitrateMbps: 16,
+			targetLufs: -14.0,
+			format: 'mp4'
+		});
+		expect(destinationMap['youtube-4k']).toMatchObject({
+			width: 3840,
+			height: 2160,
+			bitrateMbps: 45,
+			targetLufs: -14.0,
+			format: 'mp4'
+		});
+		expect(destinationMap['tiktok-reels-shorts']).toMatchObject({
+			width: 1080,
+			height: 1920,
+			bitrateMbps: 16,
+			targetLufs: -14.0,
+			format: 'mp4'
+		});
+		expect(destinationMap['instagram-post']).toMatchObject({
+			width: 1080,
+			height: 1080,
+			bitrateMbps: 10,
+			targetLufs: -14.0,
+			format: 'mp4'
+		});
+		expect(destinationMap['instagram-portrait']).toMatchObject({
+			width: 1080,
+			height: 1350,
+			bitrateMbps: 12,
+			targetLufs: -14.0,
+			format: 'mp4'
+		});
+	});
+
+	it('passes audio normalization and custom dimensions through settingsForPreset', () => {
+		const project = createEmptyProject({ name: 'Norm Test' });
+		const settings = settingsForPreset(project, {
+			format: 'mp4',
+			preset: '9:16',
+			quality: 'custom',
+			customBitrateBps: 16_000_000,
+			audio: true,
+			filename: 'reel.mp4',
+			normalizeAudio: true,
+			loudnessTargetLufs: -14.0
+		});
+
+		expect(settings.width).toBe(1080);
+		expect(settings.height).toBe(1920);
+		expect(settings.videoBitrate).toBe(16_000_000);
+		expect(settings.normalizeAudio).toBe(true);
+		expect(settings.loudnessTargetLufs).toBe(-14.0);
 	});
 });

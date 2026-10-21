@@ -1088,6 +1088,17 @@ function EditorShell() {
 									>
 										Audio Mixer <span>⌥M / Alt+M</span>
 									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={!project}
+										onClick={() => {
+											editorStore.getState().openSequenceSettingsDialog(activeSequenceId);
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Sequence Settings… <span>⚙</span>
+									</button>
 								</div>
 							)}
 						</div>

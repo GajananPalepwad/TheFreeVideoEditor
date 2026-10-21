@@ -15,6 +15,25 @@ interface AudioDecoderEntry {
 	sink: AudioSampleSink;
 }
 
+export function createAudioSampleFromPlanar(
+	planar: { left: Float32Array; right: Float32Array; frameCount: number; timestamp: number },
+	sampleRate: number
+): AudioSample {
+	const data = new Float32Array(planar.frameCount * 2);
+	for (let frame = 0; frame < planar.frameCount; frame += 1) {
+		data[frame] = Math.max(-1, Math.min(1, planar.left[frame] ?? 0));
+		data[planar.frameCount + frame] = Math.max(-1, Math.min(1, planar.right[frame] ?? 0));
+	}
+	return new AudioSample({
+		format: 'f32-planar',
+		numberOfChannels: 2,
+		numberOfFrames: planar.frameCount,
+		sampleRate,
+		timestamp: planar.timestamp,
+		data
+	});
+}
+
 export class WorkerAudioMixer {
 	private readonly decoders = new Map<AssetId, AudioDecoderEntry>();
 	private readonly failedAssets = new Set<AssetId>();
@@ -26,12 +45,17 @@ export class WorkerAudioMixer {
 		private readonly onWarning?: (message: string) => void
 	) {}
 
-	async mixChunk(
+	async mixChunkPlanar(
 		chunkStart: Time,
 		chunkDuration: Time,
 		sampleRate: number,
 		signal?: AbortSignal
-	): Promise<AudioSample | null> {
+	): Promise<{
+		left: Float32Array;
+		right: Float32Array;
+		frameCount: number;
+		timestamp: number;
+	} | null> {
 		const schedules = audioSchedulesForChunk(this.project, chunkStart, chunkDuration);
 		if (schedules.length === 0) return null;
 		const frameCount = Math.max(1, Math.ceil((chunkDuration * sampleRate) / 1_000_000));
@@ -71,19 +95,18 @@ export class WorkerAudioMixer {
 				right
 			);
 		}
-		const data = new Float32Array(frameCount * 2);
-		for (let frame = 0; frame < frameCount; frame += 1) {
-			data[frame] = Math.max(-1, Math.min(1, left[frame] ?? 0));
-			data[frameCount + frame] = Math.max(-1, Math.min(1, right[frame] ?? 0));
-		}
-		return new AudioSample({
-			format: 'f32-planar',
-			numberOfChannels: 2,
-			numberOfFrames: frameCount,
-			sampleRate,
-			timestamp: chunkStart / 1_000_000,
-			data
-		});
+		return { left, right, frameCount, timestamp: chunkStart / 1_000_000 };
+	}
+
+	async mixChunk(
+		chunkStart: Time,
+		chunkDuration: Time,
+		sampleRate: number,
+		signal?: AbortSignal
+	): Promise<AudioSample | null> {
+		const planar = await this.mixChunkPlanar(chunkStart, chunkDuration, sampleRate, signal);
+		if (!planar) return null;
+		return createAudioSampleFromPlanar(planar, sampleRate);
 	}
 
 	async dispose(): Promise<void> {

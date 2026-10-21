@@ -26,13 +26,15 @@ import { projectNeedsGpu } from '../../core/gpuFeatures';
 import { getMediaFile } from '../storage/opfs';
 import { ensureLutLoaded } from '../media/lutCache';
 import { audioSchedulesForChunk, decodeAudioAssets, mixAudioChunk } from './audioMix';
+import { LoudnessMeter } from '../../core/audio/loudness';
+import { dbToGain } from '../../core/audioMath';
 import { ExportFrameProvider } from './frameProvider';
 import { buildExportPlan, type ExportPlan, type ExportSettings } from './plan';
 import { createExportSink, createExportSinkForTarget, type ExportSink } from './sink';
 import { createStreamingSaveTarget } from '../storage/fileAccess';
 import type { StreamingSaveTarget } from '../storage/fileAccess';
 import type { ExportWorkerRequest, ExportWorkerResponse } from './workerProtocol';
-import { WorkerAudioMixer } from './workerAudioMix';
+import { WorkerAudioMixer, createAudioSampleFromPlanar } from './workerAudioMix';
 import {
 	forcedExportRenderer,
 	recordExportPath,
@@ -126,6 +128,159 @@ function cancelled(signal?: AbortSignal): void {
 		throw new ExportError('CANCELLED', 'Export cancelled.', {
 			cause: signal.reason
 		});
+	}
+}
+
+async function exportAudioTrack({
+	snapshot,
+	plan,
+	settings,
+	audioSource,
+	workerAudioMixer,
+	audioBuffers,
+	signal,
+	onChunk
+}: {
+	snapshot: Project;
+	plan: ExportPlan;
+	settings: ExportSettings;
+	audioSource: AudioSampleSource;
+	workerAudioMixer: WorkerAudioMixer | null;
+	audioBuffers: Map<AssetId, AudioBuffer> | null;
+	signal?: AbortSignal;
+	onChunk?: (chunkIndex: number, totalChunks: number) => void;
+}): Promise<void> {
+	const chunkTicks = 10_000_000;
+	const totalChunks = Math.max(1, Math.ceil(plan.durationUs / chunkTicks));
+	const targetLufs =
+		settings.loudnessTargetLufs ??
+		(settings.normalizeAudio ? -14.0 : snapshot.masterAudio?.loudnessTargetLufs);
+	const shouldNormalize = targetLufs !== undefined;
+
+	if (workerAudioMixer) {
+		const planarList: {
+			left: Float32Array;
+			right: Float32Array;
+			frameCount: number;
+			timestamp: number;
+		}[] = [];
+		const meter = shouldNormalize ? new LoudnessMeter(snapshot.settings.sampleRate, 2) : null;
+		let chunkCount = 0;
+
+		for (let chunkStart = 0; chunkStart < plan.durationUs; chunkStart += chunkTicks) {
+			cancelled(signal);
+			const chunkDuration = Math.min(chunkTicks, plan.durationUs - chunkStart);
+			const planar = await workerAudioMixer.mixChunkPlanar(
+				chunkStart,
+				chunkDuration,
+				snapshot.settings.sampleRate,
+				signal
+			);
+			if (planar) {
+				if (meter) {
+					meter.processFrames([planar.left, planar.right], planar.frameCount);
+					planarList.push(planar);
+				} else {
+					const sample = createAudioSampleFromPlanar(planar, snapshot.settings.sampleRate);
+					try {
+						await audioSource.add(sample);
+					} finally {
+						sample.close();
+					}
+				}
+			}
+			chunkCount += 1;
+			onChunk?.(chunkCount, totalChunks);
+			await yieldToEventLoop();
+		}
+
+		if (meter && planarList.length > 0) {
+			const measurements = meter.getMeasurements();
+			let normalizationGain = 1.0;
+			if (measurements.integratedLufs > -70 && targetLufs !== undefined) {
+				normalizationGain = dbToGain(targetLufs - measurements.integratedLufs);
+			}
+			for (const p of planarList) {
+				if (normalizationGain !== 1.0) {
+					for (let i = 0; i < p.frameCount; i++) {
+						p.left[i] = Math.max(-1, Math.min(1, p.left[i]! * normalizationGain));
+						p.right[i] = Math.max(-1, Math.min(1, p.right[i]! * normalizationGain));
+					}
+				}
+				const sample = createAudioSampleFromPlanar(p, snapshot.settings.sampleRate);
+				try {
+					await audioSource.add(sample);
+				} finally {
+					sample.close();
+				}
+			}
+		}
+		return;
+	}
+
+	if (audioBuffers) {
+		const mixedList: { buffer: AudioBuffer; startTicks: number }[] = [];
+		const meter = shouldNormalize ? new LoudnessMeter(snapshot.settings.sampleRate, 2) : null;
+		let chunkCount = 0;
+
+		for (let chunkStart = 0; chunkStart < plan.durationUs; chunkStart += chunkTicks) {
+			cancelled(signal);
+			const chunkDuration = Math.min(chunkTicks, plan.durationUs - chunkStart);
+			const hasSchedules =
+				settings.format === 'wav' ||
+				audioSchedulesForChunk(snapshot, chunkStart, chunkDuration).length > 0;
+
+			if (hasSchedules) {
+				const mixed = await mixAudioChunk(
+					snapshot,
+					chunkStart,
+					chunkDuration,
+					audioBuffers,
+					snapshot.settings.sampleRate
+				);
+				if (meter) {
+					meter.processFrames([mixed.getChannelData(0), mixed.getChannelData(1)], mixed.length);
+					mixedList.push({ buffer: mixed, startTicks: chunkStart });
+				} else {
+					for (const sample of AudioSample.fromAudioBuffer(mixed, chunkStart / 1_000_000)) {
+						try {
+							await audioSource.add(sample);
+						} finally {
+							sample.close();
+						}
+					}
+				}
+			}
+			chunkCount += 1;
+			onChunk?.(chunkCount, totalChunks);
+			await yieldToEventLoop();
+		}
+
+		if (meter && mixedList.length > 0) {
+			const measurements = meter.getMeasurements();
+			let normalizationGain = 1.0;
+			if (measurements.integratedLufs > -70 && targetLufs !== undefined) {
+				normalizationGain = dbToGain(targetLufs - measurements.integratedLufs);
+			}
+			for (const item of mixedList) {
+				const buf = item.buffer;
+				if (normalizationGain !== 1.0) {
+					for (let c = 0; c < buf.numberOfChannels; c++) {
+						const d = buf.getChannelData(c);
+						for (let i = 0; i < d.length; i++) {
+							d[i] = Math.max(-1, Math.min(1, d[i]! * normalizationGain));
+						}
+					}
+				}
+				for (const sample of AudioSample.fromAudioBuffer(buf, item.startTicks / 1_000_000)) {
+					try {
+						await audioSource.add(sample);
+					} finally {
+						sample.close();
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -340,49 +495,25 @@ async function exportTimelineMain(
 			outputStarted = true;
 			const chunkTicks = 10_000_000;
 			const totalChunks = Math.max(1, Math.ceil(plan.durationUs / chunkTicks));
-			let chunkCount = 0;
-			for (let chunkStart = 0; chunkStart < plan.durationUs; chunkStart += chunkTicks) {
-				cancelled(options.signal);
-				const chunkDuration = Math.min(chunkTicks, plan.durationUs - chunkStart);
-				if (workerAudioMixer) {
-					const sample = await workerAudioMixer.mixChunk(
-						chunkStart,
-						chunkDuration,
-						snapshot.settings.sampleRate,
-						options.signal
-					);
-					if (sample) {
-						try {
-							await audioSource?.add(sample);
-						} finally {
-							sample.close();
-						}
+			if (audioSource) {
+				await exportAudioTrack({
+					snapshot,
+					plan,
+					settings,
+					audioSource,
+					workerAudioMixer,
+					audioBuffers,
+					signal: options.signal,
+					onChunk: (chunkIndex, total) => {
+						emitProgress(options.onProgress, {
+							framesDone: chunkIndex,
+							totalFrames: total,
+							fps: 0,
+							etaMs: 0,
+							phase: 'rendering'
+						});
 					}
-				} else if (audioBuffers) {
-					const mixed = await mixAudioChunk(
-						snapshot,
-						chunkStart,
-						chunkDuration,
-						audioBuffers,
-						snapshot.settings.sampleRate
-					);
-					for (const sample of AudioSample.fromAudioBuffer(mixed, chunkStart / 1_000_000)) {
-						try {
-							await audioSource?.add(sample);
-						} finally {
-							sample.close();
-						}
-					}
-				}
-				chunkCount += 1;
-				emitProgress(options.onProgress, {
-					framesDone: chunkCount,
-					totalFrames: totalChunks,
-					fps: 0,
-					etaMs: 0,
-					phase: 'rendering'
 				});
-				await yieldToEventLoop();
 			}
 			emitProgress(options.onProgress, {
 				framesDone: totalChunks,
@@ -472,45 +603,15 @@ async function exportTimelineMain(
 			}
 
 			if (audioSource && frame === 0) {
-				const chunkTicks = 10_000_000;
-				for (let chunkStart = 0; chunkStart < plan.durationUs; chunkStart += chunkTicks) {
-					cancelled(options.signal);
-					const chunkDuration = Math.min(chunkTicks, plan.durationUs - chunkStart);
-					if (workerAudioMixer) {
-						const sample = await workerAudioMixer.mixChunk(
-							chunkStart,
-							chunkDuration,
-							snapshot.settings.sampleRate,
-							options.signal
-						);
-						if (sample) {
-							try {
-								await audioSource.add(sample);
-							} finally {
-								sample.close();
-							}
-						}
-					} else if (
-						audioBuffers &&
-						audioSchedulesForChunk(snapshot, chunkStart, chunkDuration).length
-					) {
-						const mixed = await mixAudioChunk(
-							snapshot,
-							chunkStart,
-							chunkDuration,
-							audioBuffers,
-							snapshot.settings.sampleRate
-						);
-						for (const sample of AudioSample.fromAudioBuffer(mixed, chunkStart / 1_000_000)) {
-							try {
-								await audioSource.add(sample);
-							} finally {
-								sample.close();
-							}
-						}
-					}
-					await yieldToEventLoop();
-				}
+				await exportAudioTrack({
+					snapshot,
+					plan,
+					settings,
+					audioSource,
+					workerAudioMixer,
+					audioBuffers,
+					signal: options.signal
+				});
 			}
 			if (frame === 0 || frame % Math.max(1, Math.floor(plan.fps / 2)) === 0) {
 				const elapsed = Math.max(1, performance.now() - startedAt);

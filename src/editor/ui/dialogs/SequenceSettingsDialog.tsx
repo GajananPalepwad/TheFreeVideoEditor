@@ -1,6 +1,14 @@
-import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } from 'react';
+import {
+	useEffect,
+	useRef,
+	useState,
+	type MouseEvent,
+	type SyntheticEvent,
+	type ChangeEvent
+} from 'react';
 import { useEditorStore } from '../../state/EditorProvider';
 import { isRootSequence } from '../../core/sequences/access';
+import { ASPECT_RATIO_PRESETS, findMatchingPreset } from '../../core/aspectRatio';
 
 export default function SequenceSettingsDialog() {
 	const open = useEditorStore((state) => state.isSequenceSettingsDialogOpen);
@@ -79,6 +87,19 @@ export default function SequenceSettingsDialog() {
 		? (project?.name ?? 'Main Timeline')
 		: (seq?.name ?? 'Nested Sequence');
 
+	const matchingPreset = findMatchingPreset(width, height);
+	const currentPresetId = matchingPreset?.id ?? 'custom';
+
+	function handlePresetChange(e: ChangeEvent<HTMLSelectElement>) {
+		const selectedId = e.target.value;
+		if (selectedId === 'custom') return;
+		const preset = ASPECT_RATIO_PRESETS.find((item) => item.id === selectedId);
+		if (preset) {
+			setWidth(preset.width);
+			setHeight(preset.height);
+		}
+	}
+
 	return (
 		<dialog
 			ref={dialogRef}
@@ -138,6 +159,22 @@ export default function SequenceSettingsDialog() {
 						opacity: !isRoot && inheritFromProject ? 0.45 : 1
 					}}
 				>
+					<label className="dialog-field">
+						<span>Aspect Ratio Preset</span>
+						<select
+							value={currentPresetId}
+							onChange={handlePresetChange}
+							data-testid="seq-aspect-ratio-select"
+						>
+							{ASPECT_RATIO_PRESETS.map((p) => (
+								<option key={p.id} value={p.id}>
+									{p.label}
+								</option>
+							))}
+							<option value="custom">Custom</option>
+						</select>
+					</label>
+
 					<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 						<label className="dialog-field">
 							<span>Width (px)</span>
