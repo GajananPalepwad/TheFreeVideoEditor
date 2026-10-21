@@ -113,6 +113,17 @@ export function setTrackFlags(
 	};
 }
 
+export function setTrackHeight(project: Project, trackId: TrackId, height: number): Project {
+	if (!project.tracks.some((track) => track.id === trackId)) throw new TrackNotFoundError(trackId);
+	const clamped = Math.max(48, Math.min(240, Math.round(height)));
+	return {
+		...project,
+		tracks: project.tracks.map((track) =>
+			track.id === trackId ? { ...track, height: clamped } : track
+		)
+	};
+}
+
 export function setClipLink(project: Project, clipId: string, linkId?: string): Project {
 	let found = false;
 	const tracks = project.tracks.map((track) => ({

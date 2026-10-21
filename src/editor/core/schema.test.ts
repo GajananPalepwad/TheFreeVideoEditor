@@ -8,6 +8,14 @@ describe('project schema and migrations', () => {
 		expect(projectSchema.parse(JSON.parse(JSON.stringify(project)))).toEqual(project);
 	});
 
+	it('keeps a saved track height when the project is opened again', () => {
+		const project = createEmptyProject({ name: 'Track height' });
+		project.tracks[0]!.height = 160;
+		const reopened = migrate(JSON.parse(JSON.stringify(project)));
+		expect(reopened.tracks[0]?.height).toBe(160);
+		expect(reopened.tracks[1]?.height).toBeUndefined();
+	});
+
 	it('returns the current version project unchanged', () => {
 		const project = createEmptyProject({ name: 'Migration test' });
 		expect(migrate(project)).toEqual(project);
