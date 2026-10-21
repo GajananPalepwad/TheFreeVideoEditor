@@ -1293,4 +1293,19 @@ LUT_3D_SIZE 2
 			expect(readProperty(shapeClip(store, clipId), 'shape.cornerRadius', 0)).toBe(40);
 		});
 	});
+
+	describe('master audio settings', () => {
+		it('updates master loudness target', async () => {
+			const store = createEditorStore();
+			await store.getState().createProject({ name: 'Audio Target Project' });
+
+			expect(store.getState().project?.masterAudio?.loudnessTargetLufs).toBeUndefined();
+
+			store.getState().setMasterAudioLoudnessTarget(-14.0);
+			expect(store.getState().project?.masterAudio?.loudnessTargetLufs).toBe(-14.0);
+
+			store.getState().setMasterAudioLoudnessTarget(undefined);
+			expect(store.getState().project?.masterAudio?.loudnessTargetLufs).toBeUndefined();
+		});
+	});
 });

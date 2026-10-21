@@ -205,7 +205,11 @@ import type {
 import { detectVoiceActivity, generateDuckingKeyframes } from '../core/audio/ducking';
 import { defaultTrackAudio } from '../core/audioMath';
 import { ensureLutLoaded, storeParsedLut } from '../services/media/lutCache';
-import { BUNDLED_FONTS, ensureFontLoaded, loadSavedCustomFonts } from '../services/render/text/fontLoader';
+import {
+	BUNDLED_FONTS,
+	ensureFontLoaded,
+	loadSavedCustomFonts
+} from '../services/render/text/fontLoader';
 import type { ScopeFrameData } from '../services/render/passes/scopes';
 import {
 	CorruptProjectError,
@@ -888,6 +892,7 @@ export interface EditorState {
 	resetTrackAudio: (trackId: TrackId) => boolean;
 	setMasterAudioGain: (gainDb: number, coalesce?: boolean) => boolean;
 	setMasterAudioLimiter: (limiter: boolean) => boolean;
+	setMasterAudioLoudnessTarget: (targetLufs?: number) => boolean;
 	addAudioBus: (name?: string, output?: 'master' | string) => string | null;
 	removeAudioBus: (busId: string) => boolean;
 	setBusAudioGain: (busId: string, gainDb: number, coalesce?: boolean) => boolean;
@@ -1257,7 +1262,9 @@ export function createEditorStore() {
 								delete state.timeline.selection.trackId;
 							}
 							if (options.updateKeyframeSelection) {
-								state.keyframes.selection = options.updateKeyframeSelection(state.keyframes.selection);
+								state.keyframes.selection = options.updateKeyframeSelection(
+									state.keyframes.selection
+								);
 							}
 							state.keyframes.selection = state.keyframes.selection.filter((ref) => {
 								const clip = clipsMap.get(ref.clipId);
@@ -3207,9 +3214,7 @@ export function createEditorStore() {
 						const committed = get().project;
 						if (
 							committed &&
-							(drag.kind === 'asset' ||
-								drag.kind === 'shape' ||
-								Boolean(drag.shapeConfig))
+							(drag.kind === 'asset' || drag.kind === 'shape' || Boolean(drag.shapeConfig))
 						) {
 							const activeViewAfter = viewProject(committed, activeSeqId);
 							const added = activeViewAfter.tracks
@@ -4215,17 +4220,11 @@ export function createEditorStore() {
 										const localTime = get().timeline.playhead - clip.start;
 										let updated = clip;
 										for (const prop of properties) {
-											updated = setPropertyAtTime(
-												updated,
-												prop.propertyId,
-												localTime,
-												prop.value,
-												{
-													autoKey: options?.autoKey ?? true,
-													fps: proj.settings.fps,
-													editedChannel: prop.editedChannel
-												}
-											);
+											updated = setPropertyAtTime(updated, prop.propertyId, localTime, prop.value, {
+												autoKey: options?.autoKey ?? true,
+												fps: proj.settings.fps,
+												editedChannel: prop.editedChannel
+											});
 										}
 										updatedTargetClip = updated;
 										return updated;
@@ -6158,6 +6157,29 @@ export function createEditorStore() {
 					}
 				},
 
+				setMasterAudioLoudnessTarget(targetLufs) {
+					try {
+						mutateProject(
+							'Set master loudness target',
+							(proj) => ({
+								...proj,
+								masterAudio: {
+									gainDb: proj.masterAudio?.gainDb ?? 0,
+									limiter: proj.masterAudio?.limiter ?? false,
+									loudnessTargetLufs: targetLufs !== undefined ? targetLufs : undefined,
+									effects: proj.masterAudio?.effects,
+									automation: proj.masterAudio?.automation,
+									automationMode: proj.masterAudio?.automationMode
+								}
+							}),
+							{ history: 'record' }
+						);
+						return true;
+					} catch {
+						return false;
+					}
+				},
+
 				addAudioBus(name = 'Submix', output = 'master') {
 					try {
 						const busId = crypto.randomUUID();
@@ -6857,13 +6879,17 @@ export function createEditorStore() {
 												color.b,
 												color.a
 											];
-											if (updates.width !== undefined) mirrored.push(['shape.width', updates.width]);
-											if (updates.height !== undefined) mirrored.push(['shape.height', updates.height]);
-											if (updates.fillColor !== undefined) mirrored.push(['shape.fillColor', rgba(updates.fillColor)]);
+											if (updates.width !== undefined)
+												mirrored.push(['shape.width', updates.width]);
+											if (updates.height !== undefined)
+												mirrored.push(['shape.height', updates.height]);
+											if (updates.fillColor !== undefined)
+												mirrored.push(['shape.fillColor', rgba(updates.fillColor)]);
 											if (updates.strokeColor !== undefined) {
 												mirrored.push(['shape.strokeColor', rgba(updates.strokeColor)]);
 											}
-											if (updates.strokeWidth !== undefined) mirrored.push(['shape.strokeWidth', updates.strokeWidth]);
+											if (updates.strokeWidth !== undefined)
+												mirrored.push(['shape.strokeWidth', updates.strokeWidth]);
 											if (updates.cornerRadius !== undefined) {
 												mirrored.push(['shape.cornerRadius', updates.cornerRadius]);
 											}
@@ -7250,9 +7276,9 @@ export function createEditorStore() {
 											const text = c.source.text || '';
 											const colorRuns = tpl?.highlightWord
 												? computeColorRuns(text, tpl, color)
-												: (c.source.colorRuns && c.source.colorRuns.length > 0)
-												? c.source.colorRuns.map((r) => ({ ...r, fillColor: color }))
-												: [];
+												: c.source.colorRuns && c.source.colorRuns.length > 0
+													? c.source.colorRuns.map((r) => ({ ...r, fillColor: color }))
+													: [];
 											const box = c.source.box
 												? { ...c.source.box, accentBarColor: color }
 												: undefined;

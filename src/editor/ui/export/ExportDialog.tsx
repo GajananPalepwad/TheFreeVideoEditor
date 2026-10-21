@@ -13,7 +13,12 @@ import { serializeVtt } from '../../core/captions/vtt';
 import type { ExportProgress } from '../../services/export/exporter';
 import { getExportCapabilities, type EncoderSupport } from '../../services/export/capabilities';
 import { registerProjectExport } from '../../services/export/session';
-import { settingsForPreset, sanitizeFilename } from '../../services/export/presets';
+import {
+	settingsForPreset,
+	sanitizeFilename,
+	DESTINATION_PRESETS,
+	type DestinationPresetId
+} from '../../services/export/presets';
 import type { ExportQuality, ResolutionPreset } from '../../services/export/presets';
 import type { ExportSettings } from '../../services/export/plan';
 import type { InterchangeFormat, PackageProgress } from '../../services/interop/export';
@@ -85,6 +90,8 @@ function makeVideoSettings(
 		bitDepth?: number;
 		alpha?: boolean;
 		customBitrateBps?: number;
+		normalizeAudio?: boolean;
+		loudnessTargetLufs?: number;
 	}
 ): ExportSettings {
 	return settingsForPreset(project, options);
@@ -128,6 +135,7 @@ export default function ExportDialog() {
 	const confirmCancelAndContinue = useEditorStore((state) => state.confirmCancelExportAndContinue);
 	const [tab, setTab] = useState<ExportTab>('video');
 	const [selectedSequenceId, setSelectedSequenceId] = useState<SequenceId>(ROOT_SEQUENCE_ID);
+	const [destinationPreset, setDestinationPreset] = useState<DestinationPresetId>('custom');
 	const [videoFormat, setVideoFormat] = useState<ExportSettings['format']>('mp4');
 	const [selectedCodecId, setSelectedCodecId] = useState<string>('h264-mp4');
 	const [selectedAudioCodec, setSelectedAudioCodec] = useState<string>('aac');
@@ -139,6 +147,7 @@ export default function ExportDialog() {
 	const [preset, setPreset] = useState<ResolutionPreset>('project');
 	const [quality, setQuality] = useState<ExportQuality>('high');
 	const [includeAudio, setIncludeAudio] = useState(true);
+	const [normalizeAudio, setNormalizeAudio] = useState(false);
 	const [filename, setFilename] = useState('');
 	const [mode, setMode] = useState<ExportMode>('webcodecs');
 	const [interchangeFormat, setInterchangeFormat] = useState<InterchangeFormat>('xmeml');
@@ -200,7 +209,9 @@ export default function ExportDialog() {
 						colorSpaceTag: selectedColorSpace,
 						bitDepth: VIDEO_CODEC_REGISTRY.find((c) => c.id === selectedCodecId)?.bitDepth ?? 8,
 						alpha: exportAlpha,
-						customBitrateBps: customBitrateMbps * 1_000_000
+						customBitrateBps: customBitrateMbps * 1_000_000,
+						normalizeAudio: includeAudio && normalizeAudio,
+						loudnessTargetLufs: normalizeAudio ? -14.0 : undefined
 					})
 				: null,
 		[
@@ -214,7 +225,8 @@ export default function ExportDialog() {
 			selectedAudioCodec,
 			selectedColorSpace,
 			exportAlpha,
-			customBitrateMbps
+			customBitrateMbps,
+			normalizeAudio
 		]
 	);
 	const capabilityProjectId = exportProject?.id;
@@ -490,7 +502,26 @@ export default function ExportDialog() {
 		if (!cancelConfirmation && dialog.open) dialog.close();
 	}, [cancelConfirmation]);
 
+	function handleDestinationPresetChange(destId: DestinationPresetId): void {
+		setDestinationPreset(destId);
+		setErrorMessage('');
+		if (destId === 'custom') return;
+		const dest = DESTINATION_PRESETS.find((d) => d.id === destId);
+		if (!dest) return;
+
+		setVideoFormat(dest.format);
+		setSelectedCodecId('h264-mp4');
+		setSelectedAudioCodec('aac');
+		setPreset(dest.resolutionPreset);
+		setQuality('custom');
+		setCustomBitrateMbps(dest.bitrateMbps);
+		setIncludeAudio(true);
+		setNormalizeAudio(true);
+		setExportAlpha(false);
+	}
+
 	function updateFormat(format: ExportSettings['format']): void {
+		setDestinationPreset('custom');
 		setVideoFormat(format);
 		setErrorMessage('');
 		if (format === 'mp4') {
@@ -511,6 +542,7 @@ export default function ExportDialog() {
 	}
 
 	function updateCodec(codecId: string): void {
+		setDestinationPreset('custom');
 		setSelectedCodecId(codecId);
 		const desc = VIDEO_CODEC_REGISTRY.find((c) => c.id === codecId);
 		if (desc?.bitDepth === 10) {
@@ -963,6 +995,25 @@ export default function ExportDialog() {
 								</label>
 							)}
 							<label className="dialog-field">
+								<span>Destination Preset</span>
+								<select
+									value={destinationPreset}
+									disabled={isRunning}
+									onChange={(event) =>
+										handleDestinationPresetChange(event.currentTarget.value as DestinationPresetId)
+									}
+									data-testid="export-destination-preset-select"
+								>
+									<option value="custom">Custom / Project Settings</option>
+									{DESTINATION_PRESETS.map((dest) => (
+										<option key={dest.id} value={dest.id}>
+											{dest.label} ({dest.description})
+										</option>
+									))}
+								</select>
+							</label>
+
+							<label className="dialog-field">
 								<span>Format</span>
 								<select
 									value={videoFormat}
@@ -1009,16 +1060,29 @@ export default function ExportDialog() {
 									<select
 										value={preset}
 										disabled={isRunning}
-										onChange={(event) => setPreset(event.currentTarget.value as ResolutionPreset)}
+										onChange={(event) => {
+											setDestinationPreset('custom');
+											setPreset(event.currentTarget.value as ResolutionPreset);
+										}}
 									>
 										<option value="project">
 											Project · {project?.settings.width} × {project?.settings.height}
 										</option>
-										<option value="4k">4K Ultra HD (3840 × 2160)</option>
-										<option value="1440p">1440p Quad HD (2560 × 1440)</option>
-										<option value="1080p">1080p Full HD (1920 × 1080)</option>
-										<option value="720p">720p HD (1280 × 720)</option>
-										<option value="480p">480p SD (854 × 480)</option>
+										<optgroup label="Standard Landscape (16:9)">
+											<option value="4k">4K Ultra HD (3840 × 2160)</option>
+											<option value="1440p">1440p Quad HD (2560 × 1440)</option>
+											<option value="1080p">1080p Full HD (1920 × 1080)</option>
+											<option value="720p">720p HD (1280 × 720)</option>
+											<option value="480p">480p SD (854 × 480)</option>
+										</optgroup>
+										<optgroup label="Social & Aspect Ratios">
+											<option value="9:16">
+												9:16 Vertical · TikTok/Reels/Shorts (1080 × 1920)
+											</option>
+											<option value="1:1">1:1 Square · Instagram Post (1080 × 1080)</option>
+											<option value="4:5">4:5 Social Portrait · Instagram (1080 × 1350)</option>
+											<option value="21:9">21:9 Ultrawide Cinema (2560 × 1080)</option>
+										</optgroup>
 									</select>
 								</label>
 							)}
@@ -1029,7 +1093,10 @@ export default function ExportDialog() {
 									<select
 										value={quality}
 										disabled={isRunning}
-										onChange={(event) => setQuality(event.currentTarget.value as ExportQuality)}
+										onChange={(event) => {
+											setDestinationPreset('custom');
+											setQuality(event.currentTarget.value as ExportQuality);
+										}}
 									>
 										<option value="high">High (Recommended)</option>
 										<option value="medium">Standard</option>
@@ -1050,9 +1117,10 @@ export default function ExportDialog() {
 										step="1"
 										value={customBitrateMbps}
 										disabled={isRunning}
-										onChange={(event) =>
-											setCustomBitrateMbps(Math.max(1, Number(event.currentTarget.value)))
-										}
+										onChange={(event) => {
+											setDestinationPreset('custom');
+											setCustomBitrateMbps(Math.max(1, Number(event.currentTarget.value)));
+										}}
 									/>
 								</label>
 							)}
@@ -1094,6 +1162,22 @@ export default function ExportDialog() {
 										onChange={(event) => setIncludeAudio(event.currentTarget.checked)}
 									/>
 									<span>Include audio</span>
+								</label>
+							)}
+
+							{(includeAudio || videoFormat === 'wav') && (
+								<label className="export-checkbox">
+									<input
+										type="checkbox"
+										checked={normalizeAudio}
+										disabled={isRunning}
+										onChange={(event) => {
+											setDestinationPreset('custom');
+											setNormalizeAudio(event.currentTarget.checked);
+										}}
+										data-testid="export-normalize-audio-checkbox"
+									/>
+									<span>Normalize audio to -14 LUFS (YouTube, TikTok, Instagram standard)</span>
 								</label>
 							)}
 

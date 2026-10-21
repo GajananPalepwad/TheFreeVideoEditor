@@ -33,3 +33,4 @@ export * from './text/presets';
 export * from './proxy';
 export * from './sequences';
 export * from './markers';
+export * from './aspectRatio';
