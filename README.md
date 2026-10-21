@@ -11,7 +11,7 @@
 [![WebCodecs](https://img.shields.io/badge/WebCodecs-Hardware_Accelerated-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://w3c.github.io/webcodecs/)
 [![WebGL2](https://img.shields.io/badge/WebGL2-GPU_Compositor-990000?style=for-the-badge&logo=opengl&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](./CONTRIBUTING.md)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZdJSk2phn7)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/6MtmjsA53V)
 
 <p align="center">
   <a href="#-key-features"><strong>Explore Features</strong></a> •
@@ -281,9 +281,9 @@ Explore our comprehensive technical specifications located in the [`docs/`](./do
 
 Join our growing community of video creators, motion graphic designers, and open-source engineers!
 
-[![Join Discord](https://img.shields.io/badge/Discord-Join%20The%20Free%20Video%20Editor%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZdJSk2phn7)
+[![Join Discord](https://img.shields.io/badge/Discord-Join%20The%20Free%20Video%20Editor%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/6MtmjsA53V)
 
-- 💬 **Discord**: [Join the Community Server](https://discord.gg/ZdJSk2phn7) for feature discussion, troubleshooting, showcasing your edits, and development chats.
+- 💬 **Discord**: [Join the Community Server](https://discord.gg/6MtmjsA53V) for feature discussion, troubleshooting, showcasing your edits, and development chats.
 - 🐛 **Bug Reports & Issues**: Check out our [GitHub Issues](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues) and `good first issue` list.
 - 📢 **Announcements**: Follow project releases and new features.
 
