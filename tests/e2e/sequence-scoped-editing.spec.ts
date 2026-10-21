@@ -84,4 +84,35 @@ test.describe('editing inside a template sequence', () => {
 		).toBeVisible();
 		expect(JSON.stringify(await innerRotation(page, clipId))).toContain('keyframes');
 	});
+
+	test('an effect added to an inner layer lands on the nested clip and can be removed', async ({
+		page
+	}) => {
+		await openProject(page);
+		const clipId = await openTemplateTextLayer(page);
+
+		const effectCount = (): Promise<number> =>
+			page.evaluate((id) => {
+				const state = (window as any).__TFVE_STORE__.getState();
+				const sequence = Object.values<any>(state.project.sequences)[0];
+				const clip = sequence.tracks
+					.flatMap((track: any) => track.clips)
+					.find((candidate: any) => candidate.id === id);
+				return (clip.effects ?? []).length;
+			}, clipId);
+
+		const effectId = await page.evaluate((id) => {
+			const state = (window as any).__TFVE_STORE__.getState();
+			return state.addEffect(id, 'gaussianBlur')?.id ?? null;
+		}, clipId);
+		expect(effectId).not.toBeNull();
+		await expect.poll(effectCount).toBe(1);
+
+		await page.evaluate(
+			([id, effect]) =>
+				(window as any).__TFVE_STORE__.getState().removeEffect(id as string, effect as string),
+			[clipId, effectId]
+		);
+		await expect.poll(effectCount).toBe(0);
+	});
 });
