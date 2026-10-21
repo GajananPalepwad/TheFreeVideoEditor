@@ -65,6 +65,21 @@ vi.mock('../services/theme/theme', () => ({
 
 type Store = ReturnType<typeof createEditorStore>;
 
+function resetServiceMocks(): void {
+	vi.clearAllMocks();
+	services.getProject.mockResolvedValue(null);
+	services.listProjects.mockResolvedValue([]);
+	services.saveProject.mockResolvedValue(undefined);
+	services.setLastOpenedId.mockResolvedValue(undefined);
+	services.getLastOpenedId.mockResolvedValue(null);
+	services.ensureProjectDir.mockResolvedValue(null);
+	services.reconcileProjectMedia.mockImplementation(async (project) => ({
+		assets: project.assets,
+		unknownFiles: [],
+		changed: false
+	}));
+}
+
 /** A store with a template instance on the root timeline and its sequence opened for editing. */
 async function openTemplate(): Promise<{ store: Store; sequenceId: SequenceId }> {
 	const store = createEditorStore();
@@ -107,18 +122,7 @@ function keyframeTimes(clip: Clip, propertyId: PropertyId): Time[] {
 
 describe('keyframe and property edits inside a template sequence', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
-		services.getProject.mockResolvedValue(null);
-		services.listProjects.mockResolvedValue([]);
-		services.saveProject.mockResolvedValue(undefined);
-		services.setLastOpenedId.mockResolvedValue(undefined);
-		services.getLastOpenedId.mockResolvedValue(null);
-		services.ensureProjectDir.mockResolvedValue(null);
-		services.reconcileProjectMedia.mockImplementation(async (project) => ({
-			assets: project.assets,
-			unknownFiles: [],
-			changed: false
-		}));
+		resetServiceMocks();
 	});
 
 	it('setProperties edits the nested clip and leaves the root untouched', async () => {
@@ -266,18 +270,7 @@ describe('keyframe and property edits inside a template sequence', () => {
 
 describe('effect edits inside a template sequence', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
-		services.getProject.mockResolvedValue(null);
-		services.listProjects.mockResolvedValue([]);
-		services.saveProject.mockResolvedValue(undefined);
-		services.setLastOpenedId.mockResolvedValue(undefined);
-		services.getLastOpenedId.mockResolvedValue(null);
-		services.ensureProjectDir.mockResolvedValue(null);
-		services.reconcileProjectMedia.mockImplementation(async (project) => ({
-			assets: project.assets,
-			unknownFiles: [],
-			changed: false
-		}));
+		resetServiceMocks();
 	});
 
 	/** Opens a template and puts a mirror effect on its text layer. */
@@ -366,5 +359,58 @@ describe('effect edits inside a template sequence', () => {
 		expect(first).not.toBeNull();
 		expect(second?.id).toBe(first?.id);
 		expect(innerClip(store, sequenceId).effects).toHaveLength(1);
+	});
+});
+
+describe('mask, fade and audio edits inside a template sequence', () => {
+	beforeEach(() => {
+		resetServiceMocks();
+	});
+
+	it('addMask adds the mask to the nested clip and selects it', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const rootBefore = rootClips(store);
+
+		const maskId = store.getState().addMask(target.id, 'rect');
+
+		expect(maskId).not.toBeNull();
+		expect(innerClip(store, sequenceId).masks?.map((mask) => mask.id)).toEqual([maskId]);
+		expect(store.getState().maskTool.selectedMaskId).toBe(maskId);
+		expect(rootClips(store)).toEqual(rootBefore);
+	});
+
+	it('updateMask, reorderMask and removeMask work on the nested clip', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const first = store.getState().addMask(target.id, 'rect')!;
+		const second = store.getState().addMask(target.id, 'ellipse')!;
+
+		expect(store.getState().updateMask(target.id, first, { feather: 12 })).toBe(true);
+		expect(innerClip(store, sequenceId).masks![0]!.feather).toBe(12);
+		expect(store.getState().reorderMask(target.id, 1, 0)).toBe(true);
+		expect(innerClip(store, sequenceId).masks![0]!.id).toBe(second);
+		expect(store.getState().removeMask(target.id, second)).toBe(true);
+		expect(innerClip(store, sequenceId).masks?.map((mask) => mask.id)).toEqual([first]);
+	});
+
+	it('setClipFade changes the fades of the nested clip', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+
+		expect(store.getState().setClipFade(target.id, { fadeInUs: 250_000 })).toBe(true);
+
+		expect(innerClip(store, sequenceId).fadeInUs).toBe(250_000);
+	});
+
+	it('setClipAudioTag and setClipAudioEffects change the nested clip', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+
+		expect(store.getState().setClipAudioTag(target.id, 'music')).toBe(true);
+		expect(store.getState().setClipAudioEffects(target.id, [])).toBe(true);
+
+		expect(innerClip(store, sequenceId).audioTag).toBe('music');
+		expect(innerClip(store, sequenceId).audioEffects).toEqual([]);
 	});
 });

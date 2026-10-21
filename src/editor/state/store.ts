@@ -5717,7 +5717,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Add ${type} mask`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((t) => ({
 									...t,
@@ -5727,7 +5727,7 @@ export function createEditorStore() {
 										return addMaskToClip(c, mask);
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						if (added) {
@@ -5753,7 +5753,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Remove mask',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((t) => ({
 									...t,
@@ -5763,7 +5763,7 @@ export function createEditorStore() {
 										return removeMaskFromClip(c, maskId);
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						if (removed) {
@@ -5827,7 +5827,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Update mask',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((t) => ({
 									...t,
@@ -5836,7 +5836,7 @@ export function createEditorStore() {
 										return updateMaskInClip(c, maskId, patch);
 									})
 								}))
-							}),
+							})),
 							{
 								history: 'record',
 								mergeKey: coalesceKey
@@ -5852,7 +5852,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Reorder masks',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((t) => ({
 									...t,
@@ -5861,7 +5861,7 @@ export function createEditorStore() {
 										return reorderMasksInClip(c, fromIndex, toIndex);
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -6508,7 +6508,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Set audio tag',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -6516,7 +6516,7 @@ export function createEditorStore() {
 										clip.id === clipId ? { ...clip, audioTag: tag } : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -6529,7 +6529,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Update clip audio effects',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -6537,7 +6537,7 @@ export function createEditorStore() {
 										clip.id === clipId ? { ...clip, audioEffects: effects } : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -6600,7 +6600,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Update clip fade',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((t) => ({
 									...t,
@@ -6614,7 +6614,7 @@ export function createEditorStore() {
 										};
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
