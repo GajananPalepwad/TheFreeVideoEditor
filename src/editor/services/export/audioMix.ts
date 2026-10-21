@@ -92,7 +92,7 @@ export function audioSchedulesForChunk(
 
 				if (isClipA || isClipB) {
 					const win = transitionWindow(cutTime, activeTrans.duration, activeTrans.alignment);
-					const { gainA, gainB } = transitionGain(midPoint, win, 'equalPower');
+					const { gainA, gainB } = transitionGain(midPoint, win, 'equalPower', activeTrans.easing);
 					effectiveVolume = effectiveVolume * (isClipA ? gainA : gainB);
 				}
 			}

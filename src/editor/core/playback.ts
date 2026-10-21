@@ -922,7 +922,7 @@ export function resolveFrame(
 
 				// If the video transition has audioCrossfade enabled (default true), apply audio crossfade to the audio components of clipA & clipB
 				if (tr.audioCrossfade !== false) {
-					const { gainA, gainB } = transitionGain(time, win, 'equalPower');
+					const { gainA, gainB } = transitionGain(time, win, 'equalPower', tr.easing);
 					if (clipA && clipA.assetId) {
 						const assetA = project.assets[clipA.assetId];
 						if (assetA?.hasAudio && !assetA.offline) {
@@ -952,7 +952,7 @@ export function resolveFrame(
 				}
 				continue;
 			} else if (track.kind === 'audio') {
-				const { gainA, gainB } = transitionGain(time, win, 'equalPower');
+				const { gainA, gainB } = transitionGain(time, win, 'equalPower', tr.easing);
 				if (clipA && clipA.assetId) {
 					const assetA = project.assets[clipA.assetId];
 					if (assetA?.hasAudio && !assetA.offline) {

@@ -36,13 +36,6 @@ export interface LayoutStackNode {
 
 export type LayoutNode = LayoutSplitNode | LayoutStackNode;
 
-export interface TimelineViewPrefs {
-	videoTrackHeight?: number;
-	audioTrackHeight?: number;
-	waveformEmphasis?: boolean;
-	keyframeLanesMode?: 'selected' | 'all' | 'off';
-}
-
 export interface InspectorDefaults {
 	expanded: Record<string, boolean>;
 	linkScale?: boolean;
@@ -53,7 +46,6 @@ export interface Workspace {
 	name: string;
 	builtIn: boolean;
 	layout: LayoutNode;
-	timelinePrefs?: TimelineViewPrefs;
 	inspectorDefaults?: InspectorDefaults;
 }
 

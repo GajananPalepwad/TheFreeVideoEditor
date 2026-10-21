@@ -132,3 +132,33 @@ test.describe('shape keyframes', () => {
 		);
 	});
 });
+
+test.describe('text reveal unit', () => {
+	test('the Inspector sets whether a reveal uncovers characters, words or lines', async ({
+		page
+	}) => {
+		await openProject(page);
+		const clipId = await page.evaluate(() => {
+			const state = (window as any).__TFVE_STORE__.getState();
+			const id = state.addTextClip({ text: 'one two three' });
+			(window as any).__TFVE_STORE__.getState().selectClips([id]);
+			return id as string;
+		});
+
+		const select = page.locator('.inspector-container').getByLabel('Reveal by');
+		await expect(select).toHaveValue('char');
+		await select.selectOption('word');
+
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					const state = (window as any).__TFVE_STORE__.getState();
+					const clip = state.project.tracks
+						.flatMap((track: any) => track.clips)
+						.find((candidate: any) => candidate.id === id);
+					return clip.source.style.revealUnit;
+				}, clipId)
+			)
+			.toBe('word');
+	});
+});

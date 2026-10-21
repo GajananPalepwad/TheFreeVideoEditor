@@ -27,6 +27,15 @@ describe('hashTextConfig', () => {
 		expect(key1).not.toBe(key2);
 	});
 
+	it('changes hash when the style reveals by word instead of character', () => {
+		const key1 = hashTextConfig(baseConfig);
+		const key2 = hashTextConfig({
+			...baseConfig,
+			style: { ...baseConfig.style, revealUnit: 'word' }
+		});
+		expect(key1).not.toBe(key2);
+	});
+
 	it('changes hash when fontSize or color changes', () => {
 		const key1 = hashTextConfig({ ...baseConfig, fontSize: 48 });
 		const key2 = hashTextConfig({ ...baseConfig, fontSize: 64 });

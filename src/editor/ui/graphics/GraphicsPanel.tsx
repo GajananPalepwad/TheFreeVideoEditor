@@ -22,7 +22,8 @@ import { SaveTemplateModal } from './SaveTemplateModal';
 import { MotionTemplateCard } from './MotionTemplateCard';
 import {
 	BUILTIN_MOTION_TEMPLATES,
-	filterBuiltinTemplates
+	filterBuiltinTemplates,
+	populatedCategoryIds
 } from '../../core/templates/builtinTemplates';
 import './graphics.css';
 
@@ -37,6 +38,9 @@ const CATEGORIES: Array<{ id: GraphicCategory; label: string }> = [
 	{ id: 'neon', label: 'Neon' },
 	{ id: 'minimal', label: 'Minimal' }
 ];
+
+const POPULATED_CATEGORY_IDS = new Set(populatedCategoryIds(CATEGORIES.map((cat) => cat.id)));
+const VISIBLE_CATEGORIES = CATEGORIES.filter((cat) => POPULATED_CATEGORY_IDS.has(cat.id));
 
 const FRAME_STYLES: Array<{ id: GraphicFrameStyle; label: string }> = [
 	{ id: 'none', label: 'Standard' },
@@ -598,7 +602,7 @@ export default function GraphicsPanel() {
 
 						{/* Category Pills */}
 						<div className="graphics-category-tabs" role="tablist" aria-label="Graphic categories">
-							{CATEGORIES.map((cat) => (
+							{VISIBLE_CATEGORIES.map((cat) => (
 								<button
 									key={cat.id}
 									type="button"
@@ -1055,15 +1059,21 @@ export default function GraphicsPanel() {
 											className="graphic-apply-btn"
 											style={{ flex: 1, padding: '6px 8px', fontSize: '11px' }}
 											onClick={() => {
-												if (selectedClip) {
-													store
-														.getState()
-														.setProperty(selectedClip.id, 'scale', [1, 1], { autoKey: true });
-													store
-														.getState()
-														.setProperty(selectedClip.id, 'opacity', 1, { autoKey: true });
-													setAnnouncement('Added motion keyframe at playhead.');
+												if (!selectedClip) return;
+												const state = store.getState();
+												const localTime = Math.min(
+													Math.max(0, state.timeline.playhead - selectedClip.start),
+													selectedClip.duration
+												);
+												for (const propertyId of ['scale', 'opacity'] as const) {
+													state.addKeyframeAtTime(
+														selectedClip.id,
+														propertyId,
+														localTime,
+														readProperty(selectedClip, propertyId, localTime)
+													);
 												}
+												setAnnouncement('Added motion keyframes at the playhead.');
 											}}
 										>
 											◆ Keyframe at Playhead
@@ -1081,7 +1091,8 @@ export default function GraphicsPanel() {
 											}}
 											onClick={() => {
 												store.getState().switchWorkspace('editing');
-												setAnnouncement('Opened editing workspace with keyframe graph.');
+												store.getState().setGraphOpen(true);
+												setAnnouncement('Opened the keyframe graph editor.');
 											}}
 										>
 											📈 Open Graph Editor

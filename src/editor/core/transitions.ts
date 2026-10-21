@@ -242,13 +242,15 @@ export function transitionProgress(
  * Computes audio crossfade gains [gainA, gainB] at time t within transition window.
  * - equalPower: gainA = cos(p * PI / 2), gainB = sin(p * PI / 2) -> gainA^2 + gainB^2 = 1 (constant acoustic power)
  * - linear: gainA = 1 - p, gainB = p -> gainA + gainB = 1 (constant amplitude)
+ * `p` is the transition's eased progress, so the sound follows the same easing as the picture.
  */
 export function transitionGain(
 	t: Time,
 	window: TransitionWindow,
-	curve: AudioCrossfadeCurve = 'equalPower'
+	curve: AudioCrossfadeCurve = 'equalPower',
+	easing: TransitionEasing = 'linear'
 ): { gainA: number; gainB: number } {
-	const p = Math.max(0, Math.min(1, transitionProgress(t, window, 'linear')));
+	const p = Math.max(0, Math.min(1, transitionProgress(t, window, easing)));
 
 	if (curve === 'linear') {
 		return {

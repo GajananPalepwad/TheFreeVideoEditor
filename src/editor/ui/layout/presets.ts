@@ -14,12 +14,6 @@ export const PRESET_EDITING: Workspace = {
 	id: 'editing',
 	name: 'Editing',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 45,
-		audioTrackHeight: 45,
-		waveformEmphasis: false,
-		keyframeLanesMode: 'selected'
-	},
 	inspectorDefaults: {
 		expanded: { transform: true, crop: false, effects: true, masks: true, text: true },
 		linkScale: true
@@ -76,12 +70,6 @@ export const PRESET_ASSEMBLY: Workspace = {
 	id: 'assembly',
 	name: 'Assembly',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 38,
-		audioTrackHeight: 38,
-		waveformEmphasis: false,
-		keyframeLanesMode: 'off'
-	},
 	inspectorDefaults: {
 		expanded: { transform: true, crop: false },
 		linkScale: true
@@ -138,12 +126,6 @@ export const PRESET_COLOR: Workspace = {
 	id: 'color',
 	name: 'Color',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 40,
-		audioTrackHeight: 35,
-		waveformEmphasis: false,
-		keyframeLanesMode: 'off'
-	},
 	inspectorDefaults: {
 		expanded: { transform: false, crop: false, effects: true },
 		linkScale: true
@@ -195,12 +177,6 @@ export const PRESET_EFFECTS: Workspace = {
 	id: 'effects',
 	name: 'Effects',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 45,
-		audioTrackHeight: 40,
-		waveformEmphasis: false,
-		keyframeLanesMode: 'selected'
-	},
 	inspectorDefaults: {
 		expanded: { transform: true, crop: true, effects: true, masks: true },
 		linkScale: true
@@ -257,12 +233,6 @@ export const PRESET_AUDIO: Workspace = {
 	id: 'audio',
 	name: 'Audio',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 35,
-		audioTrackHeight: 80, // Tall audio tracks
-		waveformEmphasis: true,
-		keyframeLanesMode: 'selected'
-	},
 	inspectorDefaults: {
 		expanded: { audio: true, transform: false },
 		linkScale: true
@@ -324,12 +294,6 @@ export const PRESET_GRAPHICS: Workspace = {
 	id: 'graphics',
 	name: 'Graphics',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 50,
-		audioTrackHeight: 35,
-		waveformEmphasis: false,
-		keyframeLanesMode: 'selected'
-	},
 	inspectorDefaults: {
 		expanded: { text: true, transform: true, effects: true, masks: true },
 		linkScale: true
@@ -374,12 +338,6 @@ export const PRESET_AI: Workspace = {
 	id: 'ai',
 	name: 'AI',
 	builtIn: true,
-	timelinePrefs: {
-		videoTrackHeight: 45,
-		audioTrackHeight: 45,
-		waveformEmphasis: true,
-		keyframeLanesMode: 'selected'
-	},
 	inspectorDefaults: {
 		expanded: { transform: true, effects: true },
 		linkScale: true
