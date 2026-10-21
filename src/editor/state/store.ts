@@ -7998,10 +7998,7 @@ export function createEditorStore() {
 					};
 					persistUserWorkspaceState(updatedState);
 
-					// Apply per-workspace timeline view prefs and inspector defaults if available
-					if (workspace.timelinePrefs) {
-						// Apply timeline prefs
-					}
+					// Apply the workspace's inspector defaults if it has any
 					let nextExpanded = get().inspector.expanded;
 					if (workspace.inspectorDefaults) {
 						nextExpanded = { ...get().inspector.expanded, ...workspace.inspectorDefaults.expanded };
