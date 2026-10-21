@@ -39,3 +39,4 @@ describe('SequenceSettingsDialog aspect ratio presets', () => {
 		expect(findMatchingPreset(1920, 800)).toBeUndefined();
 	});
 });
+

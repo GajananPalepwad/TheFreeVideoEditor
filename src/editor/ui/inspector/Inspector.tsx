@@ -49,6 +49,7 @@ export default function Inspector() {
 	const selectedTransitionId = useEditorStore((state) => state.timeline.selection.transitionId);
 	const inspector = useEditorStore((state) => state.inspector);
 	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
+	const openSequenceSettingsDialog = useEditorStore((state) => state.openSequenceSettingsDialog);
 
 	const [confirmDisable, setConfirmDisable] = useState<ConfirmDisableState | null>(null);
 
@@ -143,13 +144,15 @@ export default function Inspector() {
 							<span className="inspector-sequence-title">
 								{activeSeq.name ?? 'Sequence Settings'}
 							</span>
-							<span
-								className="timeline-counter-badge"
-								style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.3)' }}
+							<button
+								type="button"
+								className="secondary-button"
+								style={{ fontSize: '11px', padding: '2px 8px', height: 'auto', cursor: 'pointer' }}
+								onClick={() => openSequenceSettingsDialog(activeSequenceId)}
+								title="Open Sequence Settings to change aspect ratio or frame rate"
 							>
-								<span className="timeline-badge-dot" aria-hidden="true" />
-								Active
-							</span>
+								Settings ⚙
+							</button>
 						</div>
 						<div className="inspector-sequence-pills">
 							<span className="timeline-counter-badge">
@@ -221,14 +224,18 @@ export default function Inspector() {
 								? 'Sequence'
 								: 'Video';
 	const clipDurationSec = (selectedClip.duration / 1_000_000).toFixed(2);
-	const templateName = selectedClip.source?.type === 'sequence' ? selectedClip.source.templateName : undefined;
+	const templateName =
+		selectedClip.source?.type === 'sequence' ? selectedClip.source.templateName : undefined;
 
 	return (
 		<div className="inspector-container">
 			{/* Selected Clip Summary Banner */}
 			<div className="inspector-clip-banner">
 				<div className="inspector-clip-title-row">
-					<span className="inspector-clip-name" title={clipAsset?.name ?? templateName ?? kindLabel}>
+					<span
+						className="inspector-clip-name"
+						title={clipAsset?.name ?? templateName ?? kindLabel}
+					>
 						{clipAsset?.name ?? templateName ?? `${kindLabel} Clip`}
 					</span>
 					<span

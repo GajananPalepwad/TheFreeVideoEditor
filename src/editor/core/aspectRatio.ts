@@ -54,3 +54,4 @@ export const ASPECT_RATIO_PRESETS: readonly AspectRatioPreset[] = [
 export function findMatchingPreset(width: number, height: number): AspectRatioPreset | undefined {
 	return ASPECT_RATIO_PRESETS.find((p) => p.width === width && p.height === height);
 }
+
