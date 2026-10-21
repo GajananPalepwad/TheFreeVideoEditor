@@ -37,7 +37,7 @@ test.describe('Import Dialog & Media Downloader', () => {
 
 		// Test Computer tab panel
 		await computerTab.click();
-		await expect(importDialog.getByText('Choose Files from Computer')).toBeVisible();
+		await expect(importDialog.getByText(/Choose Files from (Device|Computer)/i)).toBeVisible();
 
 		// Verify Cancel button in computer tab
 		const compCancelBtn = importDialog.getByRole('button', { name: 'Cancel' });

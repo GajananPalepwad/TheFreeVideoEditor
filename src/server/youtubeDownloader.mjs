@@ -142,7 +142,7 @@ export async function handleYoutubeDownload(req, res) {
 		let contentType = 'video/mp4';
 
 		if (formatType === 'audio') {
-			dlFormat = 'bestaudio';
+			dlFormat = 'bestaudio/best';
 			extractAudio = true;
 			audioFormat = 'mp3';
 			ext = 'mp3';
@@ -153,9 +153,9 @@ export async function handleYoutubeDownload(req, res) {
 			ext = 'mp4';
 			contentType = 'video/mp4';
 		} else {
-			// Standard Video + Audio
+			// Standard Video + Audio in user's requested quality (or best available)
 			const heightLimit = quality && quality !== 'best' ? `[height<=${quality}]` : '';
-			dlFormat = `bestvideo${heightLimit}[ext=mp4]+bestaudio[ext=m4a]/best${heightLimit}[ext=mp4]/best${heightLimit}/best`;
+			dlFormat = `bestvideo${heightLimit}[ext=mp4]+bestaudio[ext=m4a]/bestvideo${heightLimit}+bestaudio/best${heightLimit}[ext=mp4]/best${heightLimit}/best`;
 			mergeFormat = 'mp4';
 			ext = 'mp4';
 			contentType = 'video/mp4';

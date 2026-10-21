@@ -302,6 +302,13 @@
 	border-radius: 6px;
 }
 
+.import-progress-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
 .import-progress-status {
 	display: flex;
 	align-items: center;
@@ -309,6 +316,18 @@
 	font-size: 12px;
 	color: #38bdf8;
 	font-weight: 500;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.import-progress-percent {
+	font-size: 12px;
+	font-weight: 600;
+	color: #38bdf8;
+	font-variant-numeric: tabular-nums;
+	flex-shrink: 0;
 }
 
 .import-spinner {
@@ -329,17 +348,24 @@
 
 .import-progress-bar {
 	width: 100%;
-	height: 4px;
+	height: 6px;
 	background: #242432;
-	border-radius: 2px;
+	border-radius: 3px;
 	overflow: hidden;
 	position: relative;
+}
+
+.import-progress-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #0284c7, #38bdf8);
+	border-radius: 3px;
+	transition: width 0.12s ease-out;
 }
 
 .import-progress-bar-inner {
 	height: 100%;
 	background: #38bdf8;
-	border-radius: 2px;
+	border-radius: 3px;
 	animation: import-indeterminate 1.5s infinite ease-in-out;
 }
 
@@ -715,6 +741,19 @@
 :root[data-theme='light'] .import-progress-box {
 	background: #ffffff;
 	border-color: #cbd5e1;
+}
+
+:root[data-theme='light'] .import-progress-box {
+	background: #f8fafc;
+	border-color: #e2e8f0;
+}
+
+:root[data-theme='light'] .import-progress-status {
+	color: #0284c7;
+}
+
+:root[data-theme='light'] .import-progress-percent {
+	color: #0284c7;
 }
 
 :root[data-theme='light'] .import-progress-bar {
