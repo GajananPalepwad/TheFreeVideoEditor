@@ -41,6 +41,18 @@ describe('core/transitions', () => {
 		expect(transitionProgress(1_000_000, win, 'easeInOut')).toBe(0.5);
 	});
 
+	it('transitionGain follows the same eased progress as the picture', () => {
+		const win = transitionWindow(1_000_000, 1_000_000, 'center');
+		const t = 750_000;
+		const eased = transitionProgress(t, win, 'easeIn');
+
+		const { gainA, gainB } = transitionGain(t, win, 'linear', 'easeIn');
+
+		expect(gainB).toBeCloseTo(eased, 10);
+		expect(gainA).toBeCloseTo(1 - eased, 10);
+		expect(transitionGain(t, win, 'linear').gainB).toBeCloseTo(0.25, 10);
+	});
+
 	it('computes transitionGain for equalPower and linear crossfade curves', () => {
 		const win = transitionWindow(1_000_000, 1_000_000, 'center');
 
