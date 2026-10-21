@@ -14,6 +14,7 @@ import {
 	rippleDeleteGap,
 	rippleTrimClip,
 	setTrackFlags,
+	setTrackHeight,
 	splitClipsAt,
 	trimClip,
 	unlinkClips
@@ -334,6 +335,19 @@ describe('timeline queries and clip operations', () => {
 			'Main video'
 		);
 		expect(() => renameTrack(reordered, firstTrack.id, '  ')).toThrow('cannot be empty');
+	});
+
+	it('sets a track height clamped to 48–240 pixels', () => {
+		const project = createEmptyProject({ name: 'Track height' });
+		const [firstTrack, secondTrack] = project.tracks;
+		const height = (value: number) =>
+			setTrackHeight(project, firstTrack!.id, value).tracks[0]?.height;
+		expect(height(120)).toBe(120);
+		expect(height(120.4)).toBe(120);
+		expect(height(10)).toBe(48);
+		expect(height(500)).toBe(240);
+		expect(setTrackHeight(project, firstTrack!.id, 120).tracks[1]).toBe(secondTrack);
+		expect(() => setTrackHeight(project, 'missing' as typeof firstTrack.id, 120)).toThrow();
 	});
 
 	it('trims linked clip starts in sync and rejects trims that overlap another clip', () => {

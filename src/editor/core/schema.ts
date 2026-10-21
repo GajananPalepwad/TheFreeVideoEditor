@@ -594,6 +594,7 @@ export const trackSchema = z.object({
 	muted: z.boolean(),
 	locked: z.boolean(),
 	hidden: z.boolean(),
+	height: z.number().min(48).max(240).optional(),
 	clips: z.array(clipSchema),
 	transitions: z.array(transitionSchema).optional(),
 	audio: trackAudioSchema.optional(),

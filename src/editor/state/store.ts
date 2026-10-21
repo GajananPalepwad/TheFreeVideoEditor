@@ -26,6 +26,7 @@ import {
 	rippleDeleteClips as rippleDeleteClipsOperation,
 	rippleDeleteGap as rippleDeleteGapOperation,
 	setTrackFlags as setTrackFlagsOperation,
+	setTrackHeight as setTrackHeightOperation,
 	splitClipsAt,
 	trimClip as trimClipOperation,
 	rippleTrimClip,
@@ -714,6 +715,7 @@ export interface EditorState {
 		id: TrackId,
 		flags: Partial<Pick<Track, 'muted' | 'locked' | 'hidden'>>
 	) => boolean;
+	setTimelineTrackHeight: (id: TrackId, height: number) => boolean;
 	linkSelection: () => boolean;
 	unlinkSelection: () => boolean;
 	setTimelineMessage: (message: string) => void;
@@ -4062,6 +4064,28 @@ export function createEditorStore() {
 									setTrackFlagsOperation(view, id, flags)
 								),
 							{ history: 'record' }
+						);
+						return true;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
+				},
+				setTimelineTrackHeight(id, height) {
+					try {
+						const activeSeqId = get().activeSequenceId;
+						mutateProject(
+							'Resize track',
+							(project) =>
+								applyToSequence(project, activeSeqId, (view) =>
+									setTrackHeightOperation(view, id, height)
+								),
+							{
+								history: 'record',
+								mergeKey: `track-height:${id}`
+							}
 						);
 						return true;
 					} catch (error) {

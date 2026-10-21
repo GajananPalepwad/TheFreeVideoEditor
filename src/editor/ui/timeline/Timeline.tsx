@@ -517,7 +517,6 @@ function ActiveTimeline({ project }: { project: Project }) {
 	} | null>(null);
 	const [context, setContext] = useState<ContextPosition | null>(null);
 	const [viewportWidth, setViewportWidth] = useState(1_000);
-	const [trackHeights, setTrackHeights] = useState<Record<string, number>>({});
 	const trackResize = useRef<{
 		trackId: TrackId;
 		pointerId: number;
@@ -559,9 +558,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 		start: Math.max(0, scrollLeft - headerWidth - clipOverscan),
 		end: scrollLeft + viewportWidth - headerWidth + clipOverscan
 	};
-	const setTrackHeight = (trackId: TrackId, height: number) => {
-		setTrackHeights((current) => ({ ...current, [trackId]: Math.max(48, Math.min(240, height)) }));
-	};
+	const setTrackHeight = useEditorStore((state) => state.setTimelineTrackHeight);
 
 	useEffect(() => {
 		const scroller = scrollerRef.current;
@@ -2762,7 +2759,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 												key={track.id}
 												style={
 													{
-														'--track-height': `${trackHeights[track.id] ?? 45}px`
+														'--track-height': `${track.height ?? 45}px`
 													} as CSSProperties
 												}
 											>
@@ -3069,7 +3066,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 													aria-orientation="horizontal"
 													aria-valuemin={48}
 													aria-valuemax={240}
-													aria-valuenow={trackHeights[track.id] ?? 80}
+													aria-valuenow={track.height ?? 80}
 													onPointerDown={(event) => {
 														event.preventDefault();
 														event.currentTarget.setPointerCapture(event.pointerId);
@@ -3077,7 +3074,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 															trackId: track.id,
 															pointerId: event.pointerId,
 															startY: event.clientY,
-															startHeight: trackHeights[track.id] ?? 80
+															startHeight: track.height ?? 80
 														};
 													}}
 													onPointerMove={(event) => {
@@ -3102,7 +3099,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 													}}
 													onKeyDown={(event) => {
 														const step = event.shiftKey ? 24 : 8;
-														const current = trackHeights[track.id] ?? 80;
+														const current = track.height ?? 80;
 														if (event.key === 'ArrowUp') {
 															event.preventDefault();
 															setTrackHeight(track.id, current + step);

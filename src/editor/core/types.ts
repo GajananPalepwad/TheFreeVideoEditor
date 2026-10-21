@@ -584,6 +584,8 @@ export interface Track {
 	muted: boolean;
 	locked: boolean;
 	hidden: boolean;
+	/** Lane height in the timeline, in pixels (48–240). Unset means the default height. */
+	height?: number;
 	clips: Clip[];
 	transitions?: Transition[];
 	audio?: TrackAudio;
