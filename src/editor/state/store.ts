@@ -152,6 +152,7 @@ import {
 	ROOT_SEQUENCE_ID,
 	viewProject,
 	applyToSequence,
+	findClipInSequence,
 	isRootSequence
 } from '../core/sequences/access';
 import {
@@ -4776,7 +4777,7 @@ export function createEditorStore() {
 						const created = instance;
 						mutateProject(
 							`Add ${instance.type} effect`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4784,7 +4785,7 @@ export function createEditorStore() {
 										clip.id === clipId ? addEffectToClip(clip, created) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -4804,7 +4805,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Remove effect',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4812,7 +4813,7 @@ export function createEditorStore() {
 										clip.id === clipId ? removeEffectFromClip(clip, effectId) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -4834,7 +4835,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Reorder effects',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4842,7 +4843,7 @@ export function createEditorStore() {
 										clip.id === clipId ? reorderEffectInClip(clip, effectId, toIndex) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -4859,7 +4860,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Toggle effect',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4867,7 +4868,7 @@ export function createEditorStore() {
 										clip.id === clipId ? toggleEffectInClip(clip, effectId, enabled) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -4884,7 +4885,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Solo effect',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4892,7 +4893,7 @@ export function createEditorStore() {
 										clip.id === clipId ? soloEffectInClip(clip, effectId) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -4909,7 +4910,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Toggle bypass effects',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4917,7 +4918,7 @@ export function createEditorStore() {
 										clip.id === clipId ? toggleBypassClipEffects(clip, bypass) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -4935,7 +4936,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Duplicate effect',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4949,7 +4950,7 @@ export function createEditorStore() {
 										return updated;
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						if (dup) {
@@ -4972,7 +4973,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							'Reset effect',
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -4990,7 +4991,7 @@ export function createEditorStore() {
 										return { ...clip, effects };
 									})
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						return true;
@@ -5004,17 +5005,8 @@ export function createEditorStore() {
 				setEffectParam(clipId, effectId, paramName, value, options) {
 					const project = get().project;
 					if (!project) return;
-					let targetClip: Clip | undefined;
-					let effectType: EffectType | undefined;
-					for (const track of project.tracks) {
-						const clip = track.clips.find((c) => c.id === clipId);
-						if (clip) {
-							targetClip = clip;
-							const eff = (clip.effects ?? []).find((e) => e.id === effectId);
-							if (eff) effectType = eff.type;
-							break;
-						}
-					}
+					const targetClip = findClipInSequence(project, get().activeSequenceId, clipId);
+					const effectType = targetClip?.effects?.find((e) => e.id === effectId)?.type;
 					if (!effectType || !targetClip) return;
 					const propertyId = `effect:${effectType}:${effectId}:${paramName}` as PropertyId;
 					const curve = propertyCurve(targetClip, propertyId);
@@ -5030,7 +5022,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Change ${paramName}`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -5051,7 +5043,7 @@ export function createEditorStore() {
 										};
 									})
 								}))
-							}),
+							})),
 							{
 								history: 'record',
 								mergeKey: options?.coalesce
@@ -5068,17 +5060,13 @@ export function createEditorStore() {
 				copyClipEffects(clipId) {
 					const project = get().project;
 					if (!project) return;
-					for (const track of project.tracks) {
-						const clip = track.clips.find((c) => c.id === clipId);
-						if (clip) {
-							const copied = copyClipEffectsCore(clip);
-							set((state) => {
-								state.effectsClipboard = copied;
-								state.projectMessage = `Copied ${copied.length} effect(s).`;
-							});
-							return;
-						}
-					}
+					const clip = findClipInSequence(project, get().activeSequenceId, clipId);
+					if (!clip) return;
+					const copied = copyClipEffectsCore(clip);
+					set((state) => {
+						state.effectsClipboard = copied;
+						state.projectMessage = `Copied ${copied.length} effect(s).`;
+					});
 				},
 				pasteClipEffects(clipId) {
 					const project = get().project;
@@ -5087,7 +5075,7 @@ export function createEditorStore() {
 					try {
 						mutateProject(
 							`Paste ${clipboard.length} effect(s)`,
-							(proj) => ({
+							scoped((proj) => ({
 								...proj,
 								tracks: proj.tracks.map((track) => ({
 									...track,
@@ -5095,7 +5083,7 @@ export function createEditorStore() {
 										clip.id === clipId ? pasteClipEffectsCore(clip, clipboard) : clip
 									)
 								}))
-							}),
+							})),
 							{ history: 'record' }
 						);
 						set((state) => {
@@ -5112,14 +5100,9 @@ export function createEditorStore() {
 				ensureColorCorrection(clipId) {
 					const project = get().project;
 					if (!project) return null;
-					for (const track of project.tracks) {
-						const clip = track.clips.find((c) => c.id === clipId);
-						if (clip) {
-							const existing = (clip.effects ?? []).find((e) => e.type === 'colorCorrection');
-							if (existing) return existing;
-							break;
-						}
-					}
+					const clip = findClipInSequence(project, get().activeSequenceId, clipId);
+					const existing = clip?.effects?.find((e) => e.type === 'colorCorrection');
+					if (existing) return existing;
 					return get().addEffect(clipId, 'colorCorrection');
 				},
 				addAdjustmentLayer(trackId, start, duration) {

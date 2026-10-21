@@ -263,3 +263,108 @@ describe('keyframe and property edits inside a template sequence', () => {
 		expect(store.getState().timeline.playhead).toBe(target.start);
 	});
 });
+
+describe('effect edits inside a template sequence', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		services.getProject.mockResolvedValue(null);
+		services.listProjects.mockResolvedValue([]);
+		services.saveProject.mockResolvedValue(undefined);
+		services.setLastOpenedId.mockResolvedValue(undefined);
+		services.getLastOpenedId.mockResolvedValue(null);
+		services.ensureProjectDir.mockResolvedValue(null);
+		services.reconcileProjectMedia.mockImplementation(async (project) => ({
+			assets: project.assets,
+			unknownFiles: [],
+			changed: false
+		}));
+	});
+
+	/** Opens a template and puts a mirror effect on its text layer. */
+	async function withMirror(): Promise<{ store: Store; sequenceId: SequenceId; target: Clip }> {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const effect = store.getState().addEffect(target.id, 'mirror');
+		expect(effect).not.toBeNull();
+		return { store, sequenceId, target };
+	}
+
+	it('addEffect adds the effect to the nested clip, selects it and records one undo step', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const rootBefore = rootClips(store);
+
+		const effect = store.getState().addEffect(target.id, 'gaussianBlur');
+
+		expect(innerClip(store, sequenceId).effects?.map((e) => e.id)).toEqual([effect!.id]);
+		expect(store.getState().effectsUi.selectedEffectId).toBe(effect!.id);
+		expect(rootClips(store)).toEqual(rootBefore);
+		expect(store.getState().undo()).toBe(true);
+		expect(innerClip(store, sequenceId).effects ?? []).toEqual([]);
+	});
+
+	it('setEffectParam changes a plain parameter of a nested effect', async () => {
+		const { store, sequenceId, target } = await withMirror();
+		const effect = innerClip(store, sequenceId).effects![0]!;
+
+		store.getState().setEffectParam(target.id, effect.id, 'mode', 'quad');
+
+		expect(innerClip(store, sequenceId).effects![0]!.params.mode).toBe('quad');
+	});
+
+	it('toggleEffect, soloEffect and toggleBypassClipEffects reach the nested clip', async () => {
+		const { store, sequenceId, target } = await withMirror();
+		const effect = innerClip(store, sequenceId).effects![0]!;
+
+		expect(store.getState().toggleEffect(target.id, effect.id, false)).toBe(true);
+		expect(innerClip(store, sequenceId).effects![0]!.enabled).toBe(false);
+		expect(store.getState().soloEffect(target.id, effect.id)).toBe(true);
+		expect(store.getState().toggleBypassClipEffects(target.id, true)).toBe(true);
+		expect(innerClip(store, sequenceId).bypassEffects).toBe(true);
+	});
+
+	it('duplicateEffect and reorderEffect work on the nested clip', async () => {
+		const { store, sequenceId, target } = await withMirror();
+		const effect = innerClip(store, sequenceId).effects![0]!;
+
+		const copy = store.getState().duplicateEffect(target.id, effect.id);
+		expect(copy).not.toBeNull();
+		expect(innerClip(store, sequenceId).effects).toHaveLength(2);
+		expect(store.getState().reorderEffect(target.id, copy!.id, 0)).toBe(true);
+		expect(innerClip(store, sequenceId).effects![0]!.id).toBe(copy!.id);
+	});
+
+	it('resetEffect and removeEffect work on the nested clip', async () => {
+		const { store, sequenceId, target } = await withMirror();
+		const effect = innerClip(store, sequenceId).effects![0]!;
+		store.getState().setEffectParam(target.id, effect.id, 'mode', 'quad');
+
+		expect(store.getState().resetEffect(target.id, effect.id)).toBe(true);
+		expect(innerClip(store, sequenceId).effects![0]!.params.mode).toBe('horizontal');
+		expect(store.getState().removeEffect(target.id, effect.id)).toBe(true);
+		expect(innerClip(store, sequenceId).effects ?? []).toEqual([]);
+	});
+
+	it('copyClipEffects and pasteClipEffects copy between nested clips', async () => {
+		const { store, sequenceId, target } = await withMirror();
+		const other = shapeClip(store, sequenceId);
+
+		store.getState().copyClipEffects(target.id);
+		expect(store.getState().effectsClipboard).toHaveLength(1);
+		expect(store.getState().pasteClipEffects(other.id)).toBe(true);
+
+		expect(shapeClip(store, sequenceId).effects).toHaveLength(1);
+	});
+
+	it('ensureColorCorrection finds the nested clip instead of adding a second effect', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+
+		const first = store.getState().ensureColorCorrection(target.id);
+		const second = store.getState().ensureColorCorrection(target.id);
+
+		expect(first).not.toBeNull();
+		expect(second?.id).toBe(first?.id);
+		expect(innerClip(store, sequenceId).effects).toHaveLength(1);
+	});
+});
