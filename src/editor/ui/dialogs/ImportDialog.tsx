@@ -45,6 +45,46 @@ const YOUTUBE_REGEX =
 const INSTAGRAM_REGEX =
 	/(?:https?:\/\/)?(?:www\.|m\.)?(?:instagram\.com|instagr\.am)\/(?:[^\/]+\/)?(?:p|reel|reels|tv|share\/reel|share\/p)\/([A-Za-z0-9_-]+)/i;
 
+async function readResponseWithProgress(
+	response: Response,
+	mimeType: string,
+	onProgress: (percent: number | null, loaded: number, total: number) => void
+): Promise<Blob> {
+	const contentLength = response.headers.get('content-length');
+	const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+
+	if (!response.body) {
+		const blob = await response.blob();
+		onProgress(100, blob.size, blob.size);
+		return blob;
+	}
+
+	const reader = response.body.getReader();
+	const chunks: BlobPart[] = [];
+	let receivedBytes = 0;
+	let lastUpdate = 0;
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		if (value) {
+			chunks.push(value);
+			receivedBytes += value.length;
+
+			const now = Date.now();
+			if (now - lastUpdate > 50 || (totalBytes > 0 && receivedBytes >= totalBytes)) {
+				lastUpdate = now;
+				const pct =
+					totalBytes > 0 ? Math.min(100, Math.round((receivedBytes / totalBytes) * 100)) : null;
+				onProgress(pct, receivedBytes, totalBytes);
+			}
+		}
+	}
+
+	onProgress(100, receivedBytes, totalBytes > 0 ? totalBytes : receivedBytes);
+	return new Blob(chunks, { type: mimeType });
+}
+
 export default function ImportDialog() {
 	const isOpen = useEditorStore((state) => state.isImportDialogOpen);
 	const close = useEditorStore((state) => state.closeImportDialog);
@@ -71,6 +111,7 @@ export default function ImportDialog() {
 
 	// Shared download & UI states
 	const [isDownloading, setIsDownloading] = useState(false);
+	const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
 	const [downloadProgressText, setDownloadProgressText] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
 	const [successMessage, setSuccessMessage] = useState('');
@@ -103,12 +144,14 @@ export default function ImportDialog() {
 		if (isOpen) {
 			setErrorMessage('');
 			setSuccessMessage('');
+			setDownloadProgress(null);
 		} else {
 			if (abortControllerRef.current) {
 				abortControllerRef.current.abort();
 				abortControllerRef.current = null;
 			}
 			setIsDownloading(false);
+			setDownloadProgress(null);
 			setIsFetchingInfo(false);
 			setIsFetchingInstaInfo(false);
 		}
@@ -221,6 +264,7 @@ export default function ImportDialog() {
 		setErrorMessage('');
 		setSuccessMessage('');
 		setIsDownloading(true);
+		setDownloadProgress(null);
 		setDownloadProgressText('Connecting to YouTube…');
 
 		const controller = new AbortController();
@@ -258,9 +302,7 @@ export default function ImportDialog() {
 				throw new Error(errorJson?.error || `Download failed with HTTP ${response.status}`);
 			}
 
-			setDownloadProgressText(
-				onlySaveComputer ? 'Saving file to device…' : 'Importing media into project…'
-			);
+			setDownloadProgressText('Downloading media…');
 
 			const fileExt = formatType === 'audio' ? 'mp3' : 'mp4';
 			const mimeType = formatType === 'audio' ? 'audio/mpeg' : 'video/mp4';
@@ -277,7 +319,22 @@ export default function ImportDialog() {
 				filename = `${videoInfo.title.replace(/[/\\?%*:|"<>]/g, '_')}.${fileExt}`;
 			}
 
-			const blob = await response.blob();
+			const blob = await readResponseWithProgress(response, mimeType, (pct, loaded, total) => {
+				setDownloadProgress(pct);
+				if (pct !== null && total > 0) {
+					const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
+					const totalMB = (total / (1024 * 1024)).toFixed(1);
+					setDownloadProgressText(`Downloading media… ${pct}% (${loadedMB} / ${totalMB} MB)`);
+				} else {
+					const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
+					setDownloadProgressText(`Downloading media… ${loadedMB} MB`);
+				}
+			});
+
+			setDownloadProgress(100);
+			setDownloadProgressText(
+				onlySaveComputer ? 'Saving file to device…' : 'Importing media into project…'
+			);
 			const file = new File([blob], filename, { type: mimeType });
 
 			// 1-Click Download: Save file directly to user's computer if enabled or requested
@@ -345,6 +402,7 @@ export default function ImportDialog() {
 		setErrorMessage('');
 		setSuccessMessage('');
 		setIsDownloading(true);
+		setDownloadProgress(null);
 		setDownloadProgressText('Connecting to Instagram…');
 
 		const controller = new AbortController();
@@ -382,9 +440,7 @@ export default function ImportDialog() {
 				throw new Error(errorJson?.error || `Download failed with HTTP ${response.status}`);
 			}
 
-			setDownloadProgressText(
-				onlySaveComputer ? 'Saving file to device…' : 'Importing media into project…'
-			);
+			setDownloadProgressText('Downloading media…');
 
 			const isPhoto = instaInfo?.mediaType === 'image';
 			const fileExt = isPhoto ? 'jpg' : instaFormatType === 'audio' ? 'mp3' : 'mp4';
@@ -406,7 +462,22 @@ export default function ImportDialog() {
 				filename = `${instaInfo.title.replace(/[/\\?%*:|"<>]/g, '_')}.${fileExt}`;
 			}
 
-			const blob = await response.blob();
+			const blob = await readResponseWithProgress(response, mimeType, (pct, loaded, total) => {
+				setDownloadProgress(pct);
+				if (pct !== null && total > 0) {
+					const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
+					const totalMB = (total / (1024 * 1024)).toFixed(1);
+					setDownloadProgressText(`Downloading media… ${pct}% (${loadedMB} / ${totalMB} MB)`);
+				} else {
+					const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
+					setDownloadProgressText(`Downloading media… ${loadedMB} MB`);
+				}
+			});
+
+			setDownloadProgress(100);
+			setDownloadProgressText(
+				onlySaveComputer ? 'Saving file to device…' : 'Importing media into project…'
+			);
 			const file = new File([blob], filename, { type: mimeType });
 
 			// 1-Click Download: Save file directly to user's computer if enabled or requested
@@ -443,6 +514,7 @@ export default function ImportDialog() {
 		} catch (err: unknown) {
 			clearTimeout(progressTimer1);
 			clearTimeout(progressTimer2);
+			setDownloadProgress(null);
 			if (err instanceof Error && err.name === 'AbortError') {
 				setDownloadProgressText('');
 				setIsDownloading(false);
@@ -848,13 +920,31 @@ export default function ImportDialog() {
 
 							{/* Active Download Progress */}
 							{isDownloading && (
-								<div className="import-progress-box">
-									<div className="import-progress-status">
-										<div className="import-spinner" />
-										<span>{downloadProgressText}</span>
+								<div
+									className="import-progress-box"
+									role="progressbar"
+									aria-valuenow={downloadProgress ?? undefined}
+									aria-valuemin={0}
+									aria-valuemax={100}
+								>
+									<div className="import-progress-header">
+										<div className="import-progress-status">
+											<div className="import-spinner" />
+											<span>{downloadProgressText}</span>
+										</div>
+										{downloadProgress !== null && (
+											<span className="import-progress-percent">{downloadProgress}%</span>
+										)}
 									</div>
 									<div className="import-progress-bar">
-										<div className="import-progress-bar-inner" />
+										{downloadProgress !== null ? (
+											<div
+												className="import-progress-bar-fill"
+												style={{ width: `${downloadProgress}%` }}
+											/>
+										) : (
+											<div className="import-progress-bar-inner" />
+										)}
 									</div>
 								</div>
 							)}
@@ -1119,13 +1209,31 @@ export default function ImportDialog() {
 
 							{/* Active Download Progress */}
 							{isDownloading && (
-								<div className="import-progress-box">
-									<div className="import-progress-status">
-										<div className="import-spinner" />
-										<span>{downloadProgressText}</span>
+								<div
+									className="import-progress-box"
+									role="progressbar"
+									aria-valuenow={downloadProgress ?? undefined}
+									aria-valuemin={0}
+									aria-valuemax={100}
+								>
+									<div className="import-progress-header">
+										<div className="import-progress-status">
+											<div className="import-spinner" />
+											<span>{downloadProgressText}</span>
+										</div>
+										{downloadProgress !== null && (
+											<span className="import-progress-percent">{downloadProgress}%</span>
+										)}
 									</div>
 									<div className="import-progress-bar">
-										<div className="import-progress-bar-inner" />
+										{downloadProgress !== null ? (
+											<div
+												className="import-progress-bar-fill"
+												style={{ width: `${downloadProgress}%` }}
+											/>
+										) : (
+											<div className="import-progress-bar-inner" />
+										)}
 									</div>
 								</div>
 							)}
