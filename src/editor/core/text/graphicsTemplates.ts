@@ -235,7 +235,7 @@ export const GRAPHIC_ANIMATION_PRESETS: readonly TextAnimationPreset[] = [
 ];
 
 /**
- * 16 Curated Editable Motion Graphic Templates
+ * Curated editable motion graphic templates
  * Modeled after professional kinetic typography & After Effects motion design packages
  */
 export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
