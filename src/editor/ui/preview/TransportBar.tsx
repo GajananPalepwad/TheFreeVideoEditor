@@ -201,6 +201,32 @@ export default function TransportBar({
 						</svg>
 						<span className="preview-loop-label">Loop</span>
 					</button>
+					<button
+						type="button"
+						className="preview-capture-button"
+						aria-label="Export frame"
+						title="Export frame (Shift+E)"
+						disabled={disabled}
+						onClick={() => {
+							if (snapshot?.playing) engine?.pause();
+							store.getState().openExportFrameDialog();
+						}}
+					>
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+							<circle cx="12" cy="13" r="4" />
+						</svg>
+					</button>
 				</div>
 				<div className="preview-timecode-group">
 					<output

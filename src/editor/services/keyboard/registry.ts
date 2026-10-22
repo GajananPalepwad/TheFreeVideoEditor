@@ -742,6 +742,15 @@ export function createEditorShortcutRegistry(handlers: ShortcutHandlers): Shortc
 			preventDefault: true
 		},
 		{
+			id: 'export-frame',
+			keys: { mac: 'shift+e', other: 'shift+e' },
+			label: 'Export Still Frame',
+			group: 'Project',
+			scope: 'preview',
+			handler: action('export-frame'),
+			preventDefault: true
+		},
+		{
 			id: 'import-media',
 			keys: { mac: 'mod+i', other: 'mod+i' },
 			label: 'Import Media',
