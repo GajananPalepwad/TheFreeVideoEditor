@@ -58,23 +58,60 @@ Each entry in `publishedParams` points at a clip in the template and a property 
 3. Keep every `publishedParams[].targetClipId` pointing at a clip id in the file.
 4. Import it from the Graphics panel to try it. To ship it, add it to `public/templates/`.
 
-## The legacy generator
+## The built-in library
 
-Thirteen of the shipped files are generated from the older definitions in
-`core/text/graphicsTemplates.ts` by `core/templates/templateConverter.ts`. After changing either, run:
+Eighteen templates in five categories, each with at least two: Titles (Cinematic Blockbuster, Modern Bold
+Punch, Minimal Editorial, Cyber Glitch Tech, Chapter Marker), Kinetic (Bouncy Pop Headline, Dynamic Split
+Angle, Kinetic Marquee Stack, Typewriter Terminal, Word Cascade), Lower Thirds (Broadcast News Header,
+Documentary Elegant Card, Clean Minimal Wipe Lower Third, Corporate Name Strap), Social (Social Creator Pill,
+Subscribe Banner) and Callouts (Circular Crest Emblem, Highlight Callout). The Graphics panel only shows
+a category tab that has templates.
+
+Word Cascade is the kinetic example: three text layers on three tracks, each revealing word by word with
+`text.reveal` keyframes while sliding into place, one after the other.
+
+## Bounds and frames
+
+A template's `bounds` is the size of its own canvas. Anything drawn outside it is cut off, so it is
+measured, not guessed:
+
+- Text is measured with the layout the renderer draws with (the layer's own line height and letter
+  spacing), at the largest size the Text Size slider allows (`TEXT_SIZE_MAX_SCALE`, 1.5 times the drawn
+  size). That needs a canvas and the bundled fonts, so `npm run templates:generate` runs the converter in
+  headless Chromium (Playwright). Under Node there is no canvas and text would measure as a fixed box.
+- Each frame, plate or rule is sized and placed from the measured text block, honouring left and right
+  alignment. A frame does not follow the text if the slider is raised after the template is placed.
+
+## The generator
+
+Eighteen of the shipped files are generated from the definitions in `core/text/graphicsTemplates.ts` by
+`core/templates/templateConverter.ts` (Word Cascade and the Mixkit lower third are built by hand in the
+converter). After changing either, run:
 
 ```
 npm run templates:generate
 ```
 
 It rewrites the files in `public/templates/` (keeping each file's `createdAt`). `npm test` never writes
-files; it only checks that the shipped files match the converter output and tells you to run the script if
-they do not.
+files. It checks that the shipped files match the converter output for everything a browser does not
+measure (clips, parameters, timing), and tells you to run the script if they do not. Bounds and frame sizes
+depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` checks them in a browser.
 
 ## Tests
 
 - `builtinTemplates.test.ts`: the library is exactly the shipped files; the example reads and renders.
+- `templateLibrary.test.ts`: 18 templates, every category populated, no overlapping clips on a track.
 - `templateSchema.test.ts`: exact round trips, version and validation errors.
-- `templateMapping.test.ts`: overrides, crop units, frame decorations, layer order.
-- `templateConverter.test.ts`: the shipped files match the converter.
-- `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor.
+- `templateMapping.test.ts`: overrides, crop units, frame decorations, layer order, unpacking.
+- `templateConverter.test.ts`: the shipped files match the converter's design.
+- `templateBounds.test.ts`: text is measured with the renderer's line height and letter spacing.
+- `templateFidelity.test.ts`: every template saves and reopens unchanged and draws the same layers; the
+  drawn layers at three times are pinned as snapshots (`__snapshots__/`). Update them with
+  `npx vitest run -u` only when a template is meant to change.
+- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, and repeated
+  drops never overlap.
+- `tests/e2e/template-text-bounds.spec.ts`: nothing reaches the edge of any template's bounds, at the
+  default size and at the slider maximum.
+- `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor, for every template at
+  three times.
+- `tests/e2e/template-fidelity.spec.ts`: dragging each card and pressing "+ Add" build the same instance.
