@@ -207,6 +207,68 @@ export function offsetClipPosition(clip: Clip, dx: number, dy: number): Clip {
 	return cloned;
 }
 
+/** The text a clip draws, laid out the way the renderer lays it out, at `textScale` times its size. */
+export function measureTextClip(clip: Clip, textScale = 1) {
+	if (clip.source?.type !== 'text') throw new Error('measureTextClip needs a text clip.');
+	let fontSize = 48;
+	try {
+		const val = readProperty(clip, 'text.fontSize', 0);
+		if (typeof val === 'number' && Number.isFinite(val) && val > 0) {
+			fontSize = val;
+		} else if (clip.source.style?.lineHeight && clip.source.style.lineHeight > 10) {
+			fontSize = clip.source.style.lineHeight;
+		}
+	} catch {
+		if (clip.source.style?.lineHeight && clip.source.style.lineHeight > 10) {
+			fontSize = clip.source.style.lineHeight;
+		}
+	}
+
+	let letterSpacing = 0;
+	try {
+		const ls = readProperty(clip, 'text.letterSpacing', 0);
+		if (typeof ls === 'number' && Number.isFinite(ls)) letterSpacing = ls;
+		else if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
+	} catch {
+		if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
+	}
+
+	fontSize *= textScale;
+	letterSpacing *= textScale;
+
+	let lineHeight = clip.source.style?.lineHeight ?? 1.2;
+	try {
+		const lh = readProperty(clip, 'text.lineHeight', 0);
+		if (typeof lh === 'number' && Number.isFinite(lh) && lh > 0) lineHeight = lh;
+	} catch {
+		// The style line height stands.
+	}
+
+	const text = clip.source.text || clip.text || 'Sample Text';
+	// The same style the renderer lays the text out with.
+	const style = {
+		fontFamily: 'Montserrat',
+		...(clip.source.style || {}),
+		lineHeight,
+		letterSpacing
+	};
+	let dims = { width: 300, height: 100 };
+	try {
+		dims = getTextDimensions(text, style, clip.source.box, fontSize);
+		if (clip.source.box?.frameStyle === 'accent-bar') {
+			const barW = (readProperty(clip, 'text.accentBarWidth', 0) as number) || clip.source.box.accentBarWidth || 16;
+			dims.width += barW + 28;
+		}
+	} catch {
+		dims = {
+			width: Math.max(100, text.length * (fontSize * 0.6 + letterSpacing)),
+			height: Math.max(50, fontSize * 1.3)
+		};
+	}
+
+	return { text, style, fontSize, letterSpacing, lineHeight, width: dims.width, height: dims.height };
+}
+
 /**
  * Calculates the tight composition-space bounding box that actually contains the graphic elements.
  * Returns the dimensions and the center offset relative to the composition center.
@@ -238,61 +300,9 @@ export function calculateClipsBoundingBox(
 		let textData: any = undefined;
 
 		if (clip.source?.type === 'text') {
-			let fontSize = 48;
-			try {
-				const val = readProperty(clip, 'text.fontSize', 0);
-				if (typeof val === 'number' && Number.isFinite(val) && val > 0) {
-					fontSize = val;
-				} else if (clip.source.style?.lineHeight && clip.source.style.lineHeight > 10) {
-					fontSize = clip.source.style.lineHeight;
-				}
-			} catch {
-				if (clip.source.style?.lineHeight && clip.source.style.lineHeight > 10) {
-					fontSize = clip.source.style.lineHeight;
-				}
-			}
-
-			let letterSpacing = 0;
-			try {
-				const ls = readProperty(clip, 'text.letterSpacing', 0);
-				if (typeof ls === 'number' && Number.isFinite(ls)) letterSpacing = ls;
-				else if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
-			} catch {
-				if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
-			}
-
-			fontSize *= textScale;
-			letterSpacing *= textScale;
-
-			let lineHeight = clip.source.style?.lineHeight ?? 1.2;
-			try {
-				const lh = readProperty(clip, 'text.lineHeight', 0);
-				if (typeof lh === 'number' && Number.isFinite(lh) && lh > 0) lineHeight = lh;
-			} catch {
-				// The style line height stands.
-			}
-
-			const text = clip.source.text || clip.text || 'Sample Text';
-			// The same style the renderer lays the text out with.
-			const style = {
-				fontFamily: 'Montserrat',
-				...(clip.source.style || {}),
-				lineHeight,
-				letterSpacing
-			};
-			let dims = { width: 300, height: 100 };
-			try {
-				dims = getTextDimensions(text, style, clip.source.box, fontSize);
-				if (clip.source.box?.frameStyle === 'accent-bar') {
-					const barW = (readProperty(clip, 'text.accentBarWidth', 0) as number) || clip.source.box.accentBarWidth || 16;
-					dims.width += barW + 28;
-				}
-			} catch {
-				dims = {
-					width: Math.max(100, text.length * (fontSize * 0.6 + letterSpacing)),
-					height: Math.max(50, fontSize * 1.3)
-				};
-			}
+			const measured = measureTextClip(clip, textScale);
+			const { text, style, fontSize, letterSpacing, lineHeight } = measured;
+			const dims = { width: measured.width, height: measured.height };
 
 			sourceWidth = dims.width;
 			sourceHeight = dims.height;
