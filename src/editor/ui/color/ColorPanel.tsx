@@ -59,6 +59,16 @@ export default function ColorPanel() {
 		];
 	}, [curvesEffect, paramKeyForCurve]);
 
+	// LUT helpers
+	const currentLutId = (lutEffect?.params.lutAssetId as string) || '';
+	const selectedBuiltinLut = findBuiltinLut(currentLutId);
+
+	useEffect(() => {
+		if (currentLutId && isBuiltinLutId(currentLutId) && !getParsedLut(currentLutId)) {
+			void ensureBuiltinLutLoaded(currentLutId);
+		}
+	}, [currentLutId]);
+
 	if (!project || !selectedClip) {
 		return (
 			<div className="color-panel">
@@ -98,16 +108,6 @@ export default function ColorPanel() {
 		const sorted = [...newPoints].sort((a, b) => a.x - b.x);
 		store.getState().setEffectParam(selectedClip.id, eff.id, paramKeyForCurve, sorted);
 	};
-
-	// LUT helpers
-	const currentLutId = (lutEffect?.params.lutAssetId as string) || '';
-	const selectedBuiltinLut = findBuiltinLut(currentLutId);
-
-	useEffect(() => {
-		if (currentLutId && isBuiltinLutId(currentLutId) && !getParsedLut(currentLutId)) {
-			void ensureBuiltinLutLoaded(currentLutId);
-		}
-	}, [currentLutId]);
 
 	const handleSelectLut = (assetId: string) => {
 		if (!selectedClip) return;

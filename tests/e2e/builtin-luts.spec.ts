@@ -110,4 +110,71 @@ test.describe('Pre-available Built-in LUTs', () => {
 		await expect(infoCard).not.toBeVisible();
 		await expect(chromeBtn).not.toHaveClass(/is-active/);
 	});
+
+	test('transitions between no clip selected and clip selected with zero React hooks error', async ({
+		page
+	}) => {
+		const pageErrors: string[] = [];
+		page.on('pageerror', (err) => pageErrors.push(err.message));
+
+		await page.goto('/editor');
+		const manager = page.locator('.project-manager-dialog');
+		await manager.waitFor({ state: 'visible', timeout: 5000 });
+		await manager.getByRole('button', { name: 'New project' }).click();
+		const createDialog = page.getByRole('dialog', { name: 'Create a Project' });
+		await createDialog.getByRole('textbox', { name: 'Project name' }).fill('Hooks Safety Test');
+		await createDialog.getByRole('button', { name: 'Create project' }).click();
+		await expect(manager).not.toBeVisible();
+		await page.waitForFunction(() => Boolean((window as any).__TFVE_STORE__?.getState().project));
+
+		// Switch to Color panel when NO clip is selected
+		const colorTabBtn = page.getByTestId('tab-color');
+		if (await colorTabBtn.isVisible()) {
+			await colorTabBtn.click();
+		}
+
+		await expect(page.locator('.effects-empty')).toBeVisible();
+
+		// Add a shape clip and select it
+		await page.evaluate(() => {
+			const store = (window as any).__TFVE_STORE__;
+			const track = store.getState().project?.tracks.find((t: any) => t.kind === 'video');
+			if (track) {
+				const clipId = store.getState().addShapeClip(
+					{
+						shapeType: 'rectangle',
+						width: 400,
+						height: 300,
+						fillColor: { r: 0.5, g: 0.5, b: 0.5, a: 1 }
+					},
+					{ start: 0, trackId: track.id }
+				);
+				store.getState().selectClips([clipId]);
+			}
+		});
+
+		// Color panel should now show the color controls without errors
+		const lutTab = page.getByRole('tab', { name: 'LUT' });
+		await expect(lutTab).toBeVisible();
+		await lutTab.click();
+
+		// Deselect clip
+		await page.evaluate(() => {
+			const store = (window as any).__TFVE_STORE__;
+			store.getState().selectClips([]);
+		});
+		await expect(page.locator('.effects-empty')).toBeVisible();
+
+		// Re-select clip
+		await page.evaluate(() => {
+			const store = (window as any).__TFVE_STORE__;
+			const clipId = store.getState().project?.tracks[0]?.clips[0]?.id;
+			if (clipId) store.getState().selectClips([clipId]);
+		});
+		await expect(lutTab).toBeVisible();
+
+		// Ensure no React hook errors were triggered
+		const hookErrors = pageErrors.filter((e) => /hooks/i.test(e) || /Rendered more hooks/i.test(e));
+		expect(hookErrors).toHaveLength(0);
+	});
 });
