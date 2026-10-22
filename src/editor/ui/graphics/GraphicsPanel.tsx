@@ -9,7 +9,7 @@ import {
 import { readProperty } from '../../core/properties';
 import { findClipInSequence } from '../../core/sequences/access';
 import { ColorPickerField } from '../inspector/ColorPickerField';
-import type { Clip, GraphicFrameStyle } from '../../core/types';
+import type { Clip, GraphicFrameStyle, Project } from '../../core/types';
 import {
 	getCustomTemplates,
 	saveCustomTemplate,
@@ -18,6 +18,12 @@ import {
 	deserializeTemplate
 } from '../../core/templates/templateService';
 import type { MotionGraphicTemplate } from '../../core/templates/templateTypes';
+import { missingTemplateResources } from '../../core/templates/templateResources';
+import {
+	bundleTemplateResources,
+	isFontAvailable,
+	prepareImportedTemplate
+} from '../../services/templates/templateResources';
 import { SaveTemplateModal } from './SaveTemplateModal';
 import { MotionTemplateCard } from './MotionTemplateCard';
 import {
@@ -60,6 +66,15 @@ const FRAME_STYLES: Array<{ id: GraphicFrameStyle; label: string }> = [
 	{ id: 'cinematic-box', label: 'Letterbox Frame' }
 ];
 
+/** A sentence naming what a template needs that is not here, or nothing when it has everything. */
+function describeMissing(missing: { fonts: string[]; assets: string[] }): string {
+	const parts = [
+		...(missing.fonts.length > 0 ? [`font ${missing.fonts.join(', ')} (a default font is used)`] : []),
+		...(missing.assets.length > 0 ? [`${missing.assets.length} media file(s)`] : [])
+	];
+	return parts.length > 0 ? ` Missing: ${parts.join('; ')}.` : '';
+}
+
 export default function GraphicsPanel() {
 	const store = useEditorStoreApi();
 	const project = useEditorStore((state) => state.project);
@@ -88,7 +103,12 @@ export default function GraphicsPanel() {
 	const handleAddCustomTemplate = (template: MotionGraphicTemplate) => {
 		const createdId = store.getState().instantiateTemplate(template);
 		if (createdId) {
-			setAnnouncement(`Added ${template.name} template to timeline.`);
+			const missing = missingTemplateResources(
+				template,
+				isFontAvailable,
+				(id) => Boolean(store.getState().project?.assets[id as keyof Project['assets']])
+			);
+			setAnnouncement(`Added ${template.name} template to timeline.` + describeMissing(missing));
 		}
 	};
 
@@ -100,22 +120,50 @@ export default function GraphicsPanel() {
 		}
 	};
 
-	const handleExportCustomTemplate = (template: MotionGraphicTemplate) => {
-		downloadTemplateFile(template);
-		setAnnouncement(`Exported ${template.name}.tfvetemplate`);
+	const handleExportCustomTemplate = async (template: MotionGraphicTemplate) => {
+		try {
+			const bundled = await bundleTemplateResources(template, store.getState().project);
+			downloadTemplateFile(bundled);
+			const embedded = [
+				...(bundled.resources?.fonts ?? []).map((font) => font.family),
+				...(bundled.resources?.assets ?? []).map((asset) => asset.name)
+			];
+			const missing = missingTemplateResources(
+				bundled,
+				isFontAvailable,
+				(id) => Boolean(store.getState().project?.assets[id as keyof Project['assets']])
+			);
+			setAnnouncement(
+				`Exported ${template.name}.tfvetemplate` +
+					(embedded.length > 0 ? ` with ${embedded.join(', ')} inside` : '') +
+					describeMissing(missing)
+			);
+		} catch (error) {
+			setAnnouncement(`Could not export ${template.name}: ${(error as Error).message}`);
+		}
 	};
 
 	const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
 		const reader = new FileReader();
-		reader.onload = (event) => {
+		reader.onload = async (event) => {
 			try {
 				const content = event.target?.result as string;
-				const template = deserializeTemplate(content);
-				saveCustomTemplate(template);
+				const imported = await prepareImportedTemplate(deserializeTemplate(content), (files) =>
+					store.getState().importMedia(files)
+				);
+				saveCustomTemplate(imported.template);
 				refreshCustomTemplates();
-				setAnnouncement(`Imported motion template "${template.name}" successfully!`);
+				const installed = [
+					...imported.fonts.map((family) => `font ${family}`),
+					...(imported.assets > 0 ? [`${imported.assets} media file(s)`] : [])
+				];
+				setAnnouncement(
+					`Imported motion template "${imported.template.name}" successfully!` +
+						(installed.length > 0 ? ` Installed ${installed.join(', ')}.` : '') +
+						describeMissing(imported.missing)
+				);
 			} catch (err) {
 				alert('Failed to import template: ' + (err as Error).message);
 			}

@@ -166,6 +166,8 @@ export interface TextBox {
 	gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 	gradientColorEnd?: { r: number; g: number; b: number; a: number };
 	gradientAngle?: number;
+	/** The whole colour list; replaces the fill and end colour when it has two or more stops. */
+	gradientStops?: Array<{ offset: number; color: { r: number; g: number; b: number; a: number } }>;
 }
 
 export interface TextColorRun {
@@ -231,6 +233,8 @@ export type ClipSource =
 			gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 			gradientColorEnd?: { r: number; g: number; b: number; a: number };
 			gradientAngle?: number;
+			/** The whole colour list; replaces the fill and end colour when it has two or more stops. */
+			gradientStops?: Array<{ offset: number; color: { r: number; g: number; b: number; a: number } }>;
 	  }
 	| { type: 'adjustment' }
 	| {
@@ -252,6 +256,8 @@ export type ClipSource =
 			gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 			gradientColorEnd?: { r: number; g: number; b: number; a: number };
 			gradientAngle?: number;
+			/** The whole colour list; replaces the fill and end colour when it has two or more stops. */
+			gradientStops?: Array<{ offset: number; color: { r: number; g: number; b: number; a: number } }>;
 	  };
 
 export interface MaskPoint {

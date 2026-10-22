@@ -3083,3 +3083,51 @@
 	background: #f1f5f9;
 	color: #0f172a;
 }
+
+/* Gradient stops */
+.gradient-stop {
+	margin: 4px 0;
+	padding: 4px 6px;
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+}
+
+.gradient-stop-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 0 4px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-ink);
+}
+
+.gradient-stop-remove {
+	border: none;
+	background: transparent;
+	color: var(--color-mute);
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.gradient-stop-remove:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.gradient-stop-add {
+	margin-top: 4px;
+	padding: 3px 10px;
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-ink);
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.gradient-stop-add:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}

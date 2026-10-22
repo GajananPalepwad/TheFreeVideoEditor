@@ -30,6 +30,7 @@ A `.tfvetemplate` is JSON. The reader is `deserializeTemplate` and the schema is
 - **Template fields**: `id`, `name`, `category`, `description`, `author`, `createdAt`, `duration`
   (microseconds), `responsiveTiming` (`introDuration`, `outroDuration`), `bounds` (`width`, `height`,
   `originX`, `originY`), `tracks`, `publishedParams`, `previewThumbnail`.
+- **`resources`** (optional): fonts and media the template uses, so the file looks the same on another machine. `resources.fonts` is a list of `{ family, fileName, data }` and `resources.assets` a list of `{ id, name, mimeType, data }`, where `data` is base64 and an asset's `id` is the `assetId` its clips use. A file may embed up to 8 MB in total.
 - **`tracks`** use the same schema as a project's tracks, so a template cannot hold anything a project
   could not. Errors name the field, for example `tracks.0.clips.0.duration`.
 - **Unknown top-level fields** are kept when a template is read and written back.
@@ -50,6 +51,12 @@ Each entry in `publishedParams` points at a clip in the template and a property 
 | `transform.scale`, `transform.opacity`             | Scale and opacity of the layer.                               |
 
 `text.stroke` is accepted by the schema but not applied yet.
+
+## Templates inside templates
+
+With a template sequence open, "+ Add", a drag from a card and the store's `instantiateTemplate` place the new
+template in that sequence, as one undo step. Its published fields work, it can be unpacked into the open
+sequence, and the root timeline draws it through both levels. `resolveFrame` stops at a nesting depth of 8.
 
 ## Writing a template
 
@@ -108,10 +115,14 @@ depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` chec
 - `templateFidelity.test.ts`: every template saves and reopens unchanged and draws the same layers; the
   drawn layers at three times are pinned as snapshots (`__snapshots__/`). Update them with
   `npx vitest run -u` only when a template is meant to change.
-- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, and repeated
-  drops never overlap.
+- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, repeated
+  drops never overlap, and a template can be placed, edited and unpacked inside another template.
 - `tests/e2e/template-text-bounds.spec.ts`: nothing reaches the edge of any template's bounds, at the
   default size and at the slider maximum.
 - `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor, for every template at
   three times.
+- `templateResources.test.ts`: base64, which fonts and assets a template uses, embedding with the size limit, missing resources, remapping.
+- `tests/e2e/template-resources.spec.ts`: a custom font and a picture travel with a template and are installed on import, through the Graphics panel as well.
 - `tests/e2e/template-fidelity.spec.ts`: dragging each card and pressing "+ Add" build the same instance.
+- `tests/e2e/template-nested.spec.ts`: "+ Add" and a drag inside an open template sequence, and the real
+  renderer drawing the inner template.

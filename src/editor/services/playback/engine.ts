@@ -638,6 +638,7 @@ class PlaybackEngineImpl implements PlaybackEngine {
 						gradientType: data.gradientType,
 						gradientColorEnd: data.gradientColorEnd,
 						gradientAngle: data.gradientAngle,
+					gradientStops: data.gradientStops,
 						colorRuns: data.colorRuns,
 						scale
 					});

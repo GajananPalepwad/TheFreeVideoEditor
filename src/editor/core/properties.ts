@@ -1,6 +1,7 @@
 import { evaluate, isAnimatedValue } from './animation';
 import { clampCrop, type Crop } from './crop';
 import { getEffectDefinition } from './effects/registry';
+import { gradientFieldsOf, stopsForEditing, type GradientColor } from './gradient';
 import type { AnimatedValue, Clip, ClipTransform, PropertyId, Time } from './types';
 
 export type PropertyShape = 'number' | 'vec2' | 'vec4' | 'numberArray';
@@ -464,8 +465,58 @@ export const PROPERTY_DESCRIPTORS: Readonly<Record<string, PropertyDescriptor>> 
 
 export const ANIMATABLE_PROPERTY_IDS = Object.keys(PROPERTY_DESCRIPTORS);
 
+const MAX_GRADIENT_STOPS = 16;
+
+/** `gradient.angle`, and a position and a colour for each gradient stop. */
+function gradientDescriptor(id: PropertyId): PropertyDescriptor | undefined {
+	if (id === 'gradient.angle') {
+		return {
+			id,
+			label: 'Gradient Angle',
+			shape: 'number',
+			channels: ['Angle'],
+			defaultValue: 45,
+			unit: '°',
+			displayFactor: 1,
+			step: 1
+		};
+	}
+	const match = /^gradient\.stop(\d{1,2})\.(offset|color)$/.exec(id);
+	if (!match) return undefined;
+	const index = Number(match[1]);
+	if (index >= MAX_GRADIENT_STOPS) return undefined;
+	if (match[2] === 'offset') {
+		return {
+			id,
+			label: `Gradient Stop ${index + 1} Position`,
+			shape: 'number',
+			channels: ['Position'],
+			defaultValue: 0,
+			min: 0,
+			max: 1,
+			unit: '%',
+			displayFactor: 100,
+			step: 1
+		};
+	}
+	return {
+		id,
+		label: `Gradient Stop ${index + 1} Color`,
+		shape: 'vec4',
+		channels: ['R', 'G', 'B', 'A'],
+		defaultValue: [1, 1, 1, 1],
+		min: 0,
+		max: 1,
+		unit: '',
+		displayFactor: 1,
+		step: 0.01
+	};
+}
+
 export function descriptorFor(id: PropertyId): PropertyDescriptor | undefined {
 	if (PROPERTY_DESCRIPTORS[id]) return PROPERTY_DESCRIPTORS[id];
+	const gradient = gradientDescriptor(id);
+	if (gradient) return gradient;
 	if (id.startsWith('effect:')) {
 		const parts = id.split(':');
 		if (parts.length >= 4) {
@@ -693,6 +744,35 @@ export function propertyCurve(
 	return clip.properties?.[id] as AnimatedValue<PropertyValue> | undefined;
 }
 
+/** The fill a clip's gradient starts from, at a moment. */
+function gradientFill(clip: Clip, localTime: Time): GradientColor {
+	if (clip.source?.type === 'solid') return clip.source.color;
+	const value = readProperty(
+		clip,
+		clip.source?.type === 'shape' ? 'shape.fillColor' : 'text.fillColor',
+		localTime
+	);
+	return Array.isArray(value) && value.length >= 4
+		? { r: value[0]!, g: value[1]!, b: value[2]!, a: value[3]! }
+		: { r: 1, g: 1, b: 1, a: 1 };
+}
+
+/** What a gradient property is when the clip does not animate it: the value its gradient has. */
+function gradientSourceValue(clip: Clip, id: PropertyId, localTime: Time): PropertyValue | undefined {
+	if (!id.startsWith('gradient.')) return undefined;
+	const fields = gradientFieldsOf(clip);
+	if (!fields?.gradientType || fields.gradientType === 'none') return undefined;
+	if (id === 'gradient.angle') return fields.gradientAngle ?? 45;
+	const match = /^gradient\.stop(\d+)\.(offset|color)$/.exec(id);
+	const stop = match
+		? stopsForEditing(clip, gradientFill(clip, localTime))[Number(match[1])]
+		: undefined;
+	if (!match || !stop) return undefined;
+	return match[2] === 'offset'
+		? stop.offset
+		: [stop.color.r, stop.color.g, stop.color.b, stop.color.a];
+}
+
 /** Evaluated property at a clip-local time, falling back to the legacy transform and then the default. */
 export function readProperty(clip: Clip, id: PropertyId, localTime: Time): PropertyValue {
 	if (id === 'timeRemap') {
@@ -706,6 +786,8 @@ export function readProperty(clip: Clip, id: PropertyId, localTime: Time): Prope
 	if (legacy !== undefined) return legacy;
 	const fromSource = shapeSourceValue(clip, id);
 	if (fromSource !== undefined) return fromSource;
+	const fromGradient = gradientSourceValue(clip, id, localTime);
+	if (fromGradient !== undefined) return fromGradient;
 	if (!descriptor) throw new RangeError(`Unknown property "${id}".`);
 	return defaultValueOf(descriptor);
 }

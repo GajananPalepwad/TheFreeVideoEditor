@@ -179,6 +179,7 @@ export interface ActiveLayer {
 	solidGradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 	solidGradientColorEnd?: { r: number; g: number; b: number; a: number };
 	solidGradientAngle?: number;
+	solidGradientStops?: GradientStop[];
 	shapeData?: import('./shapes/shapeTypes').ShapeConfig;
 	/** Text content and evaluated styling for text layers */
 	textData?: {
@@ -208,6 +209,7 @@ export interface ActiveLayer {
 		gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 		gradientColorEnd?: { r: number; g: number; b: number; a: number };
 		gradientAngle?: number;
+		gradientStops?: GradientStop[];
 		colorRuns?: Array<{
 			startIndex: number;
 			endIndex: number;
@@ -251,6 +253,15 @@ export interface ResolvedFrame {
 }
 
 import { resolveAudibleTracks, clipGainAt } from './audioMath';
+import { resolveGradient, type GradientStop } from './gradient';
+
+/** Reads one of a clip's own properties at a moment, or undefined when the clip does not set it. */
+function clipPropertyReader(clip: Clip, localTime: Time): (id: string) => unknown {
+	return (id) => {
+		const animated = clip.properties?.[id];
+		return animated ? evaluateOr(animated, localTime, undefined) : undefined;
+	};
+}
 
 export function resolveFrame(
 	project: Project,
@@ -444,6 +455,11 @@ export function resolveFrame(
 
 			if (clip.source?.type === 'solid') {
 				if (track.kind !== 'video') return null;
+				const solidGradient = resolveGradient(
+					clip.source,
+					clip.source.color,
+					clipPropertyReader(clip, localTime)
+				);
 				return {
 					clipId: clip.id,
 					trackId: track.id,
@@ -453,7 +469,8 @@ export function resolveFrame(
 					solidColor: clip.source.color,
 					solidGradientType: clip.source.gradientType,
 					solidGradientColorEnd: clip.source.gradientColorEnd,
-					solidGradientAngle: clip.source.gradientAngle,
+					solidGradientAngle: solidGradient?.angle ?? clip.source.gradientAngle,
+					solidGradientStops: solidGradient?.stops,
 					opacity: 1,
 					masks: evaluatedMasks,
 					effects: evaluatedEffects,
@@ -523,6 +540,11 @@ export function resolveFrame(
 					read('shape.shadowOffsetY', shapeSource.shadowOffsetY ?? 0),
 					0
 				);
+				const shapeGradient = resolveGradient(
+					shapeSource,
+					fillColor ?? { r: 1, g: 1, b: 1, a: 1 },
+					clipPropertyReader(clip, localTime)
+				);
 
 				return {
 					clipId: clip.id,
@@ -549,7 +571,8 @@ export function resolveFrame(
 						shadowOffsetY,
 						gradientType: shapeSource.gradientType,
 						gradientColorEnd: shapeSource.gradientColorEnd,
-						gradientAngle: shapeSource.gradientAngle
+						gradientAngle: shapeGradient?.angle ?? shapeSource.gradientAngle,
+						gradientStops: shapeGradient?.stops
 					},
 					masks: evaluatedMasks,
 					effects: evaluatedEffects,
@@ -659,6 +682,11 @@ export function resolveFrame(
 				const gradientType = clip.source.box?.gradientType;
 				const gradientColorEnd = clip.source.box?.gradientColorEnd;
 				const gradientAngle = clip.source.box?.gradientAngle;
+				const textGradient = resolveGradient(
+					clip.source.box ?? {},
+					fillColor,
+					clipPropertyReader(clip, localTime)
+				);
 
 				const colorRuns =
 					'colorRuns' in clip.source && Array.isArray(clip.source.colorRuns)
@@ -701,7 +729,8 @@ export function resolveFrame(
 						badgeText,
 						gradientType,
 						gradientColorEnd,
-						gradientAngle,
+						gradientAngle: textGradient?.angle ?? gradientAngle,
+						gradientStops: textGradient?.stops,
 						colorRuns
 					},
 					masks: evaluatedMasks,
