@@ -410,7 +410,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'bouncy-spring-pop',
 		name: 'Bouncy Pop Headline',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Energetic spring drop with squash and stretch settling for YouTube vlogs and social videos',
 		tags: ['title', 'bouncy', 'pop', 'youtube', 'vlog', 'fun', 'social', 'yellow'],
 		defaultText: 'NEW EPISODE!\nWATCH UNTIL THE VERY END',
@@ -452,7 +452,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'split-slash-action',
 		name: 'Dynamic Split Angle',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'High-velocity horizontal slash with angular snap for sports, fitness, and energetic reels',
 		tags: ['title', 'action', 'sports', 'dynamic', 'fitness', 'speed', 'red'],
 		defaultText: 'BREAKING LIMITS\nTHE ULTIMATE PERFORMANCE',
@@ -494,7 +494,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'typewriter-terminal',
 		name: 'Typewriter Terminal',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Authentic character-by-character digital typewriter reveal for coding tutorials and tech intros',
 		tags: ['title', 'typewriter', 'code', 'terminal', 'retro', 'tech', 'green'],
 		defaultText: 'INITIALIZING SYSTEM...\nCORE ENGINE OPERATIONAL',
@@ -534,7 +534,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'broadcast-news-header',
 		name: 'Broadcast News Header',
-		category: 'titles',
+		category: 'lower-third',
 		description: 'Television-style breaking news banner header with top badge banner for journalism and reports',
 		tags: ['title', 'broadcast', 'news', 'press', 'report', 'journalism', 'blue'],
 		defaultText: 'BREAKING NEWS\nGLOBAL ECONOMIC SUMMIT',
@@ -575,7 +575,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'kinetic-marquee-stack',
 		name: 'Kinetic Marquee Stack',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Streetwear kinetic typography with bold angular frame and punch zoom for music videos',
 		tags: ['title', 'kinetic', 'streetwear', 'music', 'trend', 'hype', 'pink'],
 		defaultText: 'NEVER STOP\nTHE FUTURE IS CREATED TODAY',
@@ -616,7 +616,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'circle-crest-seal',
 		name: 'Circular Crest Emblem',
-		category: 'titles',
+		category: 'callouts',
 		description: 'Regal circular crest outline badge with smooth pop-in for podcasts, luxury, and creator brands',
 		tags: ['title', 'circle', 'seal', 'badge', 'luxury', 'podcast', 'gold'],
 		defaultText: 'EST. 2026\nMASTERCLASS SERIES',
@@ -657,7 +657,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'documentary-speaker-card',
 		name: 'Documentary Elegant Card',
-		category: 'titles',
+		category: 'lower-third',
 		description: 'Glass-morphism lower third card with smooth slide-in-left for documentaries and interviews',
 		tags: ['title', 'documentary', 'interview', 'speaker', 'glass', 'executive', 'cyan'],
 		defaultText: 'DR. ELENA VANCE\nCHIEF RESEARCH SCIENTIST',
@@ -698,7 +698,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'social-creator-pill',
 		name: 'Social Creator Pill',
-		category: 'titles',
+		category: 'social',
 		description: 'Smooth rounded pill badge with bouncy pop-in for YouTube and social media handles',
 		tags: ['title', 'social', 'pill', 'creator', 'youtube', 'tiktok', 'instagram', 'purple'],
 		defaultText: '@CREATIVE_STUDIO\nFOLLOW FOR WEEKLY DROPS',
