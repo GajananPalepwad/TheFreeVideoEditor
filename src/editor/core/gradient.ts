@@ -1,11 +1,7 @@
 import type { Clip } from './types';
 
 export type GradientType =
-	| 'none'
-	| 'linear-horizontal'
-	| 'linear-vertical'
-	| 'radial'
-	| 'linear-angle';
+	'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 
 export interface GradientColor {
 	r: number;
@@ -109,6 +105,24 @@ export function resolveGradient(
 		angle: numberFrom(read('gradient.angle')) ?? fields.gradientAngle ?? DEFAULT_ANGLE,
 		stops
 	};
+}
+
+/**
+ * The gradient a renderer draws from the fields a layer carries: its stops when it has them,
+ * otherwise the fill and end colour. Null when there is nothing to blend.
+ */
+export function layerGradient(
+	type: GradientType | undefined,
+	fill: GradientColor,
+	end: GradientColor | undefined,
+	angle: number | undefined,
+	stops: GradientStop[] | undefined
+): ResolvedGradient | null {
+	return resolveGradient(
+		{ gradientType: type, gradientColorEnd: end, gradientAngle: angle, gradientStops: stops },
+		fill,
+		() => undefined
+	);
 }
 
 const channel = (value: number): number => Math.round(value * 1000) / 1000;

@@ -14,7 +14,9 @@ const none = () => undefined;
 describe('resolving a gradient', () => {
 	it('has none when the type is none or nothing says there is one', () => {
 		expect(resolveGradient({}, RED, none)).toBeNull();
-		expect(resolveGradient({ gradientType: 'none', gradientColorEnd: GREEN }, RED, none)).toBeNull();
+		expect(
+			resolveGradient({ gradientType: 'none', gradientColorEnd: GREEN }, RED, none)
+		).toBeNull();
 		// A type with no end colour and no stops has nothing to blend to.
 		expect(resolveGradient({ gradientType: 'radial' }, RED, none)).toBeNull();
 	});
@@ -133,11 +135,7 @@ describe('animated gradients', () => {
 
 	it('animates the second colour of a two stop gradient through stop 1', () => {
 		const read = (id: string) => (id === 'gradient.stop1.color' ? [0, 0, 1, 1] : undefined);
-		const result = resolveGradient(
-			{ gradientType: 'radial', gradientColorEnd: GREEN },
-			RED,
-			read
-		)!;
+		const result = resolveGradient({ gradientType: 'radial', gradientColorEnd: GREEN }, RED, read)!;
 		expect(result.stops[1]!.color).toEqual(BLUE);
 	});
 
@@ -152,13 +150,13 @@ describe('animated gradients', () => {
 
 describe('gradient key', () => {
 	it('differs when a stop colour, position or the angle differs, and is equal otherwise', () => {
-		const base = resolveGradient(
-			{ gradientType: 'radial', gradientColorEnd: GREEN },
+		const base = resolveGradient({ gradientType: 'radial', gradientColorEnd: GREEN }, RED, none)!;
+		const same = resolveGradient({ gradientType: 'radial', gradientColorEnd: GREEN }, RED, none)!;
+		const otherColor = resolveGradient(
+			{ gradientType: 'radial', gradientColorEnd: BLUE },
 			RED,
 			none
 		)!;
-		const same = resolveGradient({ gradientType: 'radial', gradientColorEnd: GREEN }, RED, none)!;
-		const otherColor = resolveGradient({ gradientType: 'radial', gradientColorEnd: BLUE }, RED, none)!;
 		const moved = {
 			...base,
 			stops: [base.stops[0]!, { offset: 0.9, color: GREEN }]
