@@ -49,6 +49,41 @@ The Free Video Editor features a high-performance, non-destructive text system i
    - Double-clicking text on the preview canvas opens the on-canvas inline editor with IME safety, auto-focus, commit on blur, and `Esc` cancel.
    - Transform gizmo calculates exact text layout bounding box for intuitive direct manipulation on canvas.
 
+## Animating each character, word or line (Gate O+)
+
+A text clip can move its characters, words or lines separately, so one text layer does a typewriter pop,
+a rise, a spin or a wave without stacking a layer per word.
+
+**How it works.** The clip sets `text.anim.progress`, a value from 0 to 1 that runs over the whole text. Each unit
+follows it a little later than the one before (`text.anim.stagger`) and moves from a starting pose to its
+place. Setting `text.anim.progress` is what turns the animation on; the other properties take their defaults.
+
+| Property                | Meaning                                                       | Default |
+| ----------------------- | ------------------------------------------------------------- | ------- |
+| `text.anim.progress`    | 0 puts every unit in its starting pose, 1 in its place        | 1       |
+| `text.anim.stagger`     | 0 moves all units together, 1 moves them one after another    | 0.6     |
+| `text.anim.offsetX`/`Y` | where a unit starts, in pixels from its place                 | 0, 40   |
+| `text.anim.scale`       | the size a unit starts at, 1 being its own size               | 1       |
+| `text.anim.rotation`    | the angle a unit starts at, in degrees                        | 0       |
+| `text.anim.opacity`     | the opacity a unit starts at                                  | 0       |
+
+All of them are ordinary properties, so each can be keyframed and eased (spring, bounce, bezier) like any other,
+and they show in the graph editor. The unit is the one **Reveal by** sets: character, word or line. Spaces are not
+units. `text.reveal` still applies first, so a half revealed text animates only its revealed part.
+
+**In the app.** The text Inspector has an **Animate each ...** group with a row per property and an **Animate in**
+button that keys the progress from 0 to 1 over the first second.
+
+**How it is drawn.** `resolveFrame` puts the animator on the text layer (`core/text/animator.ts`). The rasterizer
+draws each unit on its own, in the pose `unitTransform` gives for `unitProgress` (`core/text/textUnits.ts` finds the
+units). The picture of the text keeps a margin all round, `animatorMargin`, so a unit that starts away from its
+place is not cut off, and alignment ignores that margin (`textAnimationInset`), so animated text sits where the same
+text without animation would.
+
+**Limits.** Units are characters, words or lines, not individual curves of a glyph, and text on a path is not
+supported. The margin follows the starting pose, so it changes if that pose is itself animated. An animated text is
+drawn again every frame it changes.
+
 ## Captions & Subtitles Integration (Gate P)
 
 Caption segments on dedicated caption tracks (`kind: 'caption'`) leverage the text layout engine:

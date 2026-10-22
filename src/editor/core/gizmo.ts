@@ -1,3 +1,4 @@
+import { textAnimationInset } from './text/animator';
 import { clampCrop, type Crop } from './crop';
 import { applyAffine, croppedFitRect, layerAffine } from './layerGeometry';
 import type { ActiveLayer } from './playback';
@@ -218,7 +219,8 @@ function restPoint(state: GizmoState, geometry: GizmoGeometry, u: number, v: num
 		geometry.height,
 		geometry.fit ?? 'contain',
 		alignment,
-		verticalAnchor
+		verticalAnchor,
+		isText ? textAnimationInset(geometry.textData) : 0
 	);
 	return {
 		x: rect.x + u * rect.width - geometry.width / 2 - state.anchor[0],

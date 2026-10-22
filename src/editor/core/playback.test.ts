@@ -414,3 +414,45 @@ describe('gradients on layers', () => {
 		expect(layer.solidGradientAngle).toBe(120);
 	});
 });
+
+describe('text animation on layers', () => {
+	function textClip(properties: Clip['properties']): Clip {
+		return {
+			id: 'anim-text' as Clip['id'],
+			start: 0,
+			duration: 2_000_000,
+			sourceIn: 0,
+			sourceOut: 2_000_000,
+			speed: 1,
+			volume: 0,
+			source: { type: 'text', text: 'Kinetic' },
+			properties
+		};
+	}
+
+	const layerAt = (clip: Clip, time: number) =>
+		resolveFrame(projectWith([makeTrack('video', 'video', [clip])], []), time).videoLayers[0]!;
+
+	it('has no animator when the clip does not set text.anim.progress', () => {
+		expect(layerAt(textClip({ 'text.anim.offsetY': { value: 10 } }), 0).textData?.animator).toBeUndefined();
+	});
+
+	it('follows the progress over time and takes the pose from the other properties', () => {
+		const clip = textClip({
+			'text.anim.progress': {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 1_000_000, value: 1, interpolation: 'linear' }
+				]
+			},
+			'text.anim.offsetY': { value: 60 },
+			'text.anim.stagger': { value: 0.3 }
+		});
+		const start = layerAt(clip, 0).textData!.animator!;
+		const half = layerAt(clip, 500_000).textData!.animator!;
+		const end = layerAt(clip, 1_500_000).textData!.animator!;
+		expect(start).toMatchObject({ progress: 0, offsetY: 60, stagger: 0.3 });
+		expect(half.progress).toBeCloseTo(0.5, 6);
+		expect(end.progress).toBe(1);
+	});
+});

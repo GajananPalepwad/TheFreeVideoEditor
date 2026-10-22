@@ -84,6 +84,7 @@ export class CompatibilityFrameProvider {
 					gradientColorEnd: data.gradientColorEnd,
 					gradientAngle: data.gradientAngle,
 					gradientStops: data.gradientStops,
+					animator: data.animator,
 					colorRuns: data.colorRuns,
 					scale
 				});

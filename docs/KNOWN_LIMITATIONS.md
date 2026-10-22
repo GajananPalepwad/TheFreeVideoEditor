@@ -117,10 +117,7 @@ limitations are intentional at this stage:
 Each item below is deferred on purpose. They follow the *Accepted Technical Debt* format of
 `docs/RELEASE_CHECKLIST.md`.
 
-- **Per-glyph kinetic type**: status `deferred`; owner Graphics Lead. Reason: the text rasterizer draws a layer
-  as one bitmap, so characters cannot move, scale or rotate on their own. Mitigation: kinetic templates stack
-  one text layer per line or word and reveal them with `text.reveal` (`Word Cascade`). Follow-up: per-glyph
-  animation in the renderer.
+- **Per-unit text animation**: status `accepted limitation`; owner Graphics Lead. Reason: a text layer moves its characters, words or lines on their own, but not the individual curves of a glyph, and text cannot follow a path. The margin that keeps moved units from being cut off follows the starting pose, so it changes if that pose is itself animated, and an animated text is rasterized again each frame it changes. Mitigation: use a stack of layers for effects the units cannot do. See `docs/TEXT.md`.
 - **Multi-stop and keyframable gradients**: status `deferred`; owner Graphics Lead. Reason: a text gradient holds two
   colours and one angle (`gradientColorEnd`, `gradientAngle`), and those fields are not animatable. Mitigation: templates
   use two-colour gradients and animate opacity or position instead. Follow-up: multi-stop and keyframable

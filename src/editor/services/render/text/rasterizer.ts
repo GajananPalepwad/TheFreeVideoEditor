@@ -1,5 +1,7 @@
 import { layout, revealCount, getGraphemes, type MeasureFunction } from '../../../core/text/layout';
 import { gradientKey, layerGradient, type GradientStop } from '../../../core/gradient';
+import { animatorMargin, unitProgress, unitTransform, type TextAnimator } from '../../../core/text/animator';
+import { chunkUnits, textUnits } from '../../../core/text/textUnits';
 import type { TextStyle, TextBox } from '../../../core/types';
 import { createGradientPaint } from '../gradientPaint';
 
@@ -54,6 +56,8 @@ export interface TextRasterConfig {
 	gradientColorEnd?: { r: number; g: number; b: number; a: number };
 	gradientAngle?: number;
 	gradientStops?: GradientStop[];
+	/** Moves each character, word or line on its own. */
+	animator?: TextAnimator;
 	colorRuns?: TextColorRun[];
 	scale?: number;
 }
@@ -222,20 +226,35 @@ export function rasterizeText(
 	const boxW = Math.min(maxDim, Math.max(2, fullLayout.boxWidth));
 	const boxH = Math.min(maxDim, Math.max(2, fullLayout.boxHeight));
 
+	// Text animation moves units away from their place, so the picture keeps room all round for them.
+	const animator = config.animator ?? null;
+	const margin = animator
+		? Math.min(
+				Math.floor((maxDim - Math.max(boxW, boxH)) / 2),
+				animatorMargin(
+					{ ...animator, offsetX: animator.offsetX * scale, offsetY: animator.offsetY * scale },
+					effectiveFontSize
+				)
+			)
+		: 0;
+	const canvasW = boxW + 2 * Math.max(0, margin);
+	const canvasH = boxH + 2 * Math.max(0, margin);
+
 	let canvas: OffscreenCanvas | HTMLCanvasElement;
 	if (typeof OffscreenCanvas !== 'undefined') {
-		canvas = new OffscreenCanvas(boxW, boxH);
+		canvas = new OffscreenCanvas(canvasW, canvasH);
 	} else {
 		canvas = document.createElement('canvas');
-		canvas.width = boxW;
-		canvas.height = boxH;
+		canvas.width = canvasW;
+		canvas.height = canvasH;
 	}
 
 	const ctx = canvas.getContext('2d') as
 		CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
 	if (!ctx) throw new Error('Could not get 2D context for text rasterization.');
 
-	ctx.clearRect(0, 0, boxW, boxH);
+	ctx.clearRect(0, 0, canvasW, canvasH);
+	if (margin > 0) ctx.translate(margin, margin);
 
 	// 2. Draw background box & frame style decorations
 	const frameStyle = config.frameStyle ?? 'none';
@@ -469,6 +488,48 @@ export function rasterizeText(
 		}
 	};
 
+	// Text animation: each character, word or line is drawn on its own, in its own pose.
+	const animationUnit = effectiveRevealUnit(config);
+	const lineUnits = fullLayout.lines.map((line) => textUnits(line.text, animationUnit));
+	const unitBase: number[] = [];
+	let unitTotal = 0;
+	for (const units of lineUnits) {
+		unitBase.push(unitTotal);
+		unitTotal += units.length;
+	}
+	/** Which line and which place in it the piece of text being drawn starts at. */
+	const piece = { line: 0, start: 0 };
+	const advance = (part: string): number =>
+		part.length === 0 ? 0 : measure(part, fontString) + getGraphemes(part).length * effectiveLetterSpacing;
+
+	const drawText = (str: string, x: number, y: number, isStroke: boolean) => {
+		if (!animator) {
+			renderString(str, x, y, isStroke);
+			return;
+		}
+		const lineText = fullLayout.lines[piece.line]?.text ?? '';
+		const parts = chunkUnits(lineUnits[piece.line] ?? [], piece.start, piece.start + str.length);
+		for (const part of parts) {
+			const pose = unitTransform(
+				animator,
+				unitProgress(unitBase[piece.line]! + part.index, unitTotal, animator.progress, animator.stagger)
+			);
+			if (pose.opacity <= 0.001 || pose.scale <= 0) continue;
+			const partText = lineText.slice(part.start, part.end);
+			const partX = x + advance(lineText.slice(piece.start, part.start));
+			const centreX = partX + advance(partText) / 2;
+			const centreY = y + effectiveFontSize / 2;
+			ctx.save();
+			ctx.translate(centreX + pose.dx * scale, centreY + pose.dy * scale);
+			ctx.rotate((pose.rotation * Math.PI) / 180);
+			ctx.scale(pose.scale, pose.scale);
+			ctx.translate(-centreX, -centreY);
+			ctx.globalAlpha *= pose.opacity;
+			renderString(partText, partX, y, isStroke);
+			ctx.restore();
+		}
+	};
+
 	// Walk lines and draw text characters up to visibleCharCount
 	let charsDrawn = 0;
 
@@ -476,6 +537,8 @@ export function rasterizeText(
 		const line = fullLayout.lines[lineIdx]!;
 		if (charsDrawn >= visibleCharCount) break;
 
+		piece.line = lineIdx;
+		piece.start = 0;
 		const lineChars = Array.from(line.text);
 		const charsToTake = Math.min(lineChars.length, visibleCharCount - charsDrawn);
 		const lineSubstring = lineChars.slice(0, charsToTake).join('');
@@ -564,6 +627,7 @@ export function rasterizeText(
 					isSplitStroke || Boolean(curStroke && strokeWidth > 0 && curStroke.a > 0);
 
 				const wordX = line.x + word.x;
+				piece.start = word.lineStartIndex ?? 0;
 
 				// Shadow
 				if (
@@ -578,7 +642,7 @@ export function rasterizeText(
 					ctx.shadowOffsetX = (config.shadowOffsetX ?? 2) * scale;
 					ctx.shadowOffsetY = (config.shadowOffsetY ?? 2) * scale;
 					ctx.fillStyle = curFillStr;
-					renderString(wordText, wordX, line.y, false);
+					drawText(wordText, wordX, line.y, false);
 					ctx.restore();
 				}
 
@@ -591,14 +655,14 @@ export function rasterizeText(
 					ctx.lineWidth = Math.max(1, (isSplitStroke ? 2 : strokeWidth * 2) * scale);
 					ctx.lineJoin = 'round';
 					ctx.lineCap = 'round';
-					renderString(wordText, wordX, line.y, true);
+					drawText(wordText, wordX, line.y, true);
 					ctx.restore();
 				}
 
 				// Fill
 				if (!isSplitStroke) {
 					ctx.fillStyle = curFillStr;
-					renderString(wordText, wordX, line.y, false);
+					drawText(wordText, wordX, line.y, false);
 				}
 			}
 			continue;
@@ -617,7 +681,7 @@ export function rasterizeText(
 			ctx.shadowOffsetX = (config.shadowOffsetX ?? 2) * scale;
 			ctx.shadowOffsetY = (config.shadowOffsetY ?? 2) * scale;
 			ctx.fillStyle = currentFillStyle;
-			renderString(lineSubstring, line.x, line.y, false);
+			drawText(lineSubstring, line.x, line.y, false);
 			ctx.restore();
 		}
 
@@ -630,14 +694,14 @@ export function rasterizeText(
 			ctx.lineWidth = Math.max(1, (isSplitStroke ? 2 : strokeWidth * 2) * scale);
 			ctx.lineJoin = 'round';
 			ctx.lineCap = 'round';
-			renderString(lineSubstring, line.x, line.y, true);
+			drawText(lineSubstring, line.x, line.y, true);
 			ctx.restore();
 		}
 
 		// 6. Fill
 		if (!isSplitStroke) {
 			ctx.fillStyle = currentFillStyle;
-			renderString(lineSubstring, line.x, line.y, false);
+			drawText(lineSubstring, line.x, line.y, false);
 		}
 	}
 
@@ -706,5 +770,11 @@ export function hashTextConfig(config: TextRasterConfig): string {
 			config.gradientStops
 		)
 	);
-	return `${styleKey}#${boxKey}#${Math.round(config.fontSize)}#${scale}#${colorKey}#${stroke}#${reveal}#${revealUnit}#${shadow}#${bg}#${borderKey}#${barKey}#${frameKey}#${badgeKey}#${runsKey}#${gradKey}#${text}`;
+	const a = config.animator;
+	const animKey = a
+		? [a.progress, a.stagger, a.offsetX, a.offsetY, a.scale, a.rotation, a.opacity]
+				.map((value) => Math.round(value * 1000))
+				.join(',')
+		: '0';
+	return `${styleKey}#${boxKey}#${Math.round(config.fontSize)}#${scale}#${colorKey}#${stroke}#${reveal}#${revealUnit}#${shadow}#${bg}#${borderKey}#${barKey}#${frameKey}#${badgeKey}#${runsKey}#${gradKey}#${animKey}#${text}`;
 }
