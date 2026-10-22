@@ -39,7 +39,8 @@ const fontFiles = [
 	'PlayfairDisplay-VariableFont_wght.ttf',
 	'RobotoMono-VariableFont_wght.ttf',
 	'Caveat-VariableFont_wght.ttf',
-	'BebasNeue-Regular.ttf'
+	'BebasNeue-Regular.ttf',
+	'Kanit-Regular.ttf'
 ].map((file) => readFileSync(join(root, 'public', 'fonts', file)).toString('base64'));
 
 // Keep the original creation time so regenerating does not churn every file.

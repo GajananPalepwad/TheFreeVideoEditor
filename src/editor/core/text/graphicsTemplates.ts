@@ -989,6 +989,50 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 			accent: '#00d2f2',
 			badge: '#004d66'
 		}
+	},
+	{
+		id: 'mixkit-bold-italic-split-title',
+		name: 'Minimal Italic Split Title',
+		category: 'titles',
+		description:
+			'Bold high-energy italic title with central dividing split line and synchronized left-to-right wipe reveals, inspired by Mixkit 117',
+		tags: ['title', 'mixkit', 'italic', 'split', 'bold', 'modern', 'wipe', 'divider'],
+		defaultText: 'MINIMAL\nDESIGN',
+		primaryLine: 'MINIMAL',
+		secondaryLine: 'DESIGN',
+		frameStyle: 'none',
+		accentColor: { r: 1, g: 1, b: 1, a: 1 },
+		style: {
+			fontFamily: 'Kanit',
+			fontWeight: '900',
+			fontStyle: 'italic',
+			alignment: 'center',
+			letterSpacing: 2
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 32,
+			paddingY: 20,
+			frameStyle: 'none'
+		},
+		properties: {
+			position: [0, 0],
+			'text.fontSize': 120,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.strokeWidth': 0,
+			'text.letterSpacing': 2,
+			'text.lineHeight': 1.15,
+			opacity: 1
+		},
+		animationPresetId: 'split-slide',
+		inDurationUs: 1_800_000,
+		outDurationUs: 1_400_000,
+		previewColors: {
+			background: '#0a0a0f',
+			primary: '#ffffff',
+			accent: '#ffffff'
+		}
 	}
 ];
 export function getGraphicTemplate(id: string): GraphicTemplate | undefined {

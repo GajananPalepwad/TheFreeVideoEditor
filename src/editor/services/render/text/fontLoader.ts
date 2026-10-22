@@ -1,11 +1,18 @@
 import { openDB, type IDBPDatabase } from 'idb';
 
+export interface BundledFontVariant {
+	url: string;
+	weight?: string;
+	style?: string;
+}
+
 export interface BundledFont {
 	family: string;
 	displayName: string;
 	category: 'sans' | 'display' | 'serif' | 'mono' | 'handwriting' | 'condensed';
 	url: string;
 	license: string;
+	variants?: readonly BundledFontVariant[];
 }
 
 export interface CustomFont {
@@ -59,6 +66,18 @@ export const BUNDLED_FONTS: readonly BundledFont[] = [
 		category: 'condensed',
 		url: '/fonts/BebasNeue-Regular.ttf',
 		license: 'OFL-1.1'
+	},
+	{
+		family: 'Kanit',
+		displayName: 'Kanit (Geometric Display)',
+		category: 'display',
+		url: '/fonts/Kanit-Regular.ttf',
+		license: 'OFL-1.1',
+		variants: [
+			{ url: '/fonts/Kanit-Regular.ttf', weight: '400', style: 'normal' },
+			{ url: '/fonts/Kanit-MediumItalic.ttf', weight: '500', style: 'italic' },
+			{ url: '/fonts/Kanit-BlackItalic.ttf', weight: '900', style: 'italic' }
+		]
 	}
 ];
 
@@ -354,10 +373,35 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 				return true;
 			}
 
-			// If font is already available in document.fonts (e.g. loaded via CSS link tag)
-			if (typeof document !== 'undefined' && document.fonts) {
+			// If font is bundled or custom url is given
+			const fontInfo = BUNDLED_FONTS.find((f) => f.family.toLowerCase() === lower);
+			let fontUrl = url || fontInfo?.url;
+
+			// Map common PostScript font names / weights
+			if (!fontUrl) {
+				if (lower === 'kanit-blackitalic' || lower === 'kanit black italic') {
+					fontUrl = '/fonts/Kanit-BlackItalic.ttf';
+				} else if (lower === 'kanit-mediumitalic' || lower === 'kanit medium italic') {
+					fontUrl = '/fonts/Kanit-MediumItalic.ttf';
+				}
+			}
+
+			// Check custom fonts registry
+			const custom = customFonts.get(lower);
+			let fontSource: string | ArrayBuffer | undefined = fontUrl;
+			if (!fontSource && custom) {
+				fontSource = custom.data || (custom.url ? `url(${custom.url})` : undefined);
+			}
+
+			// If font is already available and loaded in document.fonts
+			if (!fontSource && typeof document !== 'undefined' && document.fonts) {
 				try {
-					if (document.fonts.check(`16px "${clean}"`)) {
+					const isFaceLoaded = Array.from(document.fonts).some(
+						(f) =>
+							f.family.replace(/^['"]|['"]$/g, '').toLowerCase() === lower &&
+							f.status === 'loaded'
+					);
+					if (isFaceLoaded) {
 						loadedFonts.add(clean);
 						notifyFontLoaded(clean);
 						return true;
@@ -369,31 +413,21 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 							document.fonts.ready,
 							new Promise((r) => setTimeout(r, 1500))
 						]);
-						if (document.fonts.check(`16px "${clean}"`)) {
+						const isLoadedAfterWait = Array.from(document.fonts).some(
+							(f) =>
+								f.family.replace(/^['"]|['"]$/g, '').toLowerCase() === lower &&
+								f.status === 'loaded'
+						);
+						if (isLoadedAfterWait) {
 							loadedFonts.add(clean);
 							notifyFontLoaded(clean);
 							return true;
 						}
 					}
-
-					const loadedList = await document.fonts.load(`16px "${clean}"`);
-					if (loadedList.length > 0 || document.fonts.check(`16px "${clean}"`)) {
-						loadedFonts.add(clean);
-						notifyFontLoaded(clean);
-						return true;
-					}
 				} catch {
 					// Fall through to manual FontFace / URL loading
 				}
 			}
-
-			// If font is bundled or custom url is given
-			const fontInfo = BUNDLED_FONTS.find((f) => f.family.toLowerCase() === lower);
-			const fontUrl = url || fontInfo?.url;
-
-			// Check custom fonts registry
-			const custom = customFonts.get(lower);
-			let fontSource: string | ArrayBuffer | undefined = fontUrl;
 			if (!fontSource && custom) {
 				fontSource = custom.data || (custom.url ? `url(${custom.url})` : undefined);
 			}
@@ -457,19 +491,36 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 				return false;
 			}
 
+			interface WithFonts {
+				fonts?: FontFaceSet;
+			}
+			const globalFonts =
+				typeof document !== 'undefined' ? document.fonts : (self as unknown as WithFonts).fonts;
+
 			const fontFace =
 				typeof fontSource === 'string'
 					? new FontFace(clean, fontSource.startsWith('url(') ? fontSource : `url(${fontSource})`)
 					: new FontFace(clean, fontSource);
 			const loadedFace = await fontFace.load();
 
-			interface WithFonts {
-				fonts?: FontFaceSet;
-			}
-			const globalFonts =
-				typeof document !== 'undefined' ? document.fonts : (self as unknown as WithFonts).fonts;
 			if (globalFonts) {
 				globalFonts.add(loadedFace);
+
+				// Load any defined font variants (e.g. weights, italics) into the same family
+				if (fontInfo?.variants) {
+					for (const variant of fontInfo.variants) {
+						try {
+							const variantFace = new FontFace(clean, `url(${variant.url})`, {
+								weight: variant.weight,
+								style: variant.style
+							});
+							const loadedVariant = await variantFace.load();
+							globalFonts.add(loadedVariant);
+						} catch {
+							// continue if optional variant fails
+						}
+					}
+				}
 			}
 
 			loadedFonts.add(clean);

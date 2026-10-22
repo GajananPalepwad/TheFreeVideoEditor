@@ -210,6 +210,7 @@ export default function Inspector() {
 		!isText && !isShape && (clipTrack?.kind === 'audio' || (clipAsset?.hasAudio ?? false));
 
 	const isTemplate = isMotionTemplateClip(selectedClip);
+	const isTemplateExpanded = inspector.expanded.template !== false;
 
 	const kindLabel = isTemplate
 		? 'Motion Template'
@@ -244,8 +245,8 @@ export default function Inspector() {
 					<span
 						className="timeline-counter-badge"
 						style={{
-							color: isTemplate ? '#ec4899' : '#38bdf8',
-							borderColor: isTemplate ? 'rgba(236, 72, 153, 0.35)' : 'rgba(56, 189, 248, 0.3)'
+							color: '#38bdf8',
+							borderColor: 'rgba(56, 189, 248, 0.3)'
 						}}
 					>
 						<span className="timeline-badge-dot" aria-hidden="true" />
@@ -260,14 +261,19 @@ export default function Inspector() {
 
 			{/* Motion Graphic Template Section */}
 			{isTemplate && (
-				<section className="inspector-section is-open">
-					<div className="inspector-section-header" style={{ cursor: 'default' }}>
+				<section className={`inspector-section ${isTemplateExpanded ? 'is-open' : ''}`}>
+					<button
+						type="button"
+						className="inspector-section-header"
+						onClick={() => store.getState().setInspectorExpanded('template', !isTemplateExpanded)}
+						aria-expanded={isTemplateExpanded}
+					>
 						<span className="inspector-section-title">
 							<ChevronIcon />
 							Template Customizer
 						</span>
-					</div>
-					<MotionTemplateSection clip={selectedClip} />
+					</button>
+					{isTemplateExpanded && <MotionTemplateSection clip={selectedClip} />}
 				</section>
 			)}
 

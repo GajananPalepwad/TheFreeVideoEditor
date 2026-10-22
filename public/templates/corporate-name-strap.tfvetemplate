@@ -14,9 +14,9 @@
     "outroDuration": 450000
   },
   "bounds": {
-    "width": 1078,
+    "width": 1076,
     "height": 302,
-    "originX": 241,
+    "originX": 240,
     "originY": 0
   },
   "tracks": [
@@ -62,7 +62,7 @@
                 {
                   "time": 0,
                   "value": [
-                    -491,
+                    -490,
                     0
                   ],
                   "interpolation": "bezier",
@@ -78,7 +78,7 @@
                 {
                   "time": 600000,
                   "value": [
-                    -241,
+                    -240,
                     0
                   ],
                   "interpolation": "linear"
@@ -152,7 +152,7 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 503,
+            "width": 505,
             "height": 5,
             "cornerRadius": 2,
             "fillColor": {
@@ -169,7 +169,7 @@
                 {
                   "time": 0,
                   "value": [
-                    -239.5,
+                    -237.5,
                     77.5
                   ],
                   "interpolation": "bezier",
@@ -185,7 +185,7 @@
                 {
                   "time": 600000,
                   "value": [
-                    10.5,
+                    12.5,
                     77.5
                   ],
                   "interpolation": "linear"

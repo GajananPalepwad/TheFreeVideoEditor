@@ -11,6 +11,7 @@ interface MotionTemplateSectionProps {
 
 const COMMON_FONTS = [
 	'Montserrat',
+	'Kanit',
 	'Inter',
 	'Roboto',
 	'Roboto Mono',
@@ -178,15 +179,31 @@ export function MotionTemplateSection({ clip }: MotionTemplateSectionProps) {
 										<label className="motion-template-label">{param.name}</label>
 										<span className="motion-template-val-badge">{numVal}</span>
 									</div>
-									<input
-										type="range"
-										min={param.min ?? 0}
-										max={param.max ?? 2}
-										step={param.step ?? 0.05}
-										value={numVal}
-										onChange={(e) => handleParamChange(param.id, parseFloat(e.target.value))}
-										className="motion-template-slider"
-									/>
+									<div className="motion-template-slider-row">
+										<input
+											type="range"
+											min={param.min ?? 0}
+											max={param.max ?? 2}
+											step={param.step ?? 0.05}
+											value={numVal}
+											onChange={(e) => handleParamChange(param.id, parseFloat(e.target.value))}
+											className="motion-template-slider"
+											aria-label={param.name}
+										/>
+										<input
+											type="number"
+											min={param.min ?? 0}
+											max={param.max ?? 2}
+											step={param.step ?? 0.05}
+											value={numVal}
+											onChange={(e) => {
+												const val = parseFloat(e.target.value);
+												if (!isNaN(val)) handleParamChange(param.id, val);
+											}}
+											className="motion-template-number-input"
+											aria-label={`${param.name} value`}
+										/>
+									</div>
 								</div>
 							);
 						}

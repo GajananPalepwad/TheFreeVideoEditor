@@ -177,7 +177,7 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 1377,
+            "width": 1379,
             "height": 223,
             "cornerRadius": 4,
             "fillColor": {

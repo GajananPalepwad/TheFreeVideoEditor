@@ -126,6 +126,9 @@ export function convertGraphicTemplateToMotionTemplate(
 	if (template.id === 'mixkit-minimal-wipe-lower-third') {
 		return createMixkitMinimalWipeTemplate();
 	}
+	if (template.id === 'mixkit-bold-italic-split-title') {
+		return createMixkitBoldItalicSplitTitleTemplate();
+	}
 	if (template.id === 'word-cascade') {
 		return createWordCascadeTemplate();
 	}
@@ -1144,6 +1147,407 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			height: 180,
 			originX: -340,
 			originY: 280
+		},
+		tracks,
+		publishedParams
+	};
+}
+
+/**
+ * Creates the Minimal Italic Split Title template (Mixkit 117 / Title 08):
+ * Bold italic stacked typography ("MINIMAL" / "DESIGN") split by an expanding
+ * horizontal divider line with synchronized left-to-right wipe reveals and
+ * wide-spaced category eyebrow.
+ */
+export function createMixkitBoldItalicSplitTitleTemplate(): MotionGraphicTemplate {
+	const duration = 7_000_000;
+
+	// Track 1: Category Eyebrow Subtitle
+	const eyebrowClip: Clip = {
+		id: 'tpl_clip_eyebrow' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'text',
+			text: '#PREMIRE PRO AND AFTER EFFECTS',
+			style: {
+				fontFamily: 'Kanit',
+				fontWeight: '500',
+				fontStyle: 'italic',
+				alignment: 'left',
+				letterSpacing: 3
+			},
+			box: {
+				autoSize: true,
+				verticalAnchor: 'center',
+				paddingX: 12,
+				paddingY: 6,
+				frameStyle: 'none'
+			},
+			colorRuns: [],
+			graphicTemplateId: 'mixkit-bold-italic-split-title'
+		},
+		properties: {
+			position: { value: [-270, -155] },
+			'text.fontSize': { value: 24 },
+			'text.fillColor': { value: [1, 1, 1, 1] },
+			'text.letterSpacing': { value: 3 },
+			'text.lineHeight': { value: 1.2 },
+			crop: {
+				keyframes: [
+					{ time: 0, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{ time: 600_000, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{
+						time: 1_650_000,
+						value: [0, 0, 0, 0],
+						interpolation: 'bezier',
+						easeOut: { x: 0.16, y: 1 }
+					},
+					{ time: 5_300_000, value: [0, 0, 0, 0], interpolation: 'linear', anchor: 'end' },
+					{
+						time: 6_250_000,
+						value: [0, 0, 1, 0],
+						interpolation: 'bezier',
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
+					}
+				]
+			},
+			opacity: {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 600_000, value: 0, interpolation: 'linear' },
+					{ time: 1_000_000, value: 1, interpolation: 'linear' },
+					{ time: 6_100_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 6_300_000, value: 0, interpolation: 'linear', anchor: 'end' }
+				]
+			}
+		}
+	};
+
+	// Track 2: Title Top ("MINIMAL")
+	const titleTopClip: Clip = {
+		id: 'tpl_clip_title_top' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'text',
+			text: 'MINIMAL',
+			style: {
+				fontFamily: 'Kanit',
+				fontWeight: '900',
+				fontStyle: 'italic',
+				alignment: 'center',
+				letterSpacing: 2
+			},
+			box: {
+				autoSize: true,
+				verticalAnchor: 'center',
+				paddingX: 20,
+				paddingY: 10,
+				frameStyle: 'none'
+			},
+			colorRuns: [],
+			graphicTemplateId: 'mixkit-bold-italic-split-title'
+		},
+		properties: {
+			position: { value: [0, -68] },
+			'text.fontSize': { value: 120 },
+			'text.fillColor': { value: [1, 1, 1, 1] },
+			'text.letterSpacing': { value: 2 },
+			'text.lineHeight': { value: 1.1 },
+			crop: {
+				keyframes: [
+					{ time: 0, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{ time: 350_000, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{
+						time: 1_500_000,
+						value: [0, 0, 0, 0],
+						interpolation: 'bezier',
+						easeOut: { x: 0.16, y: 1 }
+					},
+					{ time: 5_400_000, value: [0, 0, 0, 0], interpolation: 'linear', anchor: 'end' },
+					{
+						time: 6_450_000,
+						value: [0, 0, 1, 0],
+						interpolation: 'bezier',
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
+					}
+				]
+			},
+			opacity: {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 300_000, value: 1, interpolation: 'linear' },
+					{ time: 6_400_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 6_550_000, value: 0, interpolation: 'linear', anchor: 'end' }
+				]
+			}
+		}
+	};
+
+	// Track 3: Horizontal Center Divider Line
+	const dividerLineClip: Clip = {
+		id: 'tpl_clip_line' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'shape',
+			shapeType: 'rect',
+			width: 680,
+			height: 4,
+			cornerRadius: 2,
+			fillColor: { r: 1, g: 1, b: 1, a: 1 },
+			strokeWidth: 0
+		},
+		properties: {
+			position: { value: [0, 0] },
+			crop: {
+				keyframes: [
+					{ time: 0, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{ time: 250_000, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{
+						time: 1_400_000,
+						value: [0, 0, 0, 0],
+						interpolation: 'bezier',
+						easeOut: { x: 0.16, y: 1 }
+					},
+					{ time: 5_400_000, value: [0, 0, 0, 0], interpolation: 'linear', anchor: 'end' },
+					{
+						time: 6_500_000,
+						value: [0, 0, 1, 0],
+						interpolation: 'bezier',
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
+					}
+				]
+			},
+			opacity: {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 200_000, value: 1, interpolation: 'linear' },
+					{ time: 6_450_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 6_600_000, value: 0, interpolation: 'linear', anchor: 'end' }
+				]
+			}
+		}
+	};
+
+	// Track 4: Title Bottom ("DESIGN")
+	const titleBottomClip: Clip = {
+		id: 'tpl_clip_title_bottom' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'text',
+			text: 'DESIGN',
+			style: {
+				fontFamily: 'Kanit',
+				fontWeight: '900',
+				fontStyle: 'italic',
+				alignment: 'center',
+				letterSpacing: 2
+			},
+			box: {
+				autoSize: true,
+				verticalAnchor: 'center',
+				paddingX: 20,
+				paddingY: 10,
+				frameStyle: 'none'
+			},
+			colorRuns: [],
+			graphicTemplateId: 'mixkit-bold-italic-split-title'
+		},
+		properties: {
+			position: { value: [0, 68] },
+			'text.fontSize': { value: 120 },
+			'text.fillColor': { value: [1, 1, 1, 1] },
+			'text.letterSpacing': { value: 2 },
+			'text.lineHeight': { value: 1.1 },
+			crop: {
+				keyframes: [
+					{ time: 0, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{ time: 350_000, value: [0, 0, 1, 0], interpolation: 'linear' },
+					{
+						time: 1_500_000,
+						value: [0, 0, 0, 0],
+						interpolation: 'bezier',
+						easeOut: { x: 0.16, y: 1 }
+					},
+					{ time: 5_400_000, value: [0, 0, 0, 0], interpolation: 'linear', anchor: 'end' },
+					{
+						time: 6_450_000,
+						value: [0, 0, 1, 0],
+						interpolation: 'bezier',
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
+					}
+				]
+			},
+			opacity: {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 300_000, value: 1, interpolation: 'linear' },
+					{ time: 6_400_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 6_550_000, value: 0, interpolation: 'linear', anchor: 'end' }
+				]
+			}
+		}
+	};
+
+	const tracks: Track[] = [
+		{
+			id: 'tpl_trk_eyebrow' as TrackId,
+			kind: 'video',
+			name: 'Eyebrow Subtitle',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [eyebrowClip]
+		},
+		{
+			id: 'tpl_trk_title_top' as TrackId,
+			kind: 'video',
+			name: 'Title Top',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [titleTopClip]
+		},
+		{
+			id: 'tpl_trk_line' as TrackId,
+			kind: 'video',
+			name: 'Divider Line',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [dividerLineClip]
+		},
+		{
+			id: 'tpl_trk_title_bottom' as TrackId,
+			kind: 'video',
+			name: 'Title Bottom',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [titleBottomClip]
+		}
+	];
+
+	const publishedParams: PublishedTemplateParam[] = [
+		{
+			id: 'param_title_1',
+			name: 'Title Top Text',
+			type: 'text',
+			targetClipId: 'tpl_clip_title_top' as ClipId,
+			targetProperty: 'text.content',
+			defaultValue: 'MINIMAL'
+		},
+		{
+			id: 'param_title_2',
+			name: 'Title Bottom Text',
+			type: 'text',
+			targetClipId: 'tpl_clip_title_bottom' as ClipId,
+			targetProperty: 'text.content',
+			defaultValue: 'DESIGN'
+		},
+		{
+			id: 'param_subtitle',
+			name: 'Eyebrow Subtitle',
+			type: 'text',
+			targetClipId: 'tpl_clip_eyebrow' as ClipId,
+			targetProperty: 'text.content',
+			defaultValue: '#PREMIRE PRO AND AFTER EFFECTS'
+		},
+		{
+			id: 'param_font_family',
+			name: 'Font Family',
+			type: 'font',
+			targetClipId: 'tpl_clip_title_top' as ClipId,
+			targetProperty: 'text.fontFamily',
+			defaultValue: 'Kanit'
+		},
+		{
+			id: 'param_title_size',
+			name: 'Title Size',
+			type: 'number',
+			targetClipId: 'tpl_clip_title_top' as ClipId,
+			targetProperty: 'text.fontSize',
+			defaultValue: 120,
+			min: 60,
+			max: 180,
+			step: 2
+		},
+		{
+			id: 'param_color_top',
+			name: 'Color Top',
+			type: 'color',
+			targetClipId: 'tpl_clip_title_top' as ClipId,
+			targetProperty: 'text.fill',
+			defaultValue: { r: 1, g: 1, b: 1, a: 1 }
+		},
+		{
+			id: 'param_color_bottom',
+			name: 'Color Bottom',
+			type: 'color',
+			targetClipId: 'tpl_clip_title_bottom' as ClipId,
+			targetProperty: 'text.fill',
+			defaultValue: { r: 1, g: 1, b: 1, a: 1 }
+		},
+		{
+			id: 'param_color_eyebrow',
+			name: 'Color Eyebrow',
+			type: 'color',
+			targetClipId: 'tpl_clip_eyebrow' as ClipId,
+			targetProperty: 'text.fill',
+			defaultValue: { r: 1, g: 1, b: 1, a: 1 }
+		},
+		{
+			id: 'param_color_line',
+			name: 'Color Line',
+			type: 'color',
+			targetClipId: 'tpl_clip_line' as ClipId,
+			targetProperty: 'shape.fill',
+			defaultValue: { r: 1, g: 1, b: 1, a: 1 }
+		}
+	];
+
+	return {
+		version: 1,
+		id: 'mixkit-bold-italic-split-title',
+		name: 'Minimal Italic Split Title',
+		category: 'Titles',
+		description:
+			'Bold high-energy italic title with central dividing split line and synchronized left-to-right wipe reveals, inspired by Mixkit 117',
+		author: 'TheFreeVideoEditor',
+		createdAt: 1792688800000,
+		duration,
+		responsiveTiming: {
+			introDuration: 1_800_000,
+			outroDuration: 1_400_000
+		},
+		bounds: {
+			width: 1500,
+			height: 600,
+			originX: 0,
+			originY: 0
 		},
 		tracks,
 		publishedParams

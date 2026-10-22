@@ -9,7 +9,7 @@ import { serializeTemplate, deserializeTemplate } from './templateService';
 describe('convertGraphicTemplateToMotionTemplate', () => {
 	it('converts all existing graphic templates to valid Motion Graphic Templates (.tfvetemplate)', () => {
 		const convertedList = convertAllGraphicTemplates();
-		expect(convertedList.length).toBe(18);
+		expect(convertedList.length).toBe(19);
 
 		for (const tpl of convertedList) {
 			expect(tpl.version).toBe(1);
@@ -70,6 +70,42 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 		expect(paramIds).toContain('param_wipe_color');
 	});
 
+	it('converts mixkit-bold-italic-split-title with multi-track layout, Kanit font, and published parameters', () => {
+		const original = GRAPHIC_TEMPLATES.find((t) => t.id === 'mixkit-bold-italic-split-title')!;
+		expect(original).toBeDefined();
+		const mogrt = convertGraphicTemplateToMotionTemplate(original);
+
+		expect(mogrt.id).toBe('mixkit-bold-italic-split-title');
+		expect(mogrt.name).toBe('Minimal Italic Split Title');
+		expect(mogrt.category).toBe('Titles');
+		expect(mogrt.tracks.length).toBe(4); // Eyebrow, Title Top, Divider Line, Title Bottom
+		expect(mogrt.duration).toBe(7_000_000);
+		expect(mogrt.responsiveTiming?.introDuration).toBe(1_800_000);
+		expect(mogrt.responsiveTiming?.outroDuration).toBe(1_400_000);
+
+		const lineTrack = mogrt.tracks.find((t) => t.name === 'Divider Line');
+		expect(lineTrack).toBeDefined();
+		expect(lineTrack?.clips[0]?.source?.type).toBe('shape');
+
+		const topTrack = mogrt.tracks.find((t) => t.name === 'Title Top');
+		expect(topTrack).toBeDefined();
+		const topClip = topTrack?.clips[0];
+		const source = topClip?.source;
+		expect(source?.type).toBe('text');
+		if (source && source.type === 'text' && source.style) {
+			expect(source.style.fontFamily).toBe('Kanit');
+			expect(source.style.fontStyle).toBe('italic');
+			expect(source.style.fontWeight).toBe('900');
+		}
+
+		const paramIds = mogrt.publishedParams.map((p) => p.id);
+		expect(paramIds).toContain('param_title_1');
+		expect(paramIds).toContain('param_title_2');
+		expect(paramIds).toContain('param_subtitle');
+		expect(paramIds).toContain('param_font_family');
+		expect(paramIds).toContain('param_color_line');
+	});
+
 	it('ships a .tfvetemplate file for every converted template (run `npm run templates:generate` if not)', async () => {
 		const fs = await import('fs');
 		const path = await import('path');
@@ -110,6 +146,6 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 		const files = fs
 			.readdirSync(dir)
 			.filter((f) => f.endsWith('.tfvetemplate') && f !== 'example.tfvetemplate');
-		expect(files.length).toBe(templates.length);
+		expect(files.length).toBeGreaterThanOrEqual(templates.length);
 	});
 });

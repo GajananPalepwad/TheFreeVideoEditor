@@ -1,0 +1,719 @@
+{
+  "$schema": "https://thefreevideoeditor.com/schemas/motion-template-v1.json",
+  "tfve_type": "motion_template",
+  "version": 1,
+  "id": "mixkit-bold-italic-split-title",
+  "name": "Minimal Italic Split Title",
+  "category": "Titles",
+  "description": "Bold high-energy italic title with central dividing split line and synchronized left-to-right wipe reveals, inspired by Mixkit 117",
+  "author": "TheFreeVideoEditor",
+  "createdAt": 1792688800000,
+  "duration": 7000000,
+  "responsiveTiming": {
+    "introDuration": 1800000,
+    "outroDuration": 1400000
+  },
+  "bounds": {
+    "width": 1500,
+    "height": 600,
+    "originX": 0,
+    "originY": 0
+  },
+  "tracks": [
+    {
+      "id": "tpl_trk_eyebrow",
+      "kind": "video",
+      "name": "Eyebrow Subtitle",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_eyebrow",
+          "start": 0,
+          "duration": 7000000,
+          "sourceIn": 0,
+          "sourceOut": 7000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "#PREMIRE PRO AND AFTER EFFECTS",
+            "style": {
+              "fontFamily": "Kanit",
+              "fontWeight": "500",
+              "fontStyle": "italic",
+              "alignment": "left",
+              "letterSpacing": 3
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 12,
+              "paddingY": 6,
+              "frameStyle": "none"
+            },
+            "colorRuns": [],
+            "graphicTemplateId": "mixkit-bold-italic-split-title"
+          },
+          "properties": {
+            "position": {
+              "value": [
+                -270,
+                -155
+              ]
+            },
+            "text.fontSize": {
+              "value": 24
+            },
+            "text.fillColor": {
+              "value": [
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 3
+            },
+            "text.lineHeight": {
+              "value": 1.2
+            },
+            "crop": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 600000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1650000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  }
+                },
+                {
+                  "time": 5300000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6250000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  },
+                  "anchor": "end"
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 600000,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1000000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 6100000,
+                  "value": 1,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6300000,
+                  "value": 0,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_trk_title_top",
+      "kind": "video",
+      "name": "Title Top",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_title_top",
+          "start": 0,
+          "duration": 7000000,
+          "sourceIn": 0,
+          "sourceOut": 7000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "MINIMAL",
+            "style": {
+              "fontFamily": "Kanit",
+              "fontWeight": "900",
+              "fontStyle": "italic",
+              "alignment": "center",
+              "letterSpacing": 2
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 20,
+              "paddingY": 10,
+              "frameStyle": "none"
+            },
+            "colorRuns": [],
+            "graphicTemplateId": "mixkit-bold-italic-split-title"
+          },
+          "properties": {
+            "position": {
+              "value": [
+                0,
+                -68
+              ]
+            },
+            "text.fontSize": {
+              "value": 120
+            },
+            "text.fillColor": {
+              "value": [
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 2
+            },
+            "text.lineHeight": {
+              "value": 1.1
+            },
+            "crop": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 350000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1500000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  }
+                },
+                {
+                  "time": 5400000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6450000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  },
+                  "anchor": "end"
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 300000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 6400000,
+                  "value": 1,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6550000,
+                  "value": 0,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_trk_line",
+      "kind": "video",
+      "name": "Divider Line",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_line",
+          "start": 0,
+          "duration": 7000000,
+          "sourceIn": 0,
+          "sourceOut": 7000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "shape",
+            "shapeType": "rect",
+            "width": 680,
+            "height": 4,
+            "cornerRadius": 2,
+            "fillColor": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            },
+            "strokeWidth": 0
+          },
+          "properties": {
+            "position": {
+              "value": [
+                0,
+                0
+              ]
+            },
+            "crop": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 250000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1400000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  }
+                },
+                {
+                  "time": 5400000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6500000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  },
+                  "anchor": "end"
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 200000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 6450000,
+                  "value": 1,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6600000,
+                  "value": 0,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_trk_title_bottom",
+      "kind": "video",
+      "name": "Title Bottom",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_title_bottom",
+          "start": 0,
+          "duration": 7000000,
+          "sourceIn": 0,
+          "sourceOut": 7000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "DESIGN",
+            "style": {
+              "fontFamily": "Kanit",
+              "fontWeight": "900",
+              "fontStyle": "italic",
+              "alignment": "center",
+              "letterSpacing": 2
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 20,
+              "paddingY": 10,
+              "frameStyle": "none"
+            },
+            "colorRuns": [],
+            "graphicTemplateId": "mixkit-bold-italic-split-title"
+          },
+          "properties": {
+            "position": {
+              "value": [
+                0,
+                68
+              ]
+            },
+            "text.fontSize": {
+              "value": 120
+            },
+            "text.fillColor": {
+              "value": [
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 2
+            },
+            "text.lineHeight": {
+              "value": 1.1
+            },
+            "crop": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 350000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1500000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  }
+                },
+                {
+                  "time": 5400000,
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6450000,
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "interpolation": "bezier",
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  },
+                  "anchor": "end"
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 300000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 6400000,
+                  "value": 1,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 6550000,
+                  "value": 0,
+                  "interpolation": "linear",
+                  "anchor": "end"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "publishedParams": [
+    {
+      "id": "param_title_1",
+      "name": "Title Top Text",
+      "type": "text",
+      "targetClipId": "tpl_clip_title_top",
+      "targetProperty": "text.content",
+      "defaultValue": "MINIMAL"
+    },
+    {
+      "id": "param_title_2",
+      "name": "Title Bottom Text",
+      "type": "text",
+      "targetClipId": "tpl_clip_title_bottom",
+      "targetProperty": "text.content",
+      "defaultValue": "DESIGN"
+    },
+    {
+      "id": "param_subtitle",
+      "name": "Eyebrow Subtitle",
+      "type": "text",
+      "targetClipId": "tpl_clip_eyebrow",
+      "targetProperty": "text.content",
+      "defaultValue": "#PREMIRE PRO AND AFTER EFFECTS"
+    },
+    {
+      "id": "param_font_family",
+      "name": "Font Family",
+      "type": "font",
+      "targetClipId": "tpl_clip_title_top",
+      "targetProperty": "text.fontFamily",
+      "defaultValue": "Kanit"
+    },
+    {
+      "id": "param_title_size",
+      "name": "Title Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_title_top",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 120,
+      "min": 60,
+      "max": 180,
+      "step": 2
+    },
+    {
+      "id": "param_color_top",
+      "name": "Color Top",
+      "type": "color",
+      "targetClipId": "tpl_clip_title_top",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    },
+    {
+      "id": "param_color_bottom",
+      "name": "Color Bottom",
+      "type": "color",
+      "targetClipId": "tpl_clip_title_bottom",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    },
+    {
+      "id": "param_color_eyebrow",
+      "name": "Color Eyebrow",
+      "type": "color",
+      "targetClipId": "tpl_clip_eyebrow",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    },
+    {
+      "id": "param_color_line",
+      "name": "Color Line",
+      "type": "color",
+      "targetClipId": "tpl_clip_line",
+      "targetProperty": "shape.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    }
+  ]
+}

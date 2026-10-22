@@ -15,7 +15,7 @@
   },
   "bounds": {
     "width": 1072,
-    "height": 830,
+    "height": 828,
     "originX": 0,
     "originY": 0
   },
@@ -174,8 +174,8 @@
           "source": {
             "type": "shape",
             "shapeType": "circle",
-            "width": 698,
-            "height": 698,
+            "width": 697,
+            "height": 697,
             "cornerRadius": 12,
             "fillColor": {
               "r": 0,

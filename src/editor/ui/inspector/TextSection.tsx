@@ -31,6 +31,7 @@ const ALL_FONTS = [
 	{ family: 'Lato', displayName: 'Lato', category: 'sans' },
 	{ family: 'Poppins', displayName: 'Poppins', category: 'sans' },
 	{ family: 'Montserrat', displayName: 'Montserrat', category: 'display' },
+	{ family: 'Kanit', displayName: 'Kanit', category: 'display' },
 	{ family: 'Raleway', displayName: 'Raleway', category: 'sans' },
 	{ family: 'Nunito', displayName: 'Nunito', category: 'sans' },
 	{ family: 'Ubuntu', displayName: 'Ubuntu', category: 'sans' },

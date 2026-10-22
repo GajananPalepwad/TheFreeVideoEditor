@@ -14,7 +14,7 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 1404,
+    "width": 1410,
     "height": 338,
     "originX": 0,
     "originY": 6
@@ -188,7 +188,7 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 847,
+            "width": 846,
             "height": 169,
             "cornerRadius": 85,
             "fillColor": {

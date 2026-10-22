@@ -14,9 +14,9 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 1910,
+    "width": 1908,
     "height": 386,
-    "originX": 729,
+    "originX": 728,
     "originY": 0
   },
   "tracks": [
@@ -59,7 +59,7 @@
           "properties": {
             "position": {
               "value": [
-                -889,
+                -888,
                 0
               ]
             },
@@ -188,7 +188,7 @@
           "properties": {
             "position": {
               "value": [
-                -903,
+                -902,
                 0
               ]
             },
