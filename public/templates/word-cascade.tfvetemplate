@@ -1,0 +1,515 @@
+{
+  "$schema": "https://thefreevideoeditor.com/schemas/motion-template-v1.json",
+  "tfve_type": "motion_template",
+  "version": 1,
+  "id": "word-cascade",
+  "name": "Word Cascade",
+  "category": "Kinetic",
+  "description": "Three stacked lines of bold type that reveal word by word and slide into place, one after the other",
+  "author": "TheFreeVideoEditor",
+  "createdAt": 1792642535297,
+  "duration": 5000000,
+  "responsiveTiming": {
+    "introDuration": 1650000,
+    "outroDuration": 400000
+  },
+  "bounds": {
+    "width": 1166,
+    "height": 550,
+    "originX": 0,
+    "originY": 20
+  },
+  "tracks": [
+    {
+      "id": "tpl_trk_1",
+      "kind": "video",
+      "name": "Line 1",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_1",
+          "start": 0,
+          "duration": 5000000,
+          "sourceIn": 0,
+          "sourceOut": 5000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "MAKE EVERY",
+            "style": {
+              "fontFamily": "Montserrat",
+              "fontWeight": "900",
+              "alignment": "center",
+              "letterSpacing": 4,
+              "revealUnit": "word"
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 0,
+              "paddingY": 0,
+              "frameStyle": "none"
+            }
+          },
+          "properties": {
+            "text.fontSize": {
+              "value": 96
+            },
+            "text.fillColor": {
+              "value": [
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 4
+            },
+            "text.lineHeight": {
+              "value": 1.2
+            },
+            "text.reveal": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 300000,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 750000,
+                  "value": 1,
+                  "interpolation": "linear"
+                }
+              ]
+            },
+            "position": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    -100
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 300000,
+                  "value": [
+                    0,
+                    -100
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 750000,
+                  "value": [
+                    0,
+                    -140
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  },
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  }
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 4600000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 5000000,
+                  "value": 0,
+                  "interpolation": "linear"
+                }
+              ]
+            }
+          },
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "tpl_trk_2",
+      "kind": "video",
+      "name": "Line 2",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_2",
+          "start": 0,
+          "duration": 5000000,
+          "sourceIn": 0,
+          "sourceOut": 5000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "WORD",
+            "style": {
+              "fontFamily": "Montserrat",
+              "fontWeight": "900",
+              "alignment": "center",
+              "letterSpacing": 4,
+              "revealUnit": "word"
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 0,
+              "paddingY": 0,
+              "frameStyle": "none"
+            }
+          },
+          "properties": {
+            "text.fontSize": {
+              "value": 96
+            },
+            "text.fillColor": {
+              "value": [
+                0.98,
+                0.85,
+                0.2,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 4
+            },
+            "text.lineHeight": {
+              "value": 1.2
+            },
+            "text.reveal": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 750000,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1200000,
+                  "value": 1,
+                  "interpolation": "linear"
+                }
+              ]
+            },
+            "position": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    20
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 750000,
+                  "value": [
+                    0,
+                    20
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1200000,
+                  "value": [
+                    0,
+                    -20
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  },
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  }
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 4600000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 5000000,
+                  "value": 0,
+                  "interpolation": "linear"
+                }
+              ]
+            }
+          },
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "tpl_trk_3",
+      "kind": "video",
+      "name": "Line 3",
+      "muted": false,
+      "locked": false,
+      "hidden": false,
+      "clips": [
+        {
+          "id": "tpl_clip_3",
+          "start": 0,
+          "duration": 5000000,
+          "sourceIn": 0,
+          "sourceOut": 5000000,
+          "speed": 1,
+          "volume": 0,
+          "source": {
+            "type": "text",
+            "text": "COUNT",
+            "style": {
+              "fontFamily": "Montserrat",
+              "fontWeight": "900",
+              "alignment": "center",
+              "letterSpacing": 4,
+              "revealUnit": "word"
+            },
+            "box": {
+              "autoSize": true,
+              "verticalAnchor": "center",
+              "paddingX": 0,
+              "paddingY": 0,
+              "frameStyle": "none"
+            }
+          },
+          "properties": {
+            "text.fontSize": {
+              "value": 96
+            },
+            "text.fillColor": {
+              "value": [
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "text.letterSpacing": {
+              "value": 4
+            },
+            "text.lineHeight": {
+              "value": 1.2
+            },
+            "text.reveal": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1200000,
+                  "value": 0,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1650000,
+                  "value": 1,
+                  "interpolation": "linear"
+                }
+              ]
+            },
+            "position": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": [
+                    0,
+                    140
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1200000,
+                  "value": [
+                    0,
+                    140
+                  ],
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 1650000,
+                  "value": [
+                    0,
+                    100
+                  ],
+                  "interpolation": "bezier",
+                  "easeOut": {
+                    "x": 0.16,
+                    "y": 1
+                  },
+                  "easeIn": {
+                    "x": 0.3,
+                    "y": 1
+                  }
+                }
+              ]
+            },
+            "opacity": {
+              "keyframes": [
+                {
+                  "time": 0,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 4600000,
+                  "value": 1,
+                  "interpolation": "linear"
+                },
+                {
+                  "time": 5000000,
+                  "value": 0,
+                  "interpolation": "linear"
+                }
+              ]
+            }
+          },
+          "effects": []
+        }
+      ]
+    }
+  ],
+  "publishedParams": [
+    {
+      "id": "param_line_1_text",
+      "name": "Line 1 Text",
+      "type": "text",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.content",
+      "defaultValue": "MAKE EVERY"
+    },
+    {
+      "id": "param_line_1_size",
+      "name": "Line 1 Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 96,
+      "min": 48,
+      "max": 144,
+      "step": 1
+    },
+    {
+      "id": "param_line_1_color",
+      "name": "Line 1 Color",
+      "type": "color",
+      "targetClipId": "tpl_clip_1",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    },
+    {
+      "id": "param_line_2_text",
+      "name": "Line 2 Text",
+      "type": "text",
+      "targetClipId": "tpl_clip_2",
+      "targetProperty": "text.content",
+      "defaultValue": "WORD"
+    },
+    {
+      "id": "param_line_2_size",
+      "name": "Line 2 Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_2",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 96,
+      "min": 48,
+      "max": 144,
+      "step": 1
+    },
+    {
+      "id": "param_line_2_color",
+      "name": "Line 2 Color",
+      "type": "color",
+      "targetClipId": "tpl_clip_2",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 0.98,
+        "g": 0.85,
+        "b": 0.2,
+        "a": 1
+      }
+    },
+    {
+      "id": "param_line_3_text",
+      "name": "Line 3 Text",
+      "type": "text",
+      "targetClipId": "tpl_clip_3",
+      "targetProperty": "text.content",
+      "defaultValue": "COUNT"
+    },
+    {
+      "id": "param_line_3_size",
+      "name": "Line 3 Size",
+      "type": "number",
+      "targetClipId": "tpl_clip_3",
+      "targetProperty": "text.fontSize",
+      "defaultValue": 96,
+      "min": 48,
+      "max": 144,
+      "step": 1
+    },
+    {
+      "id": "param_line_3_color",
+      "name": "Line 3 Color",
+      "type": "color",
+      "targetClipId": "tpl_clip_3",
+      "targetProperty": "text.fill",
+      "defaultValue": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    }
+  ]
+}

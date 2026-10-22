@@ -168,8 +168,8 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 600,
-            "height": 230,
+            "width": 1065,
+            "height": 189,
             "cornerRadius": 4,
             "fillColor": {
               "r": 0,

@@ -4,7 +4,7 @@
   "version": 1,
   "id": "documentary-speaker-card",
   "name": "Documentary Elegant Card",
-  "category": "Titles",
+  "category": "Lower Thirds",
   "description": "Glass-morphism lower third card with smooth slide-in-left for documentaries and interviews",
   "author": "TheFreeVideoEditor",
   "createdAt": 1792321125276,
@@ -14,9 +14,9 @@
     "outroDuration": 450000
   },
   "bounds": {
-    "width": 1820,
+    "width": 1510,
     "height": 316,
-    "originX": 282,
+    "originX": 437,
     "originY": 0
   },
   "tracks": [
@@ -62,7 +62,7 @@
                 {
                   "time": 0,
                   "value": [
-                    -532,
+                    -687,
                     0
                   ],
                   "interpolation": "bezier",
@@ -78,7 +78,7 @@
                 {
                   "time": 600000,
                   "value": [
-                    -282,
+                    -437,
                     0
                   ],
                   "interpolation": "linear"
@@ -152,8 +152,8 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 660,
-            "height": 110,
+            "width": 821,
+            "height": 177,
             "cornerRadius": 10,
             "fillColor": {
               "r": 0.06,
@@ -175,7 +175,7 @@
                 {
                   "time": 0,
                   "value": [
-                    -532,
+                    -296.5,
                     0
                   ],
                   "interpolation": "bezier",
@@ -191,7 +191,7 @@
                 {
                   "time": 600000,
                   "value": [
-                    -282,
+                    -46.5,
                     0
                   ],
                   "interpolation": "linear"

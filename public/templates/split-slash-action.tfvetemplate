@@ -4,7 +4,7 @@
   "version": 1,
   "id": "split-slash-action",
   "name": "Dynamic Split Angle",
-  "category": "Titles",
+  "category": "Kinetic",
   "description": "High-velocity horizontal slash with angular snap for sports, fitness, and energetic reels",
   "author": "TheFreeVideoEditor",
   "createdAt": 1792321125276,
@@ -167,7 +167,7 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 560,
+            "width": 655,
             "height": 5,
             "cornerRadius": 3,
             "fillColor": {

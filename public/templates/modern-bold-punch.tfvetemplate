@@ -14,9 +14,9 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 1920,
+    "width": 1910,
     "height": 386,
-    "originX": 626,
+    "originX": 729,
     "originY": 0
   },
   "tracks": [
@@ -59,7 +59,7 @@
           "properties": {
             "position": {
               "value": [
-                -786,
+                -889,
                 0
               ]
             },
@@ -175,7 +175,7 @@
             "type": "shape",
             "shapeType": "rect",
             "width": 6,
-            "height": 105,
+            "height": 189,
             "cornerRadius": 3,
             "fillColor": {
               "r": 0.65,
@@ -188,7 +188,7 @@
           "properties": {
             "position": {
               "value": [
-                -1006,
+                -903,
                 0
               ]
             },

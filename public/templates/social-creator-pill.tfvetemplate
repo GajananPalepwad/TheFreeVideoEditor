@@ -4,7 +4,7 @@
   "version": 1,
   "id": "social-creator-pill",
   "name": "Social Creator Pill",
-  "category": "Titles",
+  "category": "Social",
   "description": "Smooth rounded pill badge with bouncy pop-in for YouTube and social media handles",
   "author": "TheFreeVideoEditor",
   "createdAt": 1792321125276,
@@ -174,9 +174,9 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 460,
-            "height": 68,
-            "cornerRadius": 34,
+            "width": 771,
+            "height": 159,
+            "cornerRadius": 80,
             "fillColor": {
               "r": 0.55,
               "g": 0.25,
