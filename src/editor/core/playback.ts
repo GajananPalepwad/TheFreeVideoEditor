@@ -208,6 +208,8 @@ export interface ActiveLayer {
 		gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 		gradientColorEnd?: { r: number; g: number; b: number; a: number };
 		gradientAngle?: number;
+		/** Moves each character, word or line on its own; null or absent when the clip has none. */
+		animator?: TextAnimator;
 		colorRuns?: Array<{
 			startIndex: number;
 			endIndex: number;
@@ -251,6 +253,15 @@ export interface ResolvedFrame {
 }
 
 import { resolveAudibleTracks, clipGainAt } from './audioMath';
+import { resolveTextAnimator, type TextAnimator } from './text/animator';
+
+/** Reads one of a clip's own properties at a moment, or undefined when the clip does not set it. */
+function clipPropertyReader(clip: Clip, localTime: Time): (id: string) => unknown {
+	return (id) => {
+		const animated = clip.properties?.[id];
+		return animated ? evaluateOr(animated, localTime, undefined) : undefined;
+	};
+}
 
 export function resolveFrame(
 	project: Project,
@@ -702,6 +713,7 @@ export function resolveFrame(
 						gradientType,
 						gradientColorEnd,
 						gradientAngle,
+						animator: resolveTextAnimator(clipPropertyReader(clip, localTime)) ?? undefined,
 						colorRuns
 					},
 					masks: evaluatedMasks,
