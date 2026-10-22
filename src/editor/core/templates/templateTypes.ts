@@ -25,6 +25,12 @@ export interface ClipsBoundingBox {
 	originY: number;
 }
 
+/** Fonts and media a template file carries so it renders the same on another machine. */
+export interface TemplateResources {
+	fonts?: Array<{ family: string; fileName: string; /** Base64 of the font file. */ data: string }>;
+	assets?: Array<{ id: string; name: string; mimeType: string; /** Base64 of the media file. */ data: string }>;
+}
+
 export interface MotionGraphicTemplate {
 	version: 1;
 	id: string;
@@ -42,6 +48,7 @@ export interface MotionGraphicTemplate {
 	tracks: Track[];
 	publishedParams: PublishedTemplateParam[];
 	previewThumbnail?: string;
+	resources?: TemplateResources;
 }
 
 export function isMotionTemplateClip(clip: Clip | null | undefined): boolean {

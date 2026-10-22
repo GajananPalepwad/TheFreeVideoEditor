@@ -61,7 +61,24 @@ export const templateSchema = z.looseObject({
 		.optional(),
 	tracks: z.array(trackSchema),
 	publishedParams: z.array(publishedParamSchema).optional(),
-	previewThumbnail: z.string().optional()
+	previewThumbnail: z.string().optional(),
+	resources: z
+		.object({
+			fonts: z
+				.array(z.object({ family: z.string().min(1), fileName: z.string().min(1), data: z.string() }))
+				.optional(),
+			assets: z
+				.array(
+					z.object({
+						id: z.string().min(1),
+						name: z.string(),
+						mimeType: z.string(),
+						data: z.string()
+					})
+				)
+				.optional()
+		})
+		.optional()
 });
 
 export type TemplateFile = z.infer<typeof templateSchema>;
