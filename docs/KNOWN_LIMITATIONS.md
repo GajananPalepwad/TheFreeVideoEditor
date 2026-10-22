@@ -125,10 +125,7 @@ Each item below is deferred on purpose. They follow the *Accepted Technical Debt
   colours and one angle (`gradientColorEnd`, `gradientAngle`), and those fields are not animatable. Mitigation: templates
   use two-colour gradients and animate opacity or position instead. Follow-up: multi-stop and keyframable
   gradients.
-- **Assets and fonts inside `.tfvetemplate`**: status `deferred`; owner Templates Lead. Reason: a template
-  stores clips, not the media or font files they use. A template that uses media exports a dangling asset id,
-  and a template that names a font the user does not have falls back to the default font. Mitigation: the
-  built-in library uses only the bundled fonts and no media. Follow-up: bundling assets and fonts in the file.
+- **Fonts and media inside `.tfvetemplate`**: status `accepted limitation`; owner Templates Lead. Reason: a file embeds at most 8 MB, imported media lives only in the project that imported it, and a template library entry keeps no embedded data once its fonts and media are installed. Mitigation: export embeds the custom fonts and project media a template uses, import installs them and the panel names anything still missing. Re-import the file to use its media in another project.
 - **Frames do not follow raised text size**: status `accepted limitation`; owner Templates Lead. Reason: a
   frame, plate or rule is sized from the text at the template's default size. Mitigation: the template's
   bounds are measured at the largest slider size (`TEXT_SIZE_MAX_SCALE`, 1.5) so the text is never cut off,
