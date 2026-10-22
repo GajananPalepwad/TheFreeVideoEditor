@@ -1,5 +1,6 @@
 import { fitRect } from '../../core/composition';
 import { croppedFitRect } from '../../core/layerGeometry';
+import { textAnimationInset } from '../../core/text/animator';
 import type { ActiveLayer } from '../../core/playback';
 import type { BlendMode } from '../../core/types';
 
@@ -405,7 +406,8 @@ export function renderFrame(
 			size.height,
 			fit,
 			alignment,
-			verticalAnchor
+			verticalAnchor,
+			isText ? textAnimationInset(layer.textData) : 0
 		);
 		const transform = layer.transform;
 		const blendMode = layer.blendMode ?? 'normal';

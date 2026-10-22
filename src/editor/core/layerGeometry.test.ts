@@ -149,3 +149,55 @@ describe('layerAffine', () => {
 		expect(bottomPoint.y).toBeCloseTo(440);
 	});
 });
+
+describe('text animation margin', () => {
+	const animated = (alignment: 'left' | 'center' | 'right', offsetY: number) =>
+		({
+			kind: 'text',
+			fit: 'none',
+			textData: {
+				text: 'x',
+				fontSize: 50,
+				style: { fontFamily: 'Inter', alignment },
+				animator: {
+					progress: 1,
+					stagger: 0.5,
+					offsetX: 0,
+					offsetY,
+					scale: 1,
+					rotation: 0,
+					opacity: 0
+				}
+			}
+		}) as unknown as Parameters<typeof layerAffine>[0];
+
+	// A 120 x 60 picture of the text with a 20 pixel margin all round: the text itself is 80 x 20.
+	it('keeps the text itself on the anchor, not the margin around it', () => {
+		const left = layerAffine(animated('left', 20), 120, 60, 1000, 500);
+		// The picture starts 20 pixels before the centre so the text starts at the centre.
+		expect(applyAffine(left, 0, 0).x).toBeCloseTo(480, 6);
+		const right = layerAffine(animated('right', 20), 120, 60, 1000, 500);
+		// The picture ends 20 pixels after the centre so the text ends at the centre.
+		expect(applyAffine(right, 1, 0).x).toBeCloseTo(520, 6);
+	});
+
+	it('leaves centred text where it was', () => {
+		const centred = layerAffine(animated('center', 20), 120, 60, 1000, 500);
+		expect(applyAffine(centred, 0.5, 0.5).x).toBeCloseTo(500, 6);
+	});
+
+	it('is the same as before for text with no animation', () => {
+		const plain = layerAffine(
+			{
+				kind: 'text',
+				fit: 'none',
+				textData: { text: 'x', fontSize: 50, style: { fontFamily: 'Inter', alignment: 'left' } }
+			} as unknown as Parameters<typeof layerAffine>[0],
+			120,
+			60,
+			1000,
+			500
+		);
+		expect(applyAffine(plain, 0, 0).x).toBeCloseTo(500, 6);
+	});
+});

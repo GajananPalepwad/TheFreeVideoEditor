@@ -1,3 +1,4 @@
+import { textAnimationInset } from './text/animator';
 import { fitRect } from './composition';
 import type { ActiveLayer } from './playback';
 
@@ -10,24 +11,26 @@ export function croppedFitRect(
 	height: number,
 	fit: 'contain' | 'none' = 'contain',
 	alignment?: 'left' | 'center' | 'right',
-	verticalAnchor?: 'top' | 'center' | 'bottom'
+	verticalAnchor?: 'top' | 'center' | 'bottom',
+	/** Empty room all round the source that alignment should not count, as text animation leaves. */
+	inset = 0
 ): { x: number; y: number; width: number; height: number } {
 	let fitX = (width - sourceWidth) / 2;
 	let fitY = (height - sourceHeight) / 2;
 
 	if (fit === 'none') {
 		if (alignment === 'left') {
-			fitX = width / 2;
+			fitX = width / 2 - inset;
 		} else if (alignment === 'right') {
-			fitX = width / 2 - sourceWidth;
+			fitX = width / 2 - sourceWidth + inset;
 		} else {
 			fitX = (width - sourceWidth) / 2;
 		}
 
 		if (verticalAnchor === 'top') {
-			fitY = height / 2;
+			fitY = height / 2 - inset;
 		} else if (verticalAnchor === 'bottom') {
-			fitY = height / 2 - sourceHeight;
+			fitY = height / 2 - sourceHeight + inset;
 		} else {
 			fitY = (height - sourceHeight) / 2;
 		}
@@ -89,7 +92,8 @@ export function layerAffine(
 		height,
 		layer.fit ?? 'contain',
 		alignment,
-		verticalAnchor
+		verticalAnchor,
+		isText ? textAnimationInset(layer.textData) : 0
 	);
 	const transform = layer.transform;
 	const anchor = layer.anchor ?? { x: 0, y: 0 };
