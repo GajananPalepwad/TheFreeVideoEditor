@@ -209,6 +209,83 @@ export const PROPERTY_DESCRIPTORS: Readonly<Record<string, PropertyDescriptor>> 
 		displayFactor: 100,
 		step: 1
 	},
+	'text.anim.progress': {
+		id: 'text.anim.progress',
+		label: 'Animate In',
+		shape: 'number',
+		channels: ['Progress'],
+		defaultValue: 1,
+		min: 0,
+		max: 1,
+		unit: '%',
+		displayFactor: 100,
+		step: 1
+	},
+	'text.anim.stagger': {
+		id: 'text.anim.stagger',
+		label: 'Animate Stagger',
+		shape: 'number',
+		channels: ['Stagger'],
+		defaultValue: 0.6,
+		min: 0,
+		max: 1,
+		unit: '%',
+		displayFactor: 100,
+		step: 1
+	},
+	'text.anim.offsetX': {
+		id: 'text.anim.offsetX',
+		label: 'Animate From X',
+		shape: 'number',
+		channels: ['X'],
+		defaultValue: 0,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'text.anim.offsetY': {
+		id: 'text.anim.offsetY',
+		label: 'Animate From Y',
+		shape: 'number',
+		channels: ['Y'],
+		defaultValue: 40,
+		unit: 'px',
+		displayFactor: 1,
+		step: 1
+	},
+	'text.anim.scale': {
+		id: 'text.anim.scale',
+		label: 'Animate From Scale',
+		shape: 'number',
+		channels: ['Scale'],
+		defaultValue: 1,
+		min: 0,
+		unit: '%',
+		displayFactor: 100,
+		step: 1
+	},
+	'text.anim.rotation': {
+		id: 'text.anim.rotation',
+		label: 'Animate From Rotation',
+		shape: 'number',
+		channels: ['Rotation'],
+		defaultValue: 0,
+		unit: '°',
+		displayFactor: 1,
+		step: 1
+	},
+	'text.anim.opacity': {
+		id: 'text.anim.opacity',
+		label: 'Animate From Opacity',
+		shape: 'number',
+		channels: ['Opacity'],
+		defaultValue: 0,
+		min: 0,
+		max: 1,
+		unit: '%',
+		displayFactor: 100,
+		step: 1
+	},
 	'text.boxBorderColor': {
 		id: 'text.boxBorderColor',
 		label: 'Border Color',
