@@ -1527,6 +1527,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 				if (videoEffectId && track.kind === 'video') {
 					store.getState().addEffect(targetClip.id, videoEffectId as EffectType);
 					store.getState().selectClips([targetClip.id], 'replace');
+					store.getState().revealInspectorSection('effects');
 					store.getState().setTimelineMessage(`Applied ${effectName} to clip.`);
 				} else if (audioEffectId) {
 					const existing = targetClip.audioEffects ? [...targetClip.audioEffects] : [];
@@ -1535,6 +1536,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 					existing.push(newFx);
 					store.getState().setClipAudioEffects(targetClip.id, existing);
 					store.getState().selectClips([targetClip.id], 'replace');
+					store.getState().revealInspectorSection('audio');
 					store.getState().setTimelineMessage(`Applied ${effectName} audio effect to clip.`);
 				}
 			}

@@ -163,6 +163,7 @@ export default function EffectsLibrary() {
 				newFx.managedBy = 'user';
 				existing.push(newFx);
 				store.getState().setClipAudioEffects(clipId, existing);
+				store.getState().revealInspectorSection('audio');
 				setAnnouncement(`Added ${def.name} audio effect to selected clip.`);
 				setInlineAudioMessage(null);
 				return;

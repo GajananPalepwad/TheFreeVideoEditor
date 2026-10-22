@@ -618,6 +618,7 @@ export default function ClipView({
 				if (isVideoFxCompatible) {
 					store.getState().addEffect(clip.id, videoEffectId as EffectType);
 					store.getState().selectClips([clip.id], 'replace');
+					store.getState().revealInspectorSection('effects');
 					setCelebrationEffectName(effectName);
 					setIsDropCelebrated(true);
 					setTimeout(() => setIsDropCelebrated(false), 950);
@@ -631,6 +632,7 @@ export default function ClipView({
 					existing.push(newFx);
 					store.getState().setClipAudioEffects(clip.id, existing);
 					store.getState().selectClips([clip.id], 'replace');
+					store.getState().revealInspectorSection('audio');
 					setCelebrationEffectName(effectName);
 					setIsDropCelebrated(true);
 					setTimeout(() => setIsDropCelebrated(false), 950);

@@ -379,6 +379,7 @@ export interface TrackRemovalResult {
 export interface InspectorState {
 	expanded: Record<string, boolean>;
 	linkScale: boolean;
+	scrollToSection?: string | null;
 }
 
 export interface KeyframeSelectionRef {
@@ -732,6 +733,8 @@ export interface EditorState {
 	unlinkSelection: () => boolean;
 	setTimelineMessage: (message: string) => void;
 	setInspectorExpanded: (sectionId: string, expanded: boolean) => void;
+	revealInspectorSection: (sectionId: string) => void;
+	clearInspectorScrollTo: () => void;
 	setInspectorLinkScale: (link: boolean) => void;
 	setKeyframeSelection: (selection: KeyframeSelectionRef[]) => void;
 	selectKeyframe: (ref: KeyframeSelectionRef, mode?: 'set' | 'toggle' | 'extend') => void;
@@ -1589,7 +1592,10 @@ export function createEditorStore() {
 					selectedAssetIds: []
 				},
 				timeline: createTimelineState(),
-				inspector: loadInspectorPrefs(),
+				inspector: {
+					...loadInspectorPrefs(),
+					scrollToSection: null
+				},
 				keyframes: createKeyframeState(),
 				effectsUi: {
 					libraryQuery: '',
@@ -4213,6 +4219,27 @@ export function createEditorStore() {
 						persistInspectorPrefs(state.inspector);
 					});
 				},
+				revealInspectorSection(sectionId) {
+					set((state) => {
+						state.inspector.expanded[sectionId] = true;
+						state.inspector.scrollToSection = sectionId;
+						persistInspectorPrefs(state.inspector);
+					});
+					try {
+						const currentLayout = get().activeLayout;
+						const panels = collectPanels(currentLayout);
+						if (panels.includes('inspector')) {
+							get().updateLayout(activateTab(currentLayout, 'inspector'));
+						}
+					} catch {
+						// layout might not be initialized
+					}
+				},
+				clearInspectorScrollTo() {
+					set((state) => {
+						state.inspector.scrollToSection = null;
+					});
+				},
 				setInspectorLinkScale(link) {
 					set((state) => {
 						state.inspector.linkScale = link;
@@ -4887,7 +4914,11 @@ export function createEditorStore() {
 						);
 						set((state) => {
 							state.effectsUi.selectedEffectId = created.id;
+							if (!state.timeline.selection.clipIds.includes(clipId)) {
+								state.timeline.selection.clipIds = [clipId];
+							}
 						});
+						get().revealInspectorSection('effects');
 						return created;
 					} catch (error) {
 						set((state) => {

@@ -1,5 +1,6 @@
 import {
 	useCallback,
+	useEffect,
 	useRef,
 	useState,
 	type ChangeEvent,
@@ -53,6 +54,28 @@ export default function Inspector() {
 	const openSequenceSettingsDialog = useEditorStore((state) => state.openSequenceSettingsDialog);
 
 	const [confirmDisable, setConfirmDisable] = useState<ConfirmDisableState | null>(null);
+
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const targetSection = inspector.scrollToSection;
+		if (!targetSection) return;
+
+		const timer = setTimeout(() => {
+			if (!containerRef.current) return;
+			const targetEl = containerRef.current.querySelector<HTMLElement>(
+				`[data-section-id="${targetSection}"]`
+			);
+			if (targetEl) {
+				targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				targetEl.classList.add('is-targeted');
+				setTimeout(() => targetEl.classList.remove('is-targeted'), 1200);
+			}
+			store.getState().clearInspectorScrollTo();
+		}, 80);
+
+		return () => clearTimeout(timer);
+	}, [inspector.scrollToSection, store]);
 
 	// Find selected transition if any
 	let selectedTransition: {
@@ -232,7 +255,7 @@ export default function Inspector() {
 		selectedClip.source?.type === 'sequence' ? selectedClip.source.templateName : undefined;
 
 	return (
-		<div className="inspector-container">
+		<div ref={containerRef} className="inspector-container">
 			{/* Selected Clip Summary Banner */}
 			<div className="inspector-clip-banner">
 				<div className="inspector-clip-title-row">
@@ -261,7 +284,10 @@ export default function Inspector() {
 
 			{/* Motion Graphic Template Section */}
 			{isTemplate && (
-				<section className={`inspector-section ${isTemplateExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isTemplateExpanded ? 'is-open' : ''}`}
+					data-section-id="template"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -279,7 +305,10 @@ export default function Inspector() {
 
 			{/* Text Section */}
 			{isText && (
-				<section className={`inspector-section ${isTextExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isTextExpanded ? 'is-open' : ''}`}
+					data-section-id="text"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -306,7 +335,10 @@ export default function Inspector() {
 
 			{/* Shape Section */}
 			{isShape && selectedClip.source?.type === 'shape' && (
-				<section className={`inspector-section ${isShapeExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isShapeExpanded ? 'is-open' : ''}`}
+					data-section-id="shape"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -333,7 +365,10 @@ export default function Inspector() {
 
 			{/* Solid Color Section */}
 			{isSolid && selectedClip.source?.type === 'solid' && (
-				<section className={`inspector-section ${isSolidExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isSolidExpanded ? 'is-open' : ''}`}
+					data-section-id="solid"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -395,7 +430,10 @@ export default function Inspector() {
 
 			{/* Gradient Section */}
 			{hasGradientSection && (
-				<section className={`inspector-section ${isGradientExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isGradientExpanded ? 'is-open' : ''}`}
+					data-section-id="gradient"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -421,7 +459,10 @@ export default function Inspector() {
 			)}
 
 			{/* Transform Section */}
-			<section className={`inspector-section ${isTransformExpanded ? 'is-open' : ''}`}>
+			<section
+				className={`inspector-section ${isTransformExpanded ? 'is-open' : ''}`}
+				data-section-id="transform"
+			>
 				<button
 					type="button"
 					className="inspector-section-header"
@@ -488,7 +529,10 @@ export default function Inspector() {
 
 			{/* Audio Section (Volume dB, Pan, Fades) */}
 			{hasAudio && (
-				<section className={`inspector-section ${isAudioExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isAudioExpanded ? 'is-open' : ''}`}
+					data-section-id="audio"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -639,7 +683,10 @@ export default function Inspector() {
 
 			{/* Crop Section (hidden on adjustment layers) */}
 			{!isAdjustment && (
-				<section className={`inspector-section ${isCropExpanded ? 'is-open' : ''}`}>
+				<section
+					className={`inspector-section ${isCropExpanded ? 'is-open' : ''}`}
+					data-section-id="crop"
+				>
 					<button
 						type="button"
 						className="inspector-section-header"
@@ -668,7 +715,10 @@ export default function Inspector() {
 			)}
 
 			{/* Time Remapping Section */}
-			<section className={`inspector-section ${isSpeedExpanded ? 'is-open' : ''}`}>
+			<section
+				className={`inspector-section ${isSpeedExpanded ? 'is-open' : ''}`}
+				data-section-id="speed"
+			>
 				<button
 					type="button"
 					className="inspector-section-header"
@@ -700,7 +750,10 @@ export default function Inspector() {
 			</section>
 
 			{/* Masks Section */}
-			<section className={`inspector-section ${isMasksExpanded ? 'is-open' : ''}`}>
+			<section
+				className={`inspector-section ${isMasksExpanded ? 'is-open' : ''}`}
+				data-section-id="masks"
+			>
 				<button
 					type="button"
 					className="inspector-section-header"
@@ -735,6 +788,7 @@ export default function Inspector() {
 			{!isText && !isSolid && !isAdjustment && (
 				<section
 					className={`inspector-section ${inspector.expanded.tracking !== false ? 'is-open' : ''}`}
+					data-section-id="tracking"
 				>
 					<button
 						type="button"
@@ -765,7 +819,10 @@ export default function Inspector() {
 			)}
 
 			{/* Effects Section */}
-			<section className={`inspector-section ${isEffectsExpanded ? 'is-open' : ''}`}>
+			<section
+				className={`inspector-section ${isEffectsExpanded ? 'is-open' : ''}`}
+				data-section-id="effects"
+			>
 				<button
 					type="button"
 					className="inspector-section-header"
