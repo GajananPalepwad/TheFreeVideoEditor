@@ -23,10 +23,18 @@ This checklist confirms release readiness for The Free Video Editor v1.0.
 | **Gate M** | Speed Curves & Time Remapping | Non-linear speed curves, optical-flow/frame-blend remap | **CLOSED** |
 | **Gate N** | Pro Audio DSP & Fairlight Mixer | Submix buses, PDC, ITU-R BS.1770-4 loudness normalization | **CLOSED** |
 | **Gate O** | Motion Graphics & Titles | Text generator, typographic animation, styling presets | **CLOSED** |
+| **Gate O+** | Title Graphics & Motion Template Repair Pass | 18 file-based templates, one render path, save/reload fidelity | **CLOSED** (re-opened and re-closed, see below) |
 | **Gate P** | Speech-to-Text & Subtitles | Whisper ONNX client-side inference, VAD ducking, SRT/VTT | **CLOSED** |
 | **Gate Q** | Proxy Workflow & Offline Media | Automatic 720p/540p proxy transcode, seamless switching | **CLOSED** |
 | **Gate R** | Nested Sequences | Arbitrary depth sequences, recursive compositor, flattening | **CLOSED** |
 | **Gate S** | Interchange & Acceptance | Universal IR, xmeml, fcpxml, otio, edl, relink dialog | **CLOSED** |
+
+Gate O was marked **CLOSED** while motion templates were known to be broken: a template dragged onto the
+timeline did not look like its card, the nested render path differed between preview and export, saving a
+project dropped template gradients, a dropped custom template rendered another template's text, and several
+panel controls did nothing. Gate O was re-opened and re-closed as **Gate O+** (12 pull requests, #18 to #48).
+The evidence per item, including what is still unverified, is in `docs/VERIFICATION_DEBT.md` section 13, and
+the deferred items are in `docs/KNOWN_LIMITATIONS.md` under "Gate O+ (Motion Templates)".
 
 ---
 
