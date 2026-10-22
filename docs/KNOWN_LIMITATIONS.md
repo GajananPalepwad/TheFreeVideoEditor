@@ -112,6 +112,36 @@ limitations are intentional at this stage:
 - **Interchange Export**: Custom text styling, font selections, and animation presets cannot be fully represented in EDL/xmeml and are flattened or omitted with an explicit export notice.
 - **Raster Resolution Cap**: Dynamic text rasterization is capped at 2× composition resolution to balance sharp zoom fidelity against texture memory consumption.
 
+## Gate O+ (Motion Templates)
+
+Each item below is deferred on purpose. They follow the *Accepted Technical Debt* format of
+`docs/RELEASE_CHECKLIST.md`.
+
+- **Per-glyph kinetic type**: status `deferred`; owner Graphics Lead. Reason: the text rasterizer draws a layer
+  as one bitmap, so characters cannot move, scale or rotate on their own. Mitigation: kinetic templates stack
+  one text layer per line or word and reveal them with `text.reveal` (`Word Cascade`). Follow-up: per-glyph
+  animation in the renderer.
+- **Multi-stop and keyframable gradients**: status `deferred`; owner Graphics Lead. Reason: a text gradient holds two
+  colours and one angle (`gradientColorEnd`, `gradientAngle`), and those fields are not animatable. Mitigation: templates
+  use two-colour gradients and animate opacity or position instead. Follow-up: multi-stop and keyframable
+  gradients.
+- **Assets and fonts inside `.tfvetemplate`**: status `deferred`; owner Templates Lead. Reason: a template
+  stores clips, not the media or font files they use. A template that uses media exports a dangling asset id,
+  and a template that names a font the user does not have falls back to the default font. Mitigation: the
+  built-in library uses only the bundled fonts and no media. Follow-up: bundling assets and fonts in the file.
+- **Frames do not follow raised text size**: status `accepted limitation`; owner Templates Lead. Reason: a
+  frame, plate or rule is sized from the text at the template's default size. Mitigation: the template's
+  bounds are measured at the largest slider size (`TEXT_SIZE_MAX_SCALE`, 1.5) so the text is never cut off,
+  and the frame stays at its default size. The Mixkit lower third's title can overlap its fixed subtitle at the
+  top of the range.
+- **Export of a template through WebCodecs is verified at frame level only**: status `unverified`; owner Render
+  Pipeline Lead. Reason: the Chromium that Playwright bundles has no WebCodecs video encoder, so the end-to-end
+  encode of a template cannot run in CI. Mitigation: export and the Program monitor share `resolveFrame` and
+  the frame renderer, and `tests/e2e/template-parity.spec.ts` compares them for all 18 templates; run the
+  export spec in real Google Chrome before a release.
+- **Nested template inside a template**: status `deferred`; owner Templates Lead. Reason: instantiation of a
+  template into another template's sequence is not supported. Mitigation: unpack the instance first.
+
 ## Gate P (Captions & Subtitles System)
 
 - **Speech Recognition Engine & Privacy**: Speech-to-text runs 100% locally on-device using `@huggingface/transformers` and ONNX Runtime Web via WebGPU (when supported) with WASM CPU fallback. Audio samples and transcribed text never leave the device. A one-time network download of ONNX model weights (39 MB to 240 MB) from Hugging Face is required before offline use.
