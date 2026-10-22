@@ -40,9 +40,12 @@ function arrayToRgba(arr?: unknown): { r: number; g: number; b: number; a: numbe
 	return { r: 1, g: 1, b: 1, a: 1 };
 }
 
+/** The largest the Text Size slider goes, as a multiple of the size a template is drawn at. */
+export const TEXT_SIZE_MAX_SCALE = 1.5;
+
 /**
- * A slider for the size of one text layer, from half to 1.25 times the size it is drawn at. Larger
- * text no longer fits the template's measured bounds, so it would be cut off.
+ * A slider for the size of one text layer, from half to `TEXT_SIZE_MAX_SCALE` times the size it is
+ * drawn at. The template's bounds are measured at the largest size so that text never gets cut off.
  */
 function textSizeParam(
 	id: string,
@@ -58,7 +61,7 @@ function textSizeParam(
 		targetProperty: 'text.fontSize',
 		defaultValue: size,
 		min: Math.round(size / 2),
-		max: Math.round(size * 1.25),
+		max: Math.round(size * TEXT_SIZE_MAX_SCALE),
 		step: 1
 	};
 }
@@ -417,7 +420,8 @@ export function convertGraphicTemplateToMotionTemplate(
 		responsiveTiming: {
 			introDuration: template.inDurationUs || 500_000,
 			outroDuration: template.outDurationUs || 400_000
-		}
+		},
+		textScale: TEXT_SIZE_MAX_SCALE
 	});
 
 	// Preserve exact original template ID
