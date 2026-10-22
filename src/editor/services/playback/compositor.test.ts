@@ -166,7 +166,11 @@ describe('frame compositor', () => {
 			return { created, create };
 		}
 
-		function sequenceLayer(id: string, children: ActiveLayer[], size = { width: 800, height: 200 }) {
+		function sequenceLayer(
+			id: string,
+			children: ActiveLayer[],
+			size = { width: 800, height: 200 }
+		) {
 			return {
 				...layer(id, 0),
 				kind: 'sequence',
