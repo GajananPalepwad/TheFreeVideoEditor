@@ -13,7 +13,7 @@ import { createEmptyProject } from '../factory';
 
 describe('Graphic Motion Templates & Kinetic Typography', () => {
 	it('defines curated graphic templates with valid metadata, colors, and frame styles', () => {
-		expect(GRAPHIC_TEMPLATES.length).toBe(13);
+		expect(GRAPHIC_TEMPLATES.length).toBe(18);
 
 		const categories = new Set(GRAPHIC_TEMPLATES.map((t) => t.category));
 		expect(categories.has('lower-third')).toBe(true);

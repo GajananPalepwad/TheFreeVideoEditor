@@ -9,7 +9,7 @@ import { serializeTemplate, deserializeTemplate } from './templateService';
 describe('convertGraphicTemplateToMotionTemplate', () => {
 	it('converts all existing graphic templates to valid Motion Graphic Templates (.tfvetemplate)', () => {
 		const convertedList = convertAllGraphicTemplates();
-		expect(convertedList.length).toBe(13);
+		expect(convertedList.length).toBe(18);
 
 		for (const tpl of convertedList) {
 			expect(tpl.version).toBe(1);
