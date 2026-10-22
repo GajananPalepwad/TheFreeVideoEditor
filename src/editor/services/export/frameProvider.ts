@@ -101,6 +101,7 @@ export class ExportFrameProvider {
 					gradientColorEnd: data.gradientColorEnd,
 					gradientAngle: data.gradientAngle,
 					gradientStops: data.gradientStops,
+					animator: data.animator,
 					colorRuns: data.colorRuns,
 					scale
 				});
