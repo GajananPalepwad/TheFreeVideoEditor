@@ -277,3 +277,140 @@ describe('composition geometry', () => {
 		expect(previewScale(1920, 1080, 960, 540)).toBe(0.5);
 	});
 });
+
+describe('gradients on layers', () => {
+	const RED = { r: 1, g: 0, b: 0, a: 1 };
+	const GREEN = { r: 0, g: 1, b: 0, a: 1 };
+	const BLUE = { r: 0, g: 0, b: 1, a: 1 };
+	const stops = [
+		{ offset: 0, color: RED },
+		{ offset: 0.5, color: GREEN },
+		{ offset: 1, color: BLUE }
+	];
+
+	function clipWith(source: NonNullable<Clip['source']>, properties: Clip['properties'] = {}): Clip {
+		return {
+			id: 'gradient-clip' as Clip['id'],
+			start: 0,
+			duration: 2_000_000,
+			sourceIn: 0,
+			sourceOut: 2_000_000,
+			speed: 1,
+			volume: 0,
+			source,
+			properties
+		};
+	}
+
+	function layerAt(clip: Clip, time: number) {
+		const project = projectWith([makeTrack('video', 'video', [clip])], []);
+		return resolveFrame(project, time).videoLayers[0]!;
+	}
+
+	const shape = (extra: object): NonNullable<Clip['source']> =>
+		({
+			type: 'shape',
+			shapeType: 'rect',
+			width: 100,
+			height: 50,
+			fillColor: RED,
+			...extra
+		}) as NonNullable<Clip['source']>;
+
+	it('gives a shape its listed stops', () => {
+		const layer = layerAt(clipWith(shape({ gradientType: 'radial', gradientStops: stops })), 0);
+		expect(layer.shapeData?.gradientType).toBe('radial');
+		expect(layer.shapeData?.gradientStops).toEqual(stops);
+	});
+
+	it('turns the old fill and end colour into two stops', () => {
+		const layer = layerAt(
+			clipWith(shape({ gradientType: 'linear-horizontal', gradientColorEnd: BLUE })),
+			0
+		);
+		expect(layer.shapeData?.gradientStops).toEqual([
+			{ offset: 0, color: RED },
+			{ offset: 1, color: BLUE }
+		]);
+	});
+
+	it('has no stops for a shape without a gradient', () => {
+		expect(layerAt(clipWith(shape({})), 0).shapeData?.gradientStops).toBeUndefined();
+	});
+
+	it('moves a stop and the angle over time when they are keyframed', () => {
+		const clip = clipWith(shape({ gradientType: 'linear-angle', gradientAngle: 0, gradientStops: stops }), {
+			'gradient.angle': {
+				keyframes: [
+					{ time: 0, value: 0, interpolation: 'linear' },
+					{ time: 1_000_000, value: 90, interpolation: 'linear' }
+				]
+			},
+			'gradient.stop1.offset': {
+				keyframes: [
+					{ time: 0, value: 0.2, interpolation: 'linear' },
+					{ time: 1_000_000, value: 0.8, interpolation: 'linear' }
+				]
+			},
+			'gradient.stop1.color': {
+				keyframes: [
+					{ time: 0, value: [0, 1, 0, 1], interpolation: 'linear' },
+					{ time: 1_000_000, value: [1, 1, 1, 1], interpolation: 'linear' }
+				]
+			}
+		});
+
+		const half = layerAt(clip, 500_000).shapeData!;
+		expect(half.gradientAngle).toBe(45);
+		expect(half.gradientStops![1]!.offset).toBeCloseTo(0.5, 6);
+		expect(half.gradientStops![1]!.color.r).toBeCloseTo(0.5, 6);
+		expect(half.gradientStops![0]).toEqual({ offset: 0, color: RED });
+		const end = layerAt(clip, 1_000_000).shapeData!;
+		expect(end.gradientAngle).toBe(90);
+		expect(end.gradientStops![1]!.offset).toBeCloseTo(0.8, 6);
+	});
+
+	it('uses an animated fill as the first colour of a two colour gradient', () => {
+		const clip = clipWith(
+			shape({ gradientType: 'radial', gradientColorEnd: BLUE }),
+			{ 'shape.fillColor': { value: [0, 1, 0, 1] } }
+		);
+		expect(layerAt(clip, 0).shapeData!.gradientStops![0]!.color).toEqual(GREEN);
+	});
+
+	it('gives text its stops, with the text colour as the first of a two colour gradient', () => {
+		const withStops = layerAt(
+			clipWith({
+				type: 'text',
+				text: 'Hi',
+				box: { gradientType: 'linear-horizontal', gradientStops: stops }
+			}),
+			0
+		);
+		expect(withStops.textData?.gradientStops).toEqual(stops);
+
+		const legacy = layerAt(
+			clipWith(
+				{ type: 'text', text: 'Hi', box: { gradientType: 'radial', gradientColorEnd: BLUE } },
+				{ 'text.fillColor': { value: [0, 1, 0, 1] } }
+			),
+			0
+		);
+		expect(legacy.textData?.gradientStops).toEqual([
+			{ offset: 0, color: GREEN },
+			{ offset: 1, color: BLUE }
+		]);
+	});
+
+	it('gives a solid its stops and angle', () => {
+		const layer = layerAt(
+			clipWith(
+				{ type: 'solid', color: RED, gradientType: 'linear-angle', gradientAngle: 10, gradientStops: stops },
+				{ 'gradient.angle': { value: 120 } }
+			),
+			0
+		);
+		expect(layer.solidGradientStops).toEqual(stops);
+		expect(layer.solidGradientAngle).toBe(120);
+	});
+});

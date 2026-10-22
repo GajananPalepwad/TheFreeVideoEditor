@@ -1,6 +1,8 @@
 import { layerAffine } from '../../core/layerGeometry';
 import type { ActiveLayer } from '../../core/playback';
+import { gradientKey, layerGradient, type GradientStop } from '../../core/gradient';
 import type { BlendMode } from '../../core/types';
+import { createGradientPaint } from './gradientPaint';
 import type { ParsedLut3D } from '../../core/lut';
 import {
 	ScratchCanvasPool,
@@ -419,7 +421,8 @@ export class GlCompositor implements FrameRenderer {
 					color,
 					layer.solidGradientType,
 					layer.solidGradientColorEnd,
-					layer.solidGradientAngle
+					layer.solidGradientAngle,
+					layer.solidGradientStops
 				);
 				let currentTex = solidTex;
 				const fbosToRelease: PooledFbo[] = [];
@@ -867,12 +870,14 @@ export class GlCompositor implements FrameRenderer {
 		color: { r: number; g: number; b: number; a: number },
 		gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle',
 		gradientColorEnd?: { r: number; g: number; b: number; a: number },
-		gradientAngle?: number
+		gradientAngle?: number,
+		gradientStops?: GradientStop[]
 	): WebGLTexture {
 		const gl = this.context.gl;
 
-		if (gradientType && gradientType !== 'none' && gradientColorEnd) {
-			const key = `${color.r},${color.g},${color.b},${color.a}_${gradientType}_${gradientColorEnd.r},${gradientColorEnd.g},${gradientColorEnd.b},${gradientColorEnd.a}_${gradientAngle ?? 0}`;
+		const gradient = layerGradient(gradientType, color, gradientColorEnd, gradientAngle, gradientStops);
+		if (gradient) {
+			const key = gradientKey(gradient);
 			const cached = this.solidGradientTextures.get(key);
 			if (cached) return cached;
 
@@ -886,30 +891,7 @@ export class GlCompositor implements FrameRenderer {
 				CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
 			if (!ctx) return this.getSolidTexture(color);
 
-			const startStr = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a})`;
-			const endStr = `rgba(${Math.round(gradientColorEnd.r * 255)}, ${Math.round(gradientColorEnd.g * 255)}, ${Math.round(gradientColorEnd.b * 255)}, ${gradientColorEnd.a})`;
-			let grad: CanvasGradient;
-
-			if (gradientType === 'linear-vertical') {
-				grad = ctx.createLinearGradient(0, 0, 0, size);
-			} else if (gradientType === 'radial') {
-				grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-			} else if (gradientType === 'linear-angle') {
-				const rad = ((gradientAngle ?? 45) * Math.PI) / 180;
-				const halfDiag = (size * Math.SQRT2) / 2;
-				const cx = size / 2;
-				const cy = size / 2;
-				const x0 = cx - Math.cos(rad) * halfDiag;
-				const y0 = cy - Math.sin(rad) * halfDiag;
-				const x1 = cx + Math.cos(rad) * halfDiag;
-				const y1 = cy + Math.sin(rad) * halfDiag;
-				grad = ctx.createLinearGradient(x0, y0, x1, y1);
-			} else {
-				grad = ctx.createLinearGradient(0, 0, size, 0);
-			}
-
-			grad.addColorStop(0, startStr);
-			grad.addColorStop(1, endStr);
+			const grad = createGradientPaint(ctx, gradient, { x: 0, y: 0, width: size, height: size });
 			ctx.fillStyle = grad;
 			ctx.fillRect(0, 0, size, size);
 

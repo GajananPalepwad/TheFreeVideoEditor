@@ -124,7 +124,15 @@ import {
 	type TrackerId,
 	type TrackerRegion,
 	type TrackerSample,
-	type TrackerType
+	type TrackerType,
+	type GradientStop,
+	type GradientType,
+	MAX_GRADIENT_STOPS,
+	removeClipGradientStop,
+	setClipGradientStops,
+	stopsForEditing,
+	withGradientType,
+	withNewStop
 } from '../core';
 import { trackingService } from '../services/tracking/trackingService';
 import { captureBindingOffsets, bakeTrackingToKeyframes } from '../core/tracking/apply';
@@ -967,6 +975,14 @@ export interface EditorState {
 			gradientAngle?: number;
 		}
 	) => boolean;
+	/** Sets the whole list of colour stops (2 to 16, positions 0 to 1) of a clip's gradient. */
+	setGradientStops: (clipId: ClipId, stops: GradientStop[]) => boolean;
+	/** Adds a stop in the widest gap, starting a list from the fill and end colour if there is none. */
+	addGradientStop: (clipId: ClipId) => boolean;
+	/** Removes a stop, keeping at least two, and renumbers the animation of the later stops. */
+	removeGradientStop: (clipId: ClipId, index: number) => boolean;
+	/** Sets a clip's gradient type, giving it a colour to blend to if it has none; `none` keeps the stops. */
+	setGradientType: (clipId: ClipId, type: GradientType) => boolean;
 	setTextGradient: (
 		clipId: ClipId,
 		options: {
@@ -1174,6 +1190,48 @@ export function createEditorStore() {
 			 */
 			function scoped(recipe: ProjectRecipe): ProjectRecipe {
 				return (project) => applyToSequence(project, get().activeSequenceId, recipe);
+			}
+
+			/** Applies `edit` to one clip of the open sequence as one undo step. False when it changed nothing. */
+			function editClip(
+				label: string,
+				clipId: ClipId,
+				edit: (clip: Clip) => Clip,
+				options: { mergeKey?: string } = {}
+			): boolean {
+				const project = get().project;
+				if (!project) return false;
+				const current = findClipInSequence(project, get().activeSequenceId, clipId);
+				if (!current || edit(current) === current) return false;
+				try {
+					mutateProject(
+						label,
+						scoped((proj) => ({
+							...proj,
+							tracks: proj.tracks.map((track) => ({
+								...track,
+								clips: track.clips.map((clip) => (clip.id === clipId ? edit(clip) : clip))
+							}))
+						})),
+						{ history: 'record', ...options }
+					);
+					return true;
+				} catch (error) {
+					set((state) => {
+						state.projectMessage = errorMessage(error);
+					});
+					return false;
+				}
+			}
+
+			/** The colour a clip's gradient starts from: its fill, or the colour of a solid. */
+			function clipFillColor(clip: Clip): { r: number; g: number; b: number; a: number } {
+				if (clip.source?.type === 'solid') return clip.source.color;
+				const id = clip.source?.type === 'shape' ? 'shape.fillColor' : 'text.fillColor';
+				const value = readProperty(clip, id, 0);
+				return Array.isArray(value) && value.length >= 4
+					? { r: value[0]!, g: value[1]!, b: value[2]!, a: value[3]! }
+					: { r: 1, g: 1, b: 1, a: 1 };
 			}
 
 			function mutateProject(
@@ -7378,6 +7436,35 @@ export function createEditorStore() {
 					} catch {
 						return false;
 					}
+				},
+
+				setGradientStops(clipId, stops) {
+					if (
+						stops.length < 2 ||
+						stops.length > MAX_GRADIENT_STOPS ||
+						stops.some((stop) => !(stop.offset >= 0 && stop.offset <= 1))
+					) {
+						return false;
+					}
+					return editClip('Edit gradient', clipId, (clip) => setClipGradientStops(clip, stops), {
+						mergeKey: `gradient-stops-${clipId}`
+					});
+				},
+
+				addGradientStop(clipId) {
+					return editClip('Add gradient stop', clipId, (clip) =>
+						setClipGradientStops(clip, withNewStop(stopsForEditing(clip, clipFillColor(clip))))
+					);
+				},
+
+				removeGradientStop(clipId, index) {
+					return editClip('Remove gradient stop', clipId, (clip) =>
+						removeClipGradientStop(clip, index)
+					);
+				},
+
+				setGradientType(clipId, type) {
+					return editClip('Set gradient type', clipId, (clip) => withGradientType(clip, type));
 				},
 
 				setTextGradient(clipId, options) {

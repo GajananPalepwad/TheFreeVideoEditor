@@ -27,6 +27,7 @@ import MasksSection from './MasksSection';
 import { TrackingSection } from './TrackingSection';
 import TimeRemapSection from './TimeRemapSection';
 import { TextSection } from './TextSection';
+import { GradientSection } from './GradientSection';
 import { ShapeSection } from './ShapeSection';
 import { MotionTemplateSection } from './MotionTemplateSection';
 import { isMotionTemplateClip } from '../../core/templates/templateTypes';
@@ -203,6 +204,8 @@ export default function Inspector() {
 	const isShapeExpanded = inspector.expanded.shape !== false;
 	const isSolid = selectedClip.source?.type === 'solid';
 	const isSolidExpanded = inspector.expanded.solid !== false;
+	const hasGradientSection = isText || isShape || isSolid;
+	const isGradientExpanded = inspector.expanded.gradient !== false;
 	const hasAudio =
 		!isText && !isShape && (clipTrack?.kind === 'audio' || (clipAsset?.hasAudio ?? false));
 
@@ -352,12 +355,19 @@ export default function Inspector() {
 									}}
 									label="Solid Color"
 									hasAlpha={true}
-									gradient={{
+									gradient={
+									selectedClip.source.gradientStops
+										? undefined
+										: {
 										type: selectedClip.source.gradientType ?? 'none',
 										colorEnd: selectedClip.source.gradientColorEnd,
 										angle: selectedClip.source.gradientAngle ?? 90
-									}}
-									onGradientChange={({ type, colorEnd, angle }) => {
+									}
+									}
+									onGradientChange={
+									selectedClip.source.gradientStops
+										? undefined
+										: ({ type, colorEnd, angle }) => {
 										store.getState().setSolidGradient(selectedClip.id, {
 											gradientType: type,
 											gradientColorEnd: {
@@ -368,10 +378,38 @@ export default function Inspector() {
 											},
 											gradientAngle: angle
 										});
-									}}
+									}
+									}
 								/>
 							</div>
 						</div>
+					)}
+				</section>
+			)}
+
+			{/* Gradient Section */}
+			{hasGradientSection && (
+				<section className={`inspector-section ${isGradientExpanded ? 'is-open' : ''}`}>
+					<button
+						type="button"
+						className="inspector-section-header"
+						onClick={() => store.getState().setInspectorExpanded('gradient', !isGradientExpanded)}
+						aria-expanded={isGradientExpanded}
+					>
+						<span className="inspector-section-title">
+							<ChevronIcon />
+							Gradient
+						</span>
+					</button>
+					{isGradientExpanded && (
+						<GradientSection
+							clip={selectedClip}
+							localTime={localTime}
+							fps={project.settings.fps}
+							confirmDisable={confirmDisable}
+							onStartDisableConfirm={setConfirmDisable}
+							onCancelDisableConfirm={() => setConfirmDisable(null)}
+						/>
 					)}
 				</section>
 			)}
@@ -920,7 +958,7 @@ export function PropertyRow({
 							</button>
 						</div>
 					)}
-					{!isDefault && (
+					{!isDefault && !propertyId.startsWith('gradient.') && (
 						<button
 							type="button"
 							className="property-reset"
@@ -999,7 +1037,7 @@ export function PropertyRow({
 						label={desc.label}
 						hasAlpha={true}
 						gradient={
-							propertyId === 'text.fillColor' && clip.source?.type === 'text'
+							propertyId === 'text.fillColor' && clip.source?.type === 'text' && !clip.source.box?.gradientStops
 								? {
 										type: clip.source.box?.gradientType ?? 'none',
 										colorEnd: clip.source.box?.gradientColorEnd,
@@ -1008,7 +1046,7 @@ export function PropertyRow({
 								: undefined
 						}
 						onGradientChange={
-							propertyId === 'text.fillColor' && clip.source?.type === 'text'
+							propertyId === 'text.fillColor' && clip.source?.type === 'text' && !clip.source.box?.gradientStops
 								? ({ type, colorEnd, angle }) => {
 										store.getState().setTextGradient(clip.id, {
 											gradientType: type,

@@ -38,6 +38,7 @@ export interface ShapeConfig {
 	gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 	gradientColorEnd?: RgbaColor;
 	gradientAngle?: number;
+	gradientStops?: Array<{ offset: number; color: RgbaColor }>;
 }
 
 export interface ShapePreset {

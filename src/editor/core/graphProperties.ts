@@ -1,5 +1,6 @@
 import { isAnimated } from './animation';
 import { getEffectDefinition } from './effects/registry';
+import { gradientStopCount } from './gradient';
 import { readProperty, type PropertyValue } from './properties';
 import type { Clip, PropertyId, Time } from './types';
 
@@ -38,6 +39,13 @@ export function graphPropertyIds(clip: Clip): PropertyId[] {
 			'shape.strokeColor',
 			'shape.shadowColor'
 		);
+	}
+	const stops = gradientStopCount(clip);
+	if (stops > 0) {
+		ids.push('gradient.angle');
+		for (let index = 0; index < stops; index += 1) {
+			ids.push(`gradient.stop${index}.color`, `gradient.stop${index}.offset`);
+		}
 	}
 	for (const mask of clip.masks ?? []) {
 		ids.push(`mask:${mask.id}:feather`, `mask:${mask.id}:expansion`, `mask:${mask.id}:opacity`);

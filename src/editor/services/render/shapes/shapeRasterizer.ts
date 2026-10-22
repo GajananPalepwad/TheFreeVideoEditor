@@ -1,4 +1,6 @@
+import { gradientKey, layerGradient } from '../../../core/gradient';
 import type { ShapeConfig, RgbaColor } from '../../../core/shapes/shapeTypes';
+import { createGradientPaint } from '../gradientPaint';
 
 function rgbaToString(c: RgbaColor): string {
 	return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a})`;
@@ -16,7 +18,7 @@ const MAX_CACHE_SIZE = 64;
 function buildCacheKey(c: ShapeConfig, scale: number): string {
 	return (
 		`${c.shapeType}_${c.width}_${c.height}_${c.fillColor.r},${c.fillColor.g},${c.fillColor.b},${c.fillColor.a}_` +
-		`${c.gradientType ?? 'none'}_${c.gradientColorEnd?.r ?? 0},${c.gradientColorEnd?.g ?? 0},${c.gradientColorEnd?.b ?? 0},${c.gradientColorEnd?.a ?? 0}_${c.gradientAngle ?? 0}_` +
+		`${gradientKey(layerGradient(c.gradientType, c.fillColor, c.gradientColorEnd, c.gradientAngle, c.gradientStops))}_` +
 		`${c.strokeWidth ?? 0}_${c.strokeStyle ?? 'solid'}_${c.strokeColor?.r},${c.strokeColor?.g},${c.strokeColor?.b},${c.strokeColor?.a}_` +
 		`${c.cornerRadius ?? 0}_${c.points ?? 0}_${c.innerRadius ?? 0}_${c.shadowBlur ?? 0}_${c.shadowColor?.a ?? 0}_${scale}`
 	);
@@ -239,29 +241,20 @@ export function rasterizeShape(config: ShapeConfig, scale = 1): RenderedShape {
 
 	// Fill
 	if (config.fillColor && config.fillColor.a > 0 && config.shapeType !== 'line') {
-		if (config.gradientType && config.gradientType !== 'none' && config.gradientColorEnd) {
-			const startStr = rgbaToString(config.fillColor);
-			const endStr = rgbaToString(config.gradientColorEnd);
-			let grad: CanvasGradient;
-			if (config.gradientType === 'linear-vertical') {
-				grad = ctx.createLinearGradient(0, top, 0, bottom);
-			} else if (config.gradientType === 'radial') {
-				grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(baseW, baseH) / 2);
-			} else if (config.gradientType === 'linear-angle') {
-				const angleRad = ((config.gradientAngle ?? 45) * Math.PI) / 180;
-				const halfDiag = Math.sqrt(baseW * baseW + baseH * baseH) / 2;
-				const x0 = cx - Math.cos(angleRad) * halfDiag;
-				const y0 = cy - Math.sin(angleRad) * halfDiag;
-				const x1 = cx + Math.cos(angleRad) * halfDiag;
-				const y1 = cy + Math.sin(angleRad) * halfDiag;
-				grad = ctx.createLinearGradient(x0, y0, x1, y1);
-			} else {
-				// linear-horizontal
-				grad = ctx.createLinearGradient(left, 0, right, 0);
-			}
-			grad.addColorStop(0, startStr);
-			grad.addColorStop(1, endStr);
-			ctx.fillStyle = grad;
+		const gradient = layerGradient(
+			config.gradientType,
+			config.fillColor,
+			config.gradientColorEnd,
+			config.gradientAngle,
+			config.gradientStops
+		);
+		if (gradient) {
+			ctx.fillStyle = createGradientPaint(ctx, gradient, {
+				x: left,
+				y: top,
+				width: right - left,
+				height: bottom - top
+			});
 		} else {
 			ctx.fillStyle = rgbaToString(config.fillColor);
 		}
