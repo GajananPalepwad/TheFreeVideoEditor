@@ -30,6 +30,7 @@ A `.tfvetemplate` is JSON. The reader is `deserializeTemplate` and the schema is
 - **Template fields**: `id`, `name`, `category`, `description`, `author`, `createdAt`, `duration`
   (microseconds), `responsiveTiming` (`introDuration`, `outroDuration`), `bounds` (`width`, `height`,
   `originX`, `originY`), `tracks`, `publishedParams`, `previewThumbnail`.
+- **`resources`** (optional): fonts and media the template uses, so the file looks the same on another machine. `resources.fonts` is a list of `{ family, fileName, data }` and `resources.assets` a list of `{ id, name, mimeType, data }`, where `data` is base64 and an asset's `id` is the `assetId` its clips use. A file may embed up to 8 MB in total.
 - **`tracks`** use the same schema as a project's tracks, so a template cannot hold anything a project
   could not. Errors name the field, for example `tracks.0.clips.0.duration`.
 - **Unknown top-level fields** are kept when a template is read and written back.
@@ -120,6 +121,8 @@ depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` chec
   default size and at the slider maximum.
 - `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor, for every template at
   three times.
+- `templateResources.test.ts`: base64, which fonts and assets a template uses, embedding with the size limit, missing resources, remapping.
+- `tests/e2e/template-resources.spec.ts`: a custom font and a picture travel with a template and are installed on import, through the Graphics panel as well.
 - `tests/e2e/template-fidelity.spec.ts`: dragging each card and pressing "+ Add" build the same instance.
 - `tests/e2e/template-nested.spec.ts`: "+ Add" and a drag inside an open template sequence, and the real
   renderer drawing the inner template.
