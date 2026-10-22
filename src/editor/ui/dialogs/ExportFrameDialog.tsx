@@ -176,29 +176,24 @@ export default function ExportFrameDialog() {
 					</div>
 
 					{format !== 'png' && (
-						<label
-							className="dialog-field"
-							style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-						>
-							<span>Quality</span>
-							<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+						<div className="dialog-field export-frame-quality-field">
+							<div className="export-frame-quality-header">
+								<span>Quality</span>
+								<span className="export-frame-quality-val">{Math.round(quality * 100)}%</span>
+							</div>
+							<div className="export-frame-slider-container">
 								<input
 									type="range"
+									className="export-frame-slider"
 									min="0.5"
 									max="1"
 									step="0.01"
 									value={quality}
 									aria-label="Image quality"
-									style={{ width: '6rem' }}
 									onChange={(e) => setQuality(parseFloat(e.currentTarget.value))}
 								/>
-								<span
-									style={{ width: '2.5rem', textAlign: 'right', fontFamily: 'var(--font-mono)' }}
-								>
-									{Math.round(quality * 100)}%
-								</span>
 							</div>
-						</label>
+						</div>
 					)}
 
 					<label
