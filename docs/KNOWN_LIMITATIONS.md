@@ -121,10 +121,7 @@ Each item below is deferred on purpose. They follow the *Accepted Technical Debt
   as one bitmap, so characters cannot move, scale or rotate on their own. Mitigation: kinetic templates stack
   one text layer per line or word and reveal them with `text.reveal` (`Word Cascade`). Follow-up: per-glyph
   animation in the renderer.
-- **Multi-stop and keyframable gradients**: status `deferred`; owner Graphics Lead. Reason: a text gradient holds two
-  colours and one angle (`gradientColorEnd`, `gradientAngle`), and those fields are not animatable. Mitigation: templates
-  use two-colour gradients and animate opacity or position instead. Follow-up: multi-stop and keyframable
-  gradients.
+- **Gradients**: status `accepted limitation`; owner Graphics Lead. Reason: a gradient has at most 16 stops, its type cannot be keyframed, a radial gradient is always centred on the layer, it fills text and shapes but not their strokes, and interchange formats cannot carry it. Mitigation: the angle, and the colour and position of every stop, are keyframable. See `docs/GRADIENTS.md`.
 - **Assets and fonts inside `.tfvetemplate`**: status `deferred`; owner Templates Lead. Reason: a template
   stores clips, not the media or font files they use. A template that uses media exports a dangling asset id,
   and a template that names a font the user does not have falls back to the default font. Mitigation: the
