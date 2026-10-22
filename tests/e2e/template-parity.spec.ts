@@ -41,6 +41,7 @@ async function openProject(page: Page): Promise<void> {
 	await createDialog.getByRole('button', { name: 'Create project' }).click();
 	await expect(manager).not.toBeVisible();
 	await page.waitForFunction(() => Boolean((window as any).__TFVE_STORE__));
+	await page.locator('[data-testid="preview-canvas"]').waitFor({ state: 'visible' });
 }
 
 interface Parity {
