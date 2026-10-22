@@ -40,7 +40,7 @@
             "type": "shape",
             "shapeType": "rect",
             "width": 18,
-            "height": 104,
+            "height": 80,
             "cornerRadius": 4,
             "fillColor": {
               "r": 0,
@@ -54,7 +54,7 @@
             "position": {
               "value": [
                 -360,
-                0
+                -3
               ]
             },
             "scale": {
@@ -79,7 +79,7 @@
                   "time": 300000,
                   "value": [
                     1,
-                    1.15
+                    1.12
                   ],
                   "interpolation": "linear"
                 },
@@ -92,16 +92,17 @@
                   "interpolation": "linear"
                 },
                 {
-                  "time": 4900000,
+                  "time": 5100000,
                   "value": [
                     1,
                     1
                   ],
                   "interpolation": "bezier",
-                  "easeOut": {
-                    "x": 0.16,
+                  "easeIn": {
+                    "x": 0.3,
                     "y": 1
-                  }
+                  },
+                  "anchor": "end"
                 },
                 {
                   "time": 5400000,
@@ -109,7 +110,8 @@
                     1,
                     0
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -126,14 +128,16 @@
                   "interpolation": "linear"
                 },
                 {
-                  "time": 4900000,
+                  "time": 5100000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
                   "time": 5400000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             }
@@ -168,7 +172,7 @@
             },
             "box": {
               "autoSize": true,
-              "verticalAnchor": "top",
+              "verticalAnchor": "bottom",
               "paddingX": 0,
               "paddingY": 0,
               "frameStyle": "none"
@@ -191,7 +195,7 @@
             "position": {
               "value": [
                 -320,
-                -22
+                8
               ]
             },
             "text.fontSize": {
@@ -258,17 +262,19 @@
                     0,
                     0
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5200000,
+                  "time": 5100000,
                   "value": [
                     0,
                     0,
                     1,
                     0
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -285,14 +291,16 @@
                   "interpolation": "linear"
                 },
                 {
-                  "time": 5200000,
+                  "time": 5100000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5400000,
+                  "time": 5300000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             }
@@ -319,8 +327,8 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 220,
-            "height": 76,
+            "width": 110,
+            "height": 62,
             "cornerRadius": 2,
             "fillColor": {
               "r": 1,
@@ -336,90 +344,86 @@
                 {
                   "time": 0,
                   "value": [
-                    -320,
-                    -22
+                    -265,
+                    -13
                   ],
                   "interpolation": "linear"
                 },
                 {
                   "time": 450000,
                   "value": [
-                    -320,
-                    -22
+                    -265,
+                    -13
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
-                    "x": 0.2,
+                    "x": 0.16,
                     "y": 1
                   }
                 },
                 {
-                  "time": 750000,
+                  "time": 850000,
                   "value": [
-                    -190,
-                    -22
+                    -76,
+                    -13
                   ],
                   "interpolation": "linear"
                 },
                 {
-                  "time": 1050000,
+                  "time": 1250000,
                   "value": [
-                    -40,
-                    -22
+                    148,
+                    -13
                   ],
                   "interpolation": "linear"
                 },
                 {
-                  "time": 1300000,
+                  "time": 1400000,
                   "value": [
-                    120,
-                    -22
-                  ],
-                  "interpolation": "linear"
-                },
-                {
-                  "time": 1450000,
-                  "value": [
-                    180,
-                    -22
+                    195,
+                    -13
                   ],
                   "interpolation": "linear"
                 },
                 {
                   "time": 4450000,
                   "value": [
-                    180,
-                    -22
+                    195,
+                    -13
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
                   "time": 4600000,
                   "value": [
-                    120,
-                    -22
+                    148,
+                    -13
                   ],
                   "interpolation": "bezier",
                   "easeIn": {
                     "x": 0.3,
                     "y": 1
-                  }
+                  },
+                  "anchor": "end"
                 },
                 {
-                  "time": 4900000,
+                  "time": 4850000,
                   "value": [
-                    -60,
-                    -22
+                    -76,
+                    -13
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5200000,
+                  "time": 5100000,
                   "value": [
-                    -320,
-                    -22
+                    -265,
+                    -13
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -444,34 +448,46 @@
                 {
                   "time": 1400000,
                   "value": [
-                    0.1,
+                    0.05,
                     1
                   ],
                   "interpolation": "linear"
                 },
                 {
-                  "time": 4550000,
+                  "time": 4450000,
                   "value": [
-                    0.1,
+                    0.05,
                     1
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 4650000,
+                  "time": 4600000,
                   "value": [
                     1,
                     1
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5350000,
+                  "time": 5000000,
                   "value": [
-                    0.1,
+                    1,
                     1
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
+                },
+                {
+                  "time": 5150000,
+                  "value": [
+                    0.05,
+                    1
+                  ],
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -498,24 +514,28 @@
                   "interpolation": "linear"
                 },
                 {
-                  "time": 4550000,
+                  "time": 4450000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 4650000,
+                  "time": 4600000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5200000,
+                  "time": 5000000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
-                  "time": 5350000,
+                  "time": 5150000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             }
@@ -575,7 +595,7 @@
                   "time": 0,
                   "value": [
                     -320,
-                    42
+                    32
                   ],
                   "interpolation": "linear"
                 },
@@ -583,7 +603,7 @@
                   "time": 850000,
                   "value": [
                     -320,
-                    42
+                    32
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
@@ -595,7 +615,7 @@
                   "time": 1350000,
                   "value": [
                     -320,
-                    28
+                    18
                   ],
                   "interpolation": "linear"
                 },
@@ -603,21 +623,23 @@
                   "time": 4650000,
                   "value": [
                     -320,
-                    28
+                    18
                   ],
                   "interpolation": "bezier",
                   "easeIn": {
                     "x": 0.3,
                     "y": 1
-                  }
+                  },
+                  "anchor": "end"
                 },
                 {
                   "time": 5150000,
                   "value": [
                     -320,
-                    42
+                    32
                   ],
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },
@@ -641,12 +663,14 @@
                 {
                   "time": 4650000,
                   "value": 1,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 },
                 {
                   "time": 5150000,
                   "value": 0,
-                  "interpolation": "linear"
+                  "interpolation": "linear",
+                  "anchor": "end"
                 }
               ]
             },

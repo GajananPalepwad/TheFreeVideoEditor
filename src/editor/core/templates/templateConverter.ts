@@ -129,6 +129,9 @@ export function convertGraphicTemplateToMotionTemplate(
 	if (template.id === 'word-cascade') {
 		return createWordCascadeTemplate();
 	}
+	if (template.id === 'kinetic-marquee-stack') {
+		return createKineticMarqueeStackTemplate();
+	}
 
 	// 1. Build the primary animated text clip
 	const textClip = createGraphicClip(template.id, 0, duration, template.defaultText);
@@ -444,6 +447,204 @@ export function convertAllGraphicTemplates(): MotionGraphicTemplate[] {
 }
 
 /**
+ * Creates the Streetwear Kinetic Marquee Stack template:
+ * Edgy -6° angled kinetic typography with matching slanted frame,
+ * dynamic snap punch zoom with overshoot, live breathing camera drift,
+ * and rapid exit snap.
+ */
+export function createKineticMarqueeStackTemplate(): MotionGraphicTemplate {
+	const duration = 5_000_000;
+	const angle = -6;
+
+	const scaleKeyframes = [
+		{
+			time: 0,
+			value: [0.35, 0.35],
+			interpolation: 'bezier' as const,
+			easeOut: { x: 0.16, y: 1 },
+			easeIn: { x: 0.3, y: 1 }
+		},
+		{
+			time: 300_000,
+			value: [1.08, 1.08],
+			interpolation: 'bezier' as const,
+			easeOut: { x: 0.25, y: 0.1 },
+			easeIn: { x: 0.25, y: 1 }
+		},
+		{ time: 450_000, value: [1.0, 1.0], interpolation: 'linear' as const },
+		{ time: 4_550_000, value: [1.0, 1.0], interpolation: 'linear' as const, anchor: 'end' as const },
+		{
+			time: 4_800_000,
+			value: [1.07, 1.07],
+			interpolation: 'bezier' as const,
+			easeOut: { x: 0.16, y: 1 },
+			easeIn: { x: 0.3, y: 1 },
+			anchor: 'end' as const
+		},
+		{ time: 5_000_000, value: [0.35, 0.35], interpolation: 'linear' as const, anchor: 'end' as const }
+	];
+
+	const opacityKeyframes = [
+		{ time: 0, value: 0, interpolation: 'linear' as const },
+		{ time: 180_000, value: 1, interpolation: 'linear' as const },
+		{ time: 4_550_000, value: 1, interpolation: 'linear' as const, anchor: 'end' as const },
+		{ time: 5_000_000, value: 0, interpolation: 'linear' as const, anchor: 'end' as const }
+	];
+
+	const textClip: Clip = {
+		id: 'clip_text_kinetic-marquee-stack' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'text',
+			text: 'NEVER STOP\nTHE FUTURE IS CREATED TODAY',
+			style: {
+				fontFamily: 'Montserrat',
+				fontWeight: '900',
+				alignment: 'center',
+				letterSpacing: -0.5
+			},
+			box: {
+				autoSize: true,
+				verticalAnchor: 'center',
+				paddingX: 36,
+				paddingY: 22,
+				frameStyle: 'none'
+			},
+			colorRuns: [],
+			graphicTemplateId: 'kinetic-marquee-stack',
+			animationPresetId: 'kinetic-zoom'
+		},
+		properties: {
+			position: { value: [0, 0] },
+			rotation: { value: angle },
+			'text.fontSize': { value: 64 },
+			'text.letterSpacing': { value: -0.5 },
+			'text.fillColor': { value: [1, 1, 1, 1] },
+			'text.lineHeight': { value: 1.15 },
+			'text.shadowColor': { value: [1, 0.18, 0.48, 0.5] },
+			'text.shadowBlur': { value: 16 },
+			opacity: { keyframes: opacityKeyframes },
+			scale: { keyframes: scaleKeyframes }
+		},
+		effects: []
+	};
+
+	const shapeClip: Clip = {
+		id: 'clip_shape_kinetic-marquee-stack' as ClipId,
+		start: 0,
+		duration,
+		sourceIn: 0,
+		sourceOut: duration,
+		speed: 1,
+		volume: 0,
+		source: {
+			type: 'shape',
+			shapeType: 'rect',
+			width: 1240,
+			height: 240,
+			cornerRadius: 8,
+			fillColor: { r: 0.04, g: 0.05, b: 0.08, a: 0.75 },
+			strokeColor: { r: 1, g: 0.18, b: 0.48, a: 1 },
+			strokeWidth: 2.5,
+			shadowColor: { r: 1, g: 0.18, b: 0.48, a: 0.45 },
+			shadowBlur: 20
+		},
+		properties: {
+			position: { value: [0, 0] },
+			rotation: { value: angle },
+			scale: { keyframes: scaleKeyframes },
+			opacity: { keyframes: opacityKeyframes }
+		},
+		effects: []
+	};
+
+	const tracks: Track[] = [
+		{
+			id: 'track_text' as TrackId,
+			kind: 'video',
+			name: 'Title Text',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [textClip]
+		},
+		{
+			id: 'track_bg' as TrackId,
+			kind: 'video',
+			name: 'Background Frame',
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [shapeClip]
+		}
+	];
+
+	const publishedParams: PublishedTemplateParam[] = [
+		{
+			id: 'param_title_text',
+			name: 'Title Text',
+			type: 'text',
+			targetClipId: textClip.id,
+			targetProperty: 'text.content',
+			defaultValue: 'NEVER STOP\nTHE FUTURE IS CREATED TODAY'
+		},
+		{
+			id: 'param_font_family',
+			name: 'Font Family',
+			type: 'font',
+			targetClipId: textClip.id,
+			targetProperty: 'text.fontFamily',
+			defaultValue: 'Montserrat'
+		},
+		textSizeParam('param_text_size', 'Text Size', textClip.id, 64),
+		{
+			id: 'param_text_color',
+			name: 'Text Color',
+			type: 'color',
+			targetClipId: textClip.id,
+			targetProperty: 'text.fill',
+			defaultValue: { r: 1, g: 1, b: 1, a: 1 }
+		},
+		{
+			id: 'param_shape_fill',
+			name: 'Accent / Background Color',
+			type: 'color',
+			targetClipId: shapeClip.id,
+			targetProperty: 'shape.fill',
+			defaultValue: { r: 0.04, g: 0.05, b: 0.08, a: 0.75 }
+		},
+		{
+			id: 'param_shape_stroke',
+			name: 'Border Color',
+			type: 'color',
+			targetClipId: shapeClip.id,
+			targetProperty: 'shape.stroke',
+			defaultValue: { r: 1, g: 0.18, b: 0.48, a: 1 }
+		}
+	];
+
+	const template = createTemplateFromClips({
+		name: 'Kinetic Marquee Stack',
+		category: 'Kinetic',
+		description:
+			'Streetwear kinetic typography with bold angular frame and punch zoom for music videos',
+		author: 'TheFreeVideoEditor',
+		clips: [textClip, shapeClip],
+		tracks,
+		publishedParams,
+		responsiveTiming: { introDuration: 450_000, outroDuration: 450_000 },
+		textScale: TEXT_SIZE_MAX_SCALE
+	});
+	template.id = 'kinetic-marquee-stack';
+	return template;
+}
+
+/**
  * Kinetic type built from stacked layers: three lines, each on its own track, that reveal word by
  * word one after another while sliding up into place.
  */
@@ -586,13 +787,13 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			type: 'shape',
 			shapeType: 'rect',
 			width: 18,
-			height: 104,
+			height: 80,
 			cornerRadius: 4,
 			fillColor: { r: 0.0, g: 0.82, b: 0.95, a: 1 },
 			strokeWidth: 0
 		},
 		properties: {
-			position: { value: [-360, 0] },
+			position: { value: [-360, -3] },
 			scale: {
 				keyframes: [
 					{
@@ -602,23 +803,24 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 						easeOut: { x: 0.16, y: 1 },
 						easeIn: { x: 0.3, y: 1 }
 					},
-					{ time: 300_000, value: [1, 1.15], interpolation: 'linear' },
+					{ time: 300_000, value: [1, 1.12], interpolation: 'linear' },
 					{ time: 450_000, value: [1, 1.0], interpolation: 'linear' },
 					{
-						time: 4_900_000,
+						time: 5_100_000,
 						value: [1, 1.0],
 						interpolation: 'bezier',
-						easeOut: { x: 0.16, y: 1 }
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
 					},
-					{ time: 5_400_000, value: [1, 0.0], interpolation: 'linear' }
+					{ time: 5_400_000, value: [1, 0.0], interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			opacity: {
 				keyframes: [
 					{ time: 0, value: 0, interpolation: 'linear' },
 					{ time: 200_000, value: 1, interpolation: 'linear' },
-					{ time: 4_900_000, value: 1, interpolation: 'linear' },
-					{ time: 5_400_000, value: 0, interpolation: 'linear' }
+					{ time: 5_100_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 5_400_000, value: 0, interpolation: 'linear', anchor: 'end' }
 				]
 			}
 		}
@@ -644,7 +846,7 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			},
 			box: {
 				autoSize: true,
-				verticalAnchor: 'top',
+				verticalAnchor: 'bottom',
 				paddingX: 0,
 				paddingY: 0,
 				frameStyle: 'none'
@@ -659,7 +861,7 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 			graphicTemplateId: 'mixkit-minimal-wipe-lower-third'
 		},
 		properties: {
-			position: { value: [-320, -22] },
+			position: { value: [-320, 8] },
 			'text.fontSize': { value: 58 },
 			'text.fillColor': { value: [1, 1, 1, 1] },
 			'text.letterSpacing': { value: 2 },
@@ -670,16 +872,16 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 					{ time: 500_000, value: [0, 0, 1, 0], interpolation: 'linear' },
 					{ time: 850_000, value: [0, 0, 0.55, 0], interpolation: 'linear' },
 					{ time: 1_250_000, value: [0, 0, 0, 0], interpolation: 'linear' },
-					{ time: 4_600_000, value: [0, 0, 0, 0], interpolation: 'linear' },
-					{ time: 5_200_000, value: [0, 0, 1, 0], interpolation: 'linear' }
+					{ time: 4_600_000, value: [0, 0, 0, 0], interpolation: 'linear', anchor: 'end' },
+					{ time: 5_100_000, value: [0, 0, 1, 0], interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			opacity: {
 				keyframes: [
 					{ time: 0, value: 0, interpolation: 'linear' },
 					{ time: 500_000, value: 1, interpolation: 'linear' },
-					{ time: 5_200_000, value: 1, interpolation: 'linear' },
-					{ time: 5_400_000, value: 0, interpolation: 'linear' }
+					{ time: 5_100_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 5_300_000, value: 0, interpolation: 'linear', anchor: 'end' }
 				]
 			}
 		}
@@ -697,8 +899,8 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 		source: {
 			type: 'shape',
 			shapeType: 'rect',
-			width: 220,
-			height: 76,
+			width: 110,
+			height: 62,
 			cornerRadius: 2,
 			fillColor: { r: 1, g: 1, b: 1, a: 1 },
 			strokeWidth: 0
@@ -706,36 +908,37 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 		properties: {
 			position: {
 				keyframes: [
-					{ time: 0, value: [-320, -22], interpolation: 'linear' },
+					{ time: 0, value: [-265, -13], interpolation: 'linear' },
 					{
 						time: 450_000,
-						value: [-320, -22],
+						value: [-265, -13],
 						interpolation: 'bezier',
-						easeOut: { x: 0.2, y: 1 }
+						easeOut: { x: 0.16, y: 1 }
 					},
-					{ time: 750_000, value: [-190, -22], interpolation: 'linear' },
-					{ time: 1_050_000, value: [-40, -22], interpolation: 'linear' },
-					{ time: 1_300_000, value: [120, -22], interpolation: 'linear' },
-					{ time: 1_450_000, value: [180, -22], interpolation: 'linear' },
-					{ time: 4_450_000, value: [180, -22], interpolation: 'linear' },
+					{ time: 850_000, value: [-76, -13], interpolation: 'linear' },
+					{ time: 1_250_000, value: [148, -13], interpolation: 'linear' },
+					{ time: 1_400_000, value: [195, -13], interpolation: 'linear' },
+					{ time: 4_450_000, value: [195, -13], interpolation: 'linear', anchor: 'end' },
 					{
 						time: 4_600_000,
-						value: [120, -22],
+						value: [148, -13],
 						interpolation: 'bezier',
-						easeIn: { x: 0.3, y: 1 }
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
 					},
-					{ time: 4_900_000, value: [-60, -22], interpolation: 'linear' },
-					{ time: 5_200_000, value: [-320, -22], interpolation: 'linear' }
+					{ time: 4_850_000, value: [-76, -13], interpolation: 'linear', anchor: 'end' },
+					{ time: 5_100_000, value: [-265, -13], interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			scale: {
 				keyframes: [
 					{ time: 0, value: [1, 1], interpolation: 'linear' },
 					{ time: 1_250_000, value: [1, 1], interpolation: 'linear' },
-					{ time: 1_400_000, value: [0.1, 1], interpolation: 'linear' },
-					{ time: 4_550_000, value: [0.1, 1], interpolation: 'linear' },
-					{ time: 4_650_000, value: [1, 1], interpolation: 'linear' },
-					{ time: 5_350_000, value: [0.1, 1], interpolation: 'linear' }
+					{ time: 1_400_000, value: [0.05, 1], interpolation: 'linear' },
+					{ time: 4_450_000, value: [0.05, 1], interpolation: 'linear', anchor: 'end' },
+					{ time: 4_600_000, value: [1, 1], interpolation: 'linear', anchor: 'end' },
+					{ time: 5_000_000, value: [1, 1], interpolation: 'linear', anchor: 'end' },
+					{ time: 5_150_000, value: [0.05, 1], interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			opacity: {
@@ -744,10 +947,10 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 					{ time: 450_000, value: 1, interpolation: 'linear' },
 					{ time: 1_250_000, value: 1, interpolation: 'linear' },
 					{ time: 1_400_000, value: 0, interpolation: 'linear' },
-					{ time: 4_550_000, value: 0, interpolation: 'linear' },
-					{ time: 4_650_000, value: 1, interpolation: 'linear' },
-					{ time: 5_200_000, value: 1, interpolation: 'linear' },
-					{ time: 5_350_000, value: 0, interpolation: 'linear' }
+					{ time: 4_450_000, value: 0, interpolation: 'linear', anchor: 'end' },
+					{ time: 4_600_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 5_000_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 5_150_000, value: 0, interpolation: 'linear', anchor: 'end' }
 				]
 			}
 		}
@@ -789,21 +992,22 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 		properties: {
 			position: {
 				keyframes: [
-					{ time: 0, value: [-320, 42], interpolation: 'linear' },
+					{ time: 0, value: [-320, 32], interpolation: 'linear' },
 					{
 						time: 850_000,
-						value: [-320, 42],
+						value: [-320, 32],
 						interpolation: 'bezier',
 						easeOut: { x: 0.16, y: 1 }
 					},
-					{ time: 1_350_000, value: [-320, 28], interpolation: 'linear' },
+					{ time: 1_350_000, value: [-320, 18], interpolation: 'linear' },
 					{
 						time: 4_650_000,
-						value: [-320, 28],
+						value: [-320, 18],
 						interpolation: 'bezier',
-						easeIn: { x: 0.3, y: 1 }
+						easeIn: { x: 0.3, y: 1 },
+						anchor: 'end'
 					},
-					{ time: 5_150_000, value: [-320, 42], interpolation: 'linear' }
+					{ time: 5_150_000, value: [-320, 32], interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			opacity: {
@@ -811,8 +1015,8 @@ export function createMixkitMinimalWipeTemplate(): MotionGraphicTemplate {
 					{ time: 0, value: 0, interpolation: 'linear' },
 					{ time: 850_000, value: 0, interpolation: 'linear' },
 					{ time: 1_350_000, value: 1, interpolation: 'linear' },
-					{ time: 4_650_000, value: 1, interpolation: 'linear' },
-					{ time: 5_150_000, value: 0, interpolation: 'linear' }
+					{ time: 4_650_000, value: 1, interpolation: 'linear', anchor: 'end' },
+					{ time: 5_150_000, value: 0, interpolation: 'linear', anchor: 'end' }
 				]
 			},
 			'text.fontSize': { value: 22 },
