@@ -2,8 +2,15 @@ import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } fro
 import { ticksToTimecode } from '../../core/time';
 import { saveFile, type SaveFileType } from '../../services/storage/fileAccess';
 import { useEditorStore } from '../../state/EditorProvider';
+import './export-frame-dialog.css';
 
-type ImageFormat = 'png' | 'jpeg' | 'webp';
+type ImageFormat = 'jpeg' | 'png' | 'webp';
+
+const FORMAT_OPTIONS: { id: ImageFormat; label: string }[] = [
+	{ id: 'jpeg', label: 'JPEG' },
+	{ id: 'png', label: 'PNG' },
+	{ id: 'webp', label: 'WebP' }
+];
 
 export default function ExportFrameDialog() {
 	const open = useEditorStore((state) => state.isExportFrameDialogOpen);
@@ -11,7 +18,7 @@ export default function ExportFrameDialog() {
 	const project = useEditorStore((state) => state.project);
 	const playhead = useEditorStore((state) => state.timeline.playhead);
 
-	const [format, setFormat] = useState<ImageFormat>('png');
+	const [format, setFormat] = useState<ImageFormat>('jpeg');
 	const [quality, setQuality] = useState<number>(0.92);
 	const [filename, setFilename] = useState<string>('');
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -101,6 +108,7 @@ export default function ExportFrameDialog() {
 
 	const fps = project.settings.fps || 30;
 	const timecode = ticksToTimecode(playhead, fps);
+	const extension = format === 'jpeg' ? '.jpg' : `.${format}`;
 
 	return (
 		<dialog
@@ -133,57 +141,39 @@ export default function ExportFrameDialog() {
 
 				<div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
 					{previewUrl && (
-						<div
-							style={{
-								width: '100%',
-								maxHeight: '160px',
-								borderRadius: 'var(--radius-sm)',
-								overflow: 'hidden',
-								backgroundColor: 'var(--color-canvas-sunken, #000)',
-								border: '1px solid var(--color-hairline, rgba(255,255,255,0.1))',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center'
-							}}
-						>
+						<div className="export-frame-preview-box">
 							<img
 								src={previewUrl}
 								alt="Captured frame preview"
-								style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain' }}
+								className="export-frame-preview-img"
 							/>
 						</div>
 					)}
 
-					<div
-						style={{
-							fontSize: 'var(--text-body-sm)',
-							color: 'var(--color-mute)',
-							display: 'flex',
-							justifyContent: 'space-between'
-						}}
-					>
+					<div className="export-frame-meta">
 						<span>
 							Resolution: {project.settings.width} × {project.settings.height}
 						</span>
-						<span style={{ fontFamily: 'var(--font-mono)' }}>{timecode}</span>
+						<span className="export-frame-timecode">{timecode}</span>
 					</div>
 
-					<label
-						className="dialog-field"
-						style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-					>
+					<div className="dialog-field">
 						<span>Format</span>
-						<select
-							value={format}
-							aria-label="Image format"
-							style={{ width: '8rem' }}
-							onChange={(e) => setFormat(e.currentTarget.value as ImageFormat)}
-						>
-							<option value="png">PNG (Lossless)</option>
-							<option value="jpeg">JPEG</option>
-							<option value="webp">WebP</option>
-						</select>
-					</label>
+						<div className="export-frame-format-group" role="radiogroup" aria-label="Image format">
+							{FORMAT_OPTIONS.map((opt) => (
+								<button
+									key={opt.id}
+									type="button"
+									role="radio"
+									aria-checked={format === opt.id}
+									className={`export-frame-format-btn ${format === opt.id ? 'is-active' : ''}`}
+									onClick={() => setFormat(opt.id)}
+								>
+									{opt.label}
+								</button>
+							))}
+						</div>
+					</div>
 
 					{format !== 'png' && (
 						<label
@@ -216,14 +206,26 @@ export default function ExportFrameDialog() {
 						style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xxs)' }}
 					>
 						<span>File Name</span>
-						<input
-							ref={filenameInputRef}
-							type="text"
-							value={filename}
-							aria-label="File name"
-							required
-							onChange={(e) => setFilename(e.currentTarget.value)}
-						/>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xxs)' }}>
+							<input
+								ref={filenameInputRef}
+								type="text"
+								value={filename}
+								aria-label="File name"
+								required
+								style={{ flex: 1 }}
+								onChange={(e) => setFilename(e.currentTarget.value)}
+							/>
+							<span
+								style={{
+									color: 'var(--color-mute)',
+									fontFamily: 'var(--font-mono)',
+									fontSize: '12px'
+								}}
+							>
+								{extension}
+							</span>
+						</div>
 					</label>
 				</div>
 
