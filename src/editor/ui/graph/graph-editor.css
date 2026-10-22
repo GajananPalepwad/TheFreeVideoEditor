@@ -617,3 +617,59 @@
 :root[data-theme='light'] .graph-empty-state {
 	color: #94a3b8;
 }
+
+/* Exact numbers for the selected keyframe */
+.graph-numbers-bar {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 10px;
+	border-bottom: 1px solid var(--color-hairline);
+	background: var(--color-canvas);
+}
+
+.graph-numbers {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 10px;
+}
+
+.graph-numbers-title {
+	min-width: 72px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-ink);
+}
+
+.graph-number-field {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	color: var(--color-mute);
+}
+
+.graph-number-input {
+	width: 64px;
+	height: 20px;
+	padding: 0 4px;
+	border: 1px solid var(--color-hairline);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-ink);
+	font-size: 11px;
+}
+
+.graph-number-input:focus {
+	outline: none;
+	border-color: var(--color-primary);
+}
+
+.graph-number-unit {
+	min-width: 10px;
+}
+
+.graph-speed-path {
+	stroke-dasharray: none;
+}

@@ -101,3 +101,9 @@ mask:<maskId>:<property>
 - **Timeline & Inspector Integration**:
   - Timeline lanes (`ClipView.tsx`) display keyframe diamonds for active mask properties.
   - Inspector Masks section provides stopwatch toggles, keyframe steppers (prev/next), and diamond toggle buttons for shape and scalar properties.
+
+## Graph Editor: exact numbers and the speed graph
+
+- **Numbers for the selected keyframe**: with one keyframe selected, a bar above the curves shows its Time (seconds), Value (display units) and, for a bezier segment, the influence and value of its handles, in percent. A number applies on Enter or when the field loses focus, as one undo step; an entry that is not a number is ignored. `core/curveNumerics.ts` converts between handles and numbers.
+- **Handle numbers**: an out handle is measured forwards from its keyframe and an in handle backwards from its own keyframe (the in handle is stored on the key at the end of its segment, measured from the segment's start), so the default ease reads 42% influence, 0% value on both sides. Influence stays within the segment (0 to 100%). A value above 100% or below 0% overshoots. The influence of each handle is its weight, set independently of the other handle.
+- **Speed graph**: the Speed button replaces the value curves with how fast each visible curve changes, in its display units per second (`velocityCurve` in `core/curveNumerics.ts`, measured over a 10 ms window). It is read only. A fall draws below the zero line.

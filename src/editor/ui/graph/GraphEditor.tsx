@@ -30,6 +30,8 @@ import {
 	type PropertyValue,
 	type Time
 } from '../../core';
+import KeyframeNumbers from './KeyframeNumbers';
+import SpeedGraph from './SpeedGraph';
 import './graph-editor.css';
 
 export interface GraphEditorCurve {
@@ -160,6 +162,7 @@ export default function GraphEditor() {
 	const [viewSize, setViewSize] = useState({ width: 800, height: 190 });
 	const [customViewport, setCustomViewport] = useState<ViewportBounds | null>(null);
 	const [soloChannelId, setSoloChannelId] = useState<string | null>(null);
+	const [speedView, setSpeedView] = useState(false);
 	const [marquee, setMarquee] = useState<{ startX: number; startY: number; currentX: number; currentY: number } | null>(null);
 	const [hud, setHud] = useState<{
 		visible: boolean;
@@ -1188,6 +1191,20 @@ export default function GraphEditor() {
 
 				<div className="graph-toolbar-divider" />
 
+				<div className="graph-toolbar-group">
+					<button
+						type="button"
+						className={`graph-preset-btn ${speedView ? 'is-active' : ''}`}
+						aria-pressed={speedView}
+						onClick={() => setSpeedView((on) => !on)}
+						title="Show how fast each curve changes (speed graph)"
+					>
+						Speed
+					</button>
+				</div>
+
+				<div className="graph-toolbar-divider" />
+
 				{/* Viewport Zoom & Close */}
 				<div className="graph-toolbar-group" style={{ marginLeft: 'auto' }}>
 					<button
@@ -1259,6 +1276,26 @@ export default function GraphEditor() {
 				</div>
 			</div>
 
+			{!speedView && selectedClip && selectedKeyframeRefs.length === 1 && (
+				<div className="graph-numbers-bar">
+					{curves
+						.filter((curve) => curve.propertyId === selectedKeyframeRefs[0]!.propertyId)
+						.map((curve) => {
+							const index = curve.keyframes.findIndex(
+								(item) => item.time === selectedKeyframeRefs[0]!.time
+							);
+							return index < 0 ? null : (
+								<KeyframeNumbers
+									key={curve.id}
+									clip={selectedClip}
+									curve={curve}
+									index={index}
+								/>
+							);
+						})}
+				</div>
+			)}
+
 			{/* SVG Curve Canvas Container */}
 			<div className="graph-canvas-container">
 				{!selectedClip ? (
@@ -1277,6 +1314,14 @@ export default function GraphEditor() {
 						</svg>
 						<span>No animated curves active. Turn on keyframes in Inspector or double-click to add a keyframe.</span>
 					</div>
+				) : speedView ? (
+					<SpeedGraph
+						clip={selectedClip}
+						curves={curves}
+						minT={bounds.minT}
+						maxT={bounds.maxT}
+						playhead={playhead - selectedClip.start}
+					/>
 				) : (
 					<svg
 						ref={(el) => {
