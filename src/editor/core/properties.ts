@@ -1,6 +1,7 @@
 import { evaluate, isAnimatedValue } from './animation';
 import { clampCrop, type Crop } from './crop';
 import { getEffectDefinition } from './effects/registry';
+import { gradientFieldsOf, stopsForEditing, type GradientColor } from './gradient';
 import type { AnimatedValue, Clip, ClipTransform, PropertyId, Time } from './types';
 
 export type PropertyShape = 'number' | 'vec2' | 'vec4' | 'numberArray';
@@ -743,6 +744,35 @@ export function propertyCurve(
 	return clip.properties?.[id] as AnimatedValue<PropertyValue> | undefined;
 }
 
+/** The fill a clip's gradient starts from, at a moment. */
+function gradientFill(clip: Clip, localTime: Time): GradientColor {
+	if (clip.source?.type === 'solid') return clip.source.color;
+	const value = readProperty(
+		clip,
+		clip.source?.type === 'shape' ? 'shape.fillColor' : 'text.fillColor',
+		localTime
+	);
+	return Array.isArray(value) && value.length >= 4
+		? { r: value[0]!, g: value[1]!, b: value[2]!, a: value[3]! }
+		: { r: 1, g: 1, b: 1, a: 1 };
+}
+
+/** What a gradient property is when the clip does not animate it: the value its gradient has. */
+function gradientSourceValue(clip: Clip, id: PropertyId, localTime: Time): PropertyValue | undefined {
+	if (!id.startsWith('gradient.')) return undefined;
+	const fields = gradientFieldsOf(clip);
+	if (!fields?.gradientType || fields.gradientType === 'none') return undefined;
+	if (id === 'gradient.angle') return fields.gradientAngle ?? 45;
+	const match = /^gradient\.stop(\d+)\.(offset|color)$/.exec(id);
+	const stop = match
+		? stopsForEditing(clip, gradientFill(clip, localTime))[Number(match[1])]
+		: undefined;
+	if (!match || !stop) return undefined;
+	return match[2] === 'offset'
+		? stop.offset
+		: [stop.color.r, stop.color.g, stop.color.b, stop.color.a];
+}
+
 /** Evaluated property at a clip-local time, falling back to the legacy transform and then the default. */
 export function readProperty(clip: Clip, id: PropertyId, localTime: Time): PropertyValue {
 	if (id === 'timeRemap') {
@@ -756,6 +786,8 @@ export function readProperty(clip: Clip, id: PropertyId, localTime: Time): Prope
 	if (legacy !== undefined) return legacy;
 	const fromSource = shapeSourceValue(clip, id);
 	if (fromSource !== undefined) return fromSource;
+	const fromGradient = gradientSourceValue(clip, id, localTime);
+	if (fromGradient !== undefined) return fromGradient;
 	if (!descriptor) throw new RangeError(`Unknown property "${id}".`);
 	return defaultValueOf(descriptor);
 }

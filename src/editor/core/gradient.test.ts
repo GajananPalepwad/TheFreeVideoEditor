@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { resolveGradient, gradientKey, type GradientFields } from './gradient';
+import {
+	removeClipGradientStop,
+	resolveGradient,
+	gradientKey,
+	setClipGradientStops,
+	stopsForEditing,
+	withGradientType,
+	withNewStop,
+	gradientFieldsOf,
+	type GradientFields
+} from './gradient';
 import { graphPropertyIds } from './graphProperties';
-import { descriptorFor } from './properties';
+import { descriptorFor, readProperty } from './properties';
 import { clipSourceSchema } from './schema';
 import type { Clip, ClipId } from './types';
 
@@ -254,5 +264,206 @@ describe('gradient stops in the file format', () => {
 		).toThrow();
 		const many = Array.from({ length: 17 }, (_, index) => ({ offset: index / 16, color: RED }));
 		expect(() => clipSourceSchema.parse(solid(many))).toThrow();
+	});
+});
+
+describe('editing the stop list of a clip', () => {
+	const solid = (extra: object = {}): Clip =>
+		({
+			id: 'c' as ClipId,
+			start: 0,
+			duration: 1_000_000,
+			source: { type: 'solid', color: RED, gradientType: 'radial', ...extra }
+		}) as unknown as Clip;
+
+	it('starts a list from the fill and end colour of the old fields', () => {
+		const clip = solid({ gradientColorEnd: BLUE });
+		expect(stopsForEditing(clip, RED)).toEqual([
+			{ offset: 0, color: RED },
+			{ offset: 1, color: BLUE }
+		]);
+	});
+
+	it('keeps an existing list as it is', () => {
+		const stops = [
+			{ offset: 0, color: RED },
+			{ offset: 0.4, color: GREEN },
+			{ offset: 1, color: BLUE }
+		];
+		expect(stopsForEditing(solid({ gradientStops: stops }), RED)).toEqual(stops);
+	});
+
+	it('adds a stop in the middle of the widest gap, with the colour there', () => {
+		const next = withNewStop([
+			{ offset: 0, color: RED },
+			{ offset: 0.2, color: GREEN },
+			{ offset: 1, color: BLUE }
+		]);
+		expect(next).toHaveLength(4);
+		const added = next[3]!;
+		expect(added.offset).toBeCloseTo(0.6, 6);
+		// Half way from green to blue.
+		expect(added.color).toEqual({ r: 0, g: 0.5, b: 0.5, a: 1 });
+		// New stops go on the end, so the numbers of the others do not change.
+		expect(next.slice(0, 3).map((stop) => stop.offset)).toEqual([0, 0.2, 1]);
+	});
+
+	it('does not add past 16 stops', () => {
+		const full = Array.from({ length: 16 }, (_, index) => ({ offset: index / 15, color: RED }));
+		expect(withNewStop(full)).toBe(full);
+	});
+
+	it('writes the list where each kind of clip keeps it', () => {
+		const stops = [
+			{ offset: 0, color: RED },
+			{ offset: 1, color: BLUE }
+		];
+		const text = { id: 't', source: { type: 'text', text: 'x', box: { autoSize: true } } } as unknown as Clip;
+		expect(
+			(setClipGradientStops(text, stops).source as { box: { gradientStops: unknown } }).box
+				.gradientStops
+		).toEqual(stops);
+		expect(
+			(setClipGradientStops(solid(), stops).source as { gradientStops: unknown }).gradientStops
+		).toEqual(stops);
+		const shape = { id: 's', source: { type: 'shape', shapeType: 'rect', width: 1, height: 1, fillColor: RED } } as unknown as Clip;
+		expect(
+			(setClipGradientStops(shape, stops).source as { gradientStops: unknown }).gradientStops
+		).toEqual(stops);
+	});
+
+	it('removes a stop and moves the animation of the later ones down a number', () => {
+		const clip = solid({
+			gradientStops: [
+				{ offset: 0, color: RED },
+				{ offset: 0.5, color: GREEN },
+				{ offset: 1, color: BLUE }
+			]
+		});
+		clip.properties = {
+			'gradient.stop0.color': { value: [1, 0, 0, 1] },
+			'gradient.stop1.color': { value: [0, 1, 0, 1] },
+			'gradient.stop2.offset': { value: 0.9 },
+			'gradient.angle': { value: 10 },
+			opacity: { value: 0.5 }
+		};
+
+		const result = removeClipGradientStop(clip, 1);
+
+		expect((result.source as { gradientStops: unknown[] }).gradientStops).toHaveLength(2);
+		expect(result.properties).toEqual({
+			'gradient.stop0.color': { value: [1, 0, 0, 1] },
+			'gradient.stop1.offset': { value: 0.9 },
+			'gradient.angle': { value: 10 },
+			opacity: { value: 0.5 }
+		});
+	});
+
+	it('refuses to go below two stops', () => {
+		const clip = solid({
+			gradientStops: [
+				{ offset: 0, color: RED },
+				{ offset: 1, color: BLUE }
+			]
+		});
+		expect(removeClipGradientStop(clip, 0)).toBe(clip);
+	});
+});
+
+describe('reading gradient properties that nothing animates', () => {
+	const shape = (extra: object = {}, properties: Clip['properties'] = {}): Clip =>
+		({
+			id: 'c' as ClipId,
+			start: 0,
+			duration: 1_000_000,
+			source: {
+				type: 'shape',
+				shapeType: 'rect',
+				width: 10,
+				height: 10,
+				fillColor: RED,
+				gradientType: 'linear-angle',
+				...extra
+			},
+			properties
+		}) as unknown as Clip;
+
+	it('shows the stop the clip has, not the descriptor default', () => {
+		const clip = shape({
+			gradientAngle: 30,
+			gradientStops: [
+				{ offset: 0, color: RED },
+				{ offset: 0.4, color: GREEN },
+				{ offset: 1, color: BLUE }
+			]
+		});
+		expect(readProperty(clip, 'gradient.stop1.color', 0)).toEqual([0, 1, 0, 1]);
+		expect(readProperty(clip, 'gradient.stop1.offset', 0)).toBe(0.4);
+		expect(readProperty(clip, 'gradient.angle', 0)).toBe(30);
+	});
+
+	it('shows the fill and end colour as the first two stops of an old gradient', () => {
+		const clip = shape({ gradientColorEnd: BLUE }, { 'shape.fillColor': { value: [0, 1, 0, 1] } });
+		expect(readProperty(clip, 'gradient.stop0.color', 0)).toEqual([0, 1, 0, 1]);
+		expect(readProperty(clip, 'gradient.stop1.color', 0)).toEqual([0, 0, 1, 1]);
+		expect(readProperty(clip, 'gradient.stop1.offset', 0)).toBe(1);
+	});
+
+	it('lets a property the clip does set win', () => {
+		const clip = shape(
+			{ gradientColorEnd: BLUE },
+			{ 'gradient.stop1.offset': { value: 0.7 } }
+		);
+		expect(readProperty(clip, 'gradient.stop1.offset', 0)).toBe(0.7);
+	});
+
+	it('falls back to the descriptor default for a stop the gradient does not have', () => {
+		expect(readProperty(shape({ gradientColorEnd: BLUE }), 'gradient.stop5.offset', 0)).toBe(0);
+		expect(readProperty(shape(), 'gradient.angle', 0)).toBe(45);
+	});
+});
+
+describe('turning a gradient on and off', () => {
+	const shape = (extra: object = {}): Clip =>
+		({
+			id: 'c' as ClipId,
+			start: 0,
+			duration: 1_000_000,
+			source: { type: 'shape', shapeType: 'rect', width: 1, height: 1, fillColor: RED, ...extra }
+		}) as unknown as Clip;
+	const fieldsOf = (clip: Clip) => gradientFieldsOf(clip)!;
+
+	it('gives a clip with no gradient an end colour so there is something to blend to', () => {
+		const result = withGradientType(shape(), 'linear-vertical');
+		expect(fieldsOf(result).gradientType).toBe('linear-vertical');
+		expect(fieldsOf(result).gradientColorEnd).toBeDefined();
+		expect(resolveGradient(fieldsOf(result), RED, () => undefined)).not.toBeNull();
+	});
+
+	it('keeps the colours the clip already has when the type changes', () => {
+		const stops = [
+			{ offset: 0, color: RED },
+			{ offset: 1, color: BLUE }
+		];
+		const result = withGradientType(shape({ gradientType: 'radial', gradientStops: stops }), 'linear-angle');
+		expect(fieldsOf(result).gradientType).toBe('linear-angle');
+		expect(fieldsOf(result).gradientStops).toEqual(stops);
+	});
+
+	it('turns the gradient off without losing its stops', () => {
+		const stops = [
+			{ offset: 0, color: RED },
+			{ offset: 1, color: BLUE }
+		];
+		const off = withGradientType(shape({ gradientType: 'radial', gradientStops: stops }), 'none');
+		expect(resolveGradient(fieldsOf(off), RED, () => undefined)).toBeNull();
+		expect(fieldsOf(off).gradientStops).toEqual(stops);
+		const on = withGradientType(off, 'radial');
+		expect(resolveGradient(fieldsOf(on), RED, () => undefined)!.stops).toEqual(stops);
+	});
+
+	it('changes nothing for a clip that cannot have a gradient', () => {
+		const adjustment = { id: 'a', source: { type: 'adjustment' } } as unknown as Clip;
+		expect(withGradientType(adjustment, 'radial')).toBe(adjustment);
 	});
 });

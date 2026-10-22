@@ -138,3 +138,110 @@ export function gradientKey(gradient: ResolvedGradient | null): string {
 		.join('|');
 	return `${gradient.type}@${channel(gradient.angle)}[${stops}]`;
 }
+
+export const MAX_GRADIENT_STOPS = 16;
+
+/** The list an editor starts from: the clip's stops, or the fill and end colour as two stops. */
+export function stopsForEditing(clip: Clip, fill: GradientColor): GradientStop[] {
+	const fields = gradientFieldsOf(clip);
+	if (fields?.gradientStops && fields.gradientStops.length >= 2) return fields.gradientStops;
+	return [
+		{ offset: 0, color: fill },
+		{ offset: 1, color: fields?.gradientColorEnd ?? fill }
+	];
+}
+
+const mix = (from: number, to: number, amount: number): number => from + (to - from) * amount;
+
+/**
+ * The list with one more stop, in the middle of the widest gap and the colour the gradient has
+ * there. The new stop goes on the end so the numbers of the others, which their animation is
+ * stored under, stay the same.
+ */
+export function withNewStop(stops: GradientStop[]): GradientStop[] {
+	if (stops.length >= MAX_GRADIENT_STOPS) return stops;
+	const sorted = [...stops].sort((a, b) => a.offset - b.offset);
+	let widest = 0;
+	let at = 0;
+	for (let index = 0; index < sorted.length - 1; index += 1) {
+		const gap = sorted[index + 1]!.offset - sorted[index]!.offset;
+		if (gap > widest) {
+			widest = gap;
+			at = index;
+		}
+	}
+	const before = sorted[at]!;
+	const after = sorted[Math.min(at + 1, sorted.length - 1)]!;
+	const color: GradientColor = {
+		r: mix(before.color.r, after.color.r, 0.5),
+		g: mix(before.color.g, after.color.g, 0.5),
+		b: mix(before.color.b, after.color.b, 0.5),
+		a: mix(before.color.a, after.color.a, 0.5)
+	};
+	return [...stops, { offset: (before.offset + after.offset) / 2, color }];
+}
+
+/** The clip with its gradient stops set, on the source or text box that keeps them. */
+export function setClipGradientStops(clip: Clip, stops: GradientStop[] | undefined): Clip {
+	const source = clip.source;
+	if (!source) return clip;
+	if (source.type === 'text') {
+		return { ...clip, source: { ...source, box: { ...source.box, gradientStops: stops } } };
+	}
+	if (source.type === 'shape' || source.type === 'solid') {
+		return { ...clip, source: { ...source, gradientStops: stops } };
+	}
+	return clip;
+}
+
+const STOP_PROPERTY = /^gradient\.stop(\d+)\.(offset|color)$/;
+
+/**
+ * The clip without stop `index`, and with the animation of the stops after it moved down one
+ * number. A gradient keeps at least two stops, so this returns the clip as it is below that.
+ */
+export function removeClipGradientStop(clip: Clip, index: number): Clip {
+	const stops = gradientFieldsOf(clip)?.gradientStops;
+	if (!stops || stops.length <= 2 || index < 0 || index >= stops.length) return clip;
+
+	const remaining = stops.filter((_, at) => at !== index);
+	const properties: NonNullable<Clip['properties']> = {};
+	for (const [id, value] of Object.entries(clip.properties ?? {})) {
+		const match = STOP_PROPERTY.exec(id);
+		if (!match) {
+			properties[id] = value;
+			continue;
+		}
+		const at = Number(match[1]);
+		if (at === index) continue;
+		properties[at > index ? `gradient.stop${at - 1}.${match[2]}` : id] = value;
+	}
+	return { ...setClipGradientStops(clip, remaining), properties };
+}
+
+/** The colour a gradient blends to when a clip is first given one. */
+export const DEFAULT_GRADIENT_END: GradientColor = { r: 0.2, g: 0.2, b: 0.25, a: 1 };
+
+/**
+ * The clip with its gradient type set. A clip that had no colour to blend to gets one, and turning
+ * the gradient off keeps its stops so turning it back on restores them.
+ */
+export function withGradientType(clip: Clip, type: GradientType): Clip {
+	const fields = gradientFieldsOf(clip);
+	const source = clip.source;
+	if (!source || (source.type !== 'text' && source.type !== 'shape' && source.type !== 'solid')) {
+		return clip;
+	}
+	const needsEnd =
+		type !== 'none' &&
+		!fields?.gradientColorEnd &&
+		!(fields?.gradientStops && fields.gradientStops.length >= 2);
+	const patch: Partial<GradientFields> = {
+		gradientType: type,
+		...(needsEnd ? { gradientColorEnd: DEFAULT_GRADIENT_END } : {})
+	};
+	if (source.type === 'text') {
+		return { ...clip, source: { ...source, box: { ...source.box, ...patch } } };
+	}
+	return { ...clip, source: { ...source, ...patch } };
+}
