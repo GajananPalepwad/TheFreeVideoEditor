@@ -119,7 +119,7 @@ const faqJsonLd = {
 							<polyline points="12 5 19 12 12 19"></polyline>
 						</svg>
 					</a>
-					<BuyMeACoffee variant="button" text="Buy me a coffee" className="hero-bmc-btn" />
+					<BuyMeACoffee variant="secondary" text="Buy me a coffee" className="hero-bmc-btn" />
 				</div>
 
 				<p class="home-note">
@@ -716,21 +716,22 @@ const faqJsonLd = {
 
 	.home-cta {
 		display: inline-flex;
-		min-height: 3rem;
+		min-height: 3.25rem;
 		align-items: center;
 		justify-content: center;
 		gap: 8px;
 		border-radius: var(--radius-pill);
-		background: #ededed;
-		padding: 0 1.75rem;
-		color: #090909;
-		font-size: var(--text-button-lg);
-		font-weight: 500;
+		background: #ffffff;
+		padding: 0 2rem;
+		color: #070709;
+		font-size: 1.0625rem;
+		font-weight: 600;
 		text-decoration: none;
-		border: 1px solid rgba(255, 255, 255, 0.9);
+		border: 1px solid rgba(255, 255, 255, 0.95);
 		box-shadow:
-			0 0 24px rgba(255, 255, 255, 0.18),
-			0 4px 14px rgba(0, 0, 0, 0.4);
+			0 0 32px rgba(56, 189, 248, 0.35),
+			0 0 12px rgba(255, 255, 255, 0.25),
+			0 4px 18px rgba(0, 0, 0, 0.4);
 		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
@@ -742,8 +743,9 @@ const faqJsonLd = {
 		background: #ffffff;
 		transform: translateY(-2px);
 		box-shadow:
-			0 0 32px rgba(255, 255, 255, 0.35),
-			0 8px 24px rgba(0, 0, 0, 0.5);
+			0 0 45px rgba(56, 189, 248, 0.55),
+			0 0 20px rgba(255, 255, 255, 0.4),
+			0 8px 26px rgba(0, 0, 0, 0.5);
 	}
 
 	.home-cta:hover .cta-arrow {
