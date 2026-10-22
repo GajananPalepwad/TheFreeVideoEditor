@@ -14,8 +14,8 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 786,
-    "height": 338,
+    "width": 1856,
+    "height": 364,
     "originX": 0,
     "originY": 0
   },
@@ -290,7 +290,7 @@
       "targetProperty": "text.fontSize",
       "defaultValue": 58,
       "min": 29,
-      "max": 73,
+      "max": 87,
       "step": 1
     },
     {

@@ -32,7 +32,9 @@ function createScratchCanvas(width: number, height: number): ScratchCanvas {
 export class ScratchCanvasPool {
 	private readonly free = new Map<string, ScratchCanvas[]>();
 
-	constructor(private readonly create: (width: number, height: number) => ScratchCanvas = createScratchCanvas) {}
+	constructor(
+		private readonly create: (width: number, height: number) => ScratchCanvas = createScratchCanvas
+	) {}
 
 	acquire(width: number, height: number): ScratchCanvas {
 		return this.free.get(`${width}x${height}`)?.pop() ?? this.create(width, height);
