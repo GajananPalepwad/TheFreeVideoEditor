@@ -14,9 +14,9 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 644,
-    "height": 210,
-    "originX": -110,
+    "width": 1920,
+    "height": 386,
+    "originX": 626,
     "originY": 0
   },
   "tracks": [
@@ -59,7 +59,7 @@
           "properties": {
             "position": {
               "value": [
-                -50,
+                -786,
                 0
               ]
             },
@@ -188,7 +188,7 @@
           "properties": {
             "position": {
               "value": [
-                -270,
+                -1006,
                 0
               ]
             },
@@ -296,7 +296,7 @@
       "targetProperty": "text.fontSize",
       "defaultValue": 68,
       "min": 34,
-      "max": 85,
+      "max": 102,
       "step": 1
     },
     {

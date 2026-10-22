@@ -14,10 +14,10 @@
     "outroDuration": 400000
   },
   "bounds": {
-    "width": 748,
-    "height": 554,
+    "width": 1810,
+    "height": 576,
     "originX": 0,
-    "originY": -95
+    "originY": -96
   },
   "tracks": [
     {
@@ -63,7 +63,7 @@
                   "time": 0,
                   "value": [
                     0,
-                    -85
+                    -84
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
@@ -79,7 +79,7 @@
                   "time": 420000,
                   "value": [
                     0,
-                    110
+                    111
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
@@ -95,7 +95,7 @@
                   "time": 600000,
                   "value": [
                     0,
-                    95
+                    96
                   ],
                   "interpolation": "linear"
                 }
@@ -214,7 +214,7 @@
                   "time": 0,
                   "value": [
                     0,
-                    -85
+                    -84
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
@@ -230,7 +230,7 @@
                   "time": 420000,
                   "value": [
                     0,
-                    110
+                    111
                   ],
                   "interpolation": "bezier",
                   "easeOut": {
@@ -246,7 +246,7 @@
                   "time": 600000,
                   "value": [
                     0,
-                    95
+                    96
                   ],
                   "interpolation": "linear"
                 }
@@ -340,7 +340,7 @@
       "targetProperty": "text.fontSize",
       "defaultValue": 64,
       "min": 32,
-      "max": 80,
+      "max": 96,
       "step": 1
     },
     {
