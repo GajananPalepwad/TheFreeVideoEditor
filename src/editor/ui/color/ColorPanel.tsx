@@ -1,9 +1,16 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import type { AssetId, Clip, EffectInstance } from '../../core';
 import type { CurvePoint } from '../../core/curves';
 import { evaluateSpline } from '../../core/curves';
 import { useEditorStore, useEditorStoreApi } from '../../state/EditorProvider';
-import { ensureLutLoaded } from '../../services/media/lutCache';
+import {
+	ensureLutLoaded,
+	ensureBuiltinLutLoaded,
+	getParsedLut,
+	isBuiltinLutId,
+	BUILTIN_LUTS,
+	findBuiltinLut
+} from '../../services/media/lutCache';
 import { trackFeatureUsed } from '../../../services/activityTracking';
 import './color.css';
 
@@ -82,7 +89,7 @@ export default function ColorPanel() {
 	// Curves helpers
 	const ensureCurvesEffect = (): EffectInstance | null => {
 		if (curvesEffect) return curvesEffect;
-		return store.getState().addEffect(selectedClip.id, 'curves');
+		return store.getState().addEffect(selectedClip.id, 'curves', undefined, { revealInspector: false });
 	};
 
 	const updateCurvePoints = (newPoints: CurvePoint[]) => {
@@ -93,13 +100,46 @@ export default function ColorPanel() {
 	};
 
 	// LUT helpers
+	const currentLutId = (lutEffect?.params.lutAssetId as string) || '';
+	const selectedBuiltinLut = findBuiltinLut(currentLutId);
+
+	useEffect(() => {
+		if (currentLutId && isBuiltinLutId(currentLutId) && !getParsedLut(currentLutId)) {
+			void ensureBuiltinLutLoaded(currentLutId);
+		}
+	}, [currentLutId]);
+
+	const handleSelectLut = (assetId: string) => {
+		if (!selectedClip) return;
+		const eff =
+			lutEffect ??
+			(assetId
+				? store.getState().addEffect(selectedClip.id, 'lut3d', undefined, { revealInspector: false })
+				: null);
+		if (eff) {
+			store.getState().setEffectParam(selectedClip.id, eff.id, 'lutAssetId', assetId);
+			if (assetId) {
+				if (isBuiltinLutId(assetId)) {
+					void ensureBuiltinLutLoaded(assetId);
+				} else {
+					const asset = project.assets[assetId as AssetId];
+					if (asset) {
+						void ensureLutLoaded(project.id, asset);
+					}
+				}
+			}
+		}
+	};
+
 	const handleImportLutFile = async (file: File) => {
 		setLutError(null);
 		try {
 			const text = await file.text();
 			const assetId = await store.getState().importLut(file.name, text);
 			if (assetId) {
-				const eff = lutEffect ?? store.getState().addEffect(selectedClip.id, 'lut3d');
+				const eff =
+					lutEffect ??
+					store.getState().addEffect(selectedClip.id, 'lut3d', undefined, { revealInspector: false });
 				if (eff) {
 					store.getState().setEffectParam(selectedClip.id, eff.id, 'lutAssetId', assetId);
 				}
@@ -323,31 +363,40 @@ export default function ColorPanel() {
 							<span className="property-label">Select 3D LUT</span>
 							<select
 								className="lut-select"
-								value={(lutEffect?.params.lutAssetId as string) || ''}
-								onChange={(e) => {
-									const assetId = e.target.value;
-									const eff = lutEffect ?? store.getState().addEffect(selectedClip.id, 'lut3d');
-									if (eff) {
-										store.getState().setEffectParam(selectedClip.id, eff.id, 'lutAssetId', assetId);
-										if (assetId) {
-											const asset = project.assets[assetId as AssetId];
-											if (asset) {
-												void ensureLutLoaded(project.id, asset);
-											}
-										}
-									}
-								}}
+								value={currentLutId}
+								onChange={(e) => handleSelectLut(e.target.value)}
 							>
 								<option value="">(None)</option>
-								{lutAssets.map((asset) => (
-									<option key={asset.id} value={asset.id}>
-										{asset.name}
-									</option>
-								))}
+								<optgroup label="Preset LUTs">
+									{BUILTIN_LUTS.map((lut) => (
+										<option key={lut.id} value={lut.id}>
+											{lut.name} ({lut.category})
+										</option>
+									))}
+								</optgroup>
+								{lutAssets.length > 0 && (
+									<optgroup label="Project LUTs">
+										{lutAssets.map((asset) => (
+											<option key={asset.id} value={asset.id}>
+												{asset.name}
+											</option>
+										))}
+									</optgroup>
+								)}
 							</select>
 						</div>
 
-						{lutEffect && (
+						{selectedBuiltinLut && (
+							<div className="lut-builtin-info-card">
+								<div className="lut-builtin-info-header">
+									<span className="lut-builtin-info-title">{selectedBuiltinLut.name}</span>
+									<span className="lut-builtin-info-badge">{selectedBuiltinLut.category}</span>
+								</div>
+								<p className="lut-builtin-info-desc">{selectedBuiltinLut.description}</p>
+							</div>
+						)}
+
+						{lutEffect && currentLutId && (
 							<ColorSlider
 								label="LUT Intensity"
 								value={getNumericParam(lutEffect.params.intensity ?? lutEffect.params.mix, 1)}
@@ -362,6 +411,27 @@ export default function ColorPanel() {
 								}}
 							/>
 						)}
+
+						<div className="lut-presets-section">
+							<span className="property-label">Preset Looks</span>
+							<div className="lut-presets-grid">
+								{BUILTIN_LUTS.map((lut) => {
+									const isSelected = currentLutId === lut.id;
+									return (
+										<button
+											key={lut.id}
+											type="button"
+											className={`lut-preset-btn ${isSelected ? 'is-active' : ''}`}
+											onClick={() => handleSelectLut(isSelected ? '' : lut.id)}
+											title={`${lut.name}: ${lut.description}`}
+										>
+											<span className="lut-preset-btn-name">{lut.name}</span>
+											<span className="lut-preset-btn-tag">{lut.category}</span>
+										</button>
+									);
+								})}
+							</div>
+						</div>
 
 						<div
 							className={`lut-dropzone ${isLutDragOver ? 'is-drag-over' : ''}`}

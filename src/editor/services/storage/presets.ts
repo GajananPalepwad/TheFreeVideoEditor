@@ -13,6 +13,97 @@ export interface EffectPreset {
 
 export const BUILT_IN_PRESETS: EffectPreset[] = [
 	{
+		id: 'preset:lut-35mm-portrait',
+		name: 'LUT · 35mm Portrait',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:35mm-portrait',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-classic-chrome',
+		name: 'LUT · Classic Chrome',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:classic-chrome',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-filmic',
+		name: 'LUT · Filmic',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:filmic',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-moody-film',
+		name: 'LUT · Moody Film',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:moody-film',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-moody-stock',
+		name: 'LUT · Moody Stock',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:moody-stock',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-sunset',
+		name: 'LUT · Sunset',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:sunset',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
+		id: 'preset:lut-twilight',
+		name: 'LUT · Twilight',
+		builtIn: true,
+		effect: {
+			type: 'lut3d',
+			params: {
+				lutAssetId: 'builtin:twilight',
+				intensity: 1,
+				mix: 1
+			}
+		}
+	},
+	{
 		id: 'preset:warm-cinematic',
 		name: 'Warm Cinematic',
 		builtIn: true,

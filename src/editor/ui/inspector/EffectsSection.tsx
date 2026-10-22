@@ -5,6 +5,13 @@ import { useEditorStoreApi, useEditorStore } from '../../state/EditorProvider';
 import { PropertyRow, type ConfirmDisableState } from './Inspector';
 import { ColorPickerField } from './ColorPickerField';
 import {
+	BUILTIN_LUTS,
+	ensureBuiltinLutLoaded,
+	ensureLutLoaded,
+	isBuiltinLutId
+} from '../../services/media/lutCache';
+import type { AssetId } from '../../core';
+import {
 	BUILT_IN_PRESETS,
 	listUserPresets,
 	saveUserPreset,
@@ -30,6 +37,7 @@ export default function EffectsSection({
 	onCancelDisableConfirm
 }: EffectsSectionProps) {
 	const store = useEditorStoreApi();
+	const project = useEditorStore((state) => state.project);
 	const clipboard = useEditorStore((state) => state.effectsClipboard);
 	const [expandedEffects, setExpandedEffects] = useState<Record<string, boolean>>({});
 	const [userPresets, setUserPresets] = useState<EffectPreset[]>([]);
@@ -507,6 +515,56 @@ export default function EffectsSection({
 																onStartDisableConfirm={onStartDisableConfirm}
 																onCancelDisableConfirm={onCancelDisableConfirm}
 															/>
+														);
+													}
+
+													if (paramSchema.type === 'lut') {
+														const currentVal = (eff.params[paramName] as string) || '';
+														const lutAssets = Object.values(project?.assets ?? {}).filter(
+															(a) => a.kind === 'lut'
+														);
+														return (
+															<div key={propId} className="effect-custom-param-row">
+																<span className="property-label">{paramSchema.label}</span>
+																<select
+																	value={currentVal}
+																	onChange={(e) => {
+																		const val = e.target.value;
+																		store
+																			.getState()
+																			.setEffectParam(clip.id, eff.id, paramName, val);
+																		if (val) {
+																			if (isBuiltinLutId(val)) {
+																				void ensureBuiltinLutLoaded(val);
+																			} else if (project) {
+																				const asset = project.assets[val as AssetId];
+																				if (asset) {
+																					void ensureLutLoaded(project.id, asset);
+																				}
+																			}
+																		}
+																	}}
+																	className="effect-enum-select"
+																>
+																	<option value="">(None)</option>
+																	<optgroup label="Preset LUTs">
+																		{BUILTIN_LUTS.map((lut) => (
+																			<option key={lut.id} value={lut.id}>
+																				{lut.name} ({lut.category})
+																			</option>
+																		))}
+																	</optgroup>
+																	{lutAssets.length > 0 && (
+																		<optgroup label="Project LUTs">
+																			{lutAssets.map((asset) => (
+																				<option key={asset.id} value={asset.id}>
+																					{asset.name}
+																				</option>
+																			))}
+																		</optgroup>
+																	)}
+																</select>
+															</div>
 														);
 													}
 

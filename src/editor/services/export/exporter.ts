@@ -24,7 +24,7 @@ import {
 } from '../render';
 import { projectNeedsGpu } from '../../core/gpuFeatures';
 import { getMediaFile } from '../storage/opfs';
-import { ensureLutLoaded } from '../media/lutCache';
+import { ensureBuiltinLutLoaded, ensureLutLoaded, isBuiltinLutId } from '../media/lutCache';
 import { audioSchedulesForChunk, decodeAudioAssets, mixAudioChunk } from './audioMix';
 import { LoudnessMeter } from '../../core/audio/loudness';
 import { dbToGain } from '../../core/audioMath';
@@ -339,6 +339,22 @@ async function exportTimelineMain(
 		for (const asset of Object.values(snapshot.assets)) {
 			if (asset.kind === 'lut' && !asset.offline) {
 				await ensureLutLoaded(snapshot.id, asset, options.getFile);
+			}
+		}
+		const allProjectTracks = [
+			...snapshot.tracks,
+			...Object.values(snapshot.sequences ?? {}).flatMap((s) => s.tracks ?? [])
+		];
+		for (const track of allProjectTracks) {
+			for (const clip of track.clips ?? []) {
+				for (const eff of clip.effects ?? []) {
+					if (eff.type === 'lut3d' && eff.params?.lutAssetId) {
+						const lutId = String(eff.params.lutAssetId);
+						if (isBuiltinLutId(lutId)) {
+							await ensureBuiltinLutLoaded(lutId);
+						}
+					}
+				}
 			}
 		}
 		const format =

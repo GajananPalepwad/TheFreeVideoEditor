@@ -466,6 +466,103 @@
 	font-size: 12px;
 }
 
+/* Preset LUTs Grid & Info Card */
+.lut-builtin-info-card {
+	padding: 10px 12px;
+	border-radius: 6px;
+	background: rgba(56, 189, 248, 0.05);
+	border: 1px solid rgba(56, 189, 248, 0.22);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.lut-builtin-info-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.lut-builtin-info-title {
+	font-weight: 600;
+	font-size: 12px;
+	color: #38bdf8;
+}
+
+.lut-builtin-info-badge {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: rgba(56, 189, 248, 0.14);
+	color: #38bdf8;
+	font-weight: 600;
+}
+
+.lut-builtin-info-desc {
+	font-size: 11px;
+	color: #cbd5e1;
+	line-height: 1.4;
+	margin: 0;
+}
+
+.lut-presets-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 2px;
+}
+
+.lut-presets-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+	gap: 6px;
+}
+
+.lut-preset-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 8px 10px;
+	border-radius: 6px;
+	background: #14141c;
+	border: 1px solid #23232e;
+	color: #94a3b8;
+	font-size: 11px;
+	cursor: pointer;
+	text-align: left;
+	transition: all 0.15s ease;
+}
+
+.lut-preset-btn:hover {
+	background: #1a1a26;
+	border-color: #38bdf8;
+	color: #f1f5f9;
+}
+
+.lut-preset-btn.is-active {
+	background: linear-gradient(135deg, rgba(56, 189, 248, 0.16) 0%, #151928 100%);
+	border-color: #38bdf8;
+	color: #ffffff;
+	box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+
+.lut-preset-btn-name {
+	font-weight: 600;
+	font-size: 11px;
+	margin-bottom: 2px;
+}
+
+.lut-preset-btn-tag {
+	font-size: 9px;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.lut-preset-btn.is-active .lut-preset-btn-tag {
+	color: #38bdf8;
+}
+
 /* Light Theme Support */
 :root[data-theme='light'] .color-panel {
 	background: #ffffff;
@@ -591,4 +688,45 @@
 	background: #ffffff;
 	border-color: #cbd5e1;
 	color: #0f172a;
+}
+
+:root[data-theme='light'] .lut-builtin-info-card {
+	background: rgba(2, 132, 199, 0.06);
+	border-color: rgba(2, 132, 199, 0.25);
+}
+
+:root[data-theme='light'] .lut-builtin-info-title {
+	color: #0369a1;
+}
+
+:root[data-theme='light'] .lut-builtin-info-badge {
+	background: rgba(2, 132, 199, 0.12);
+	color: #0284c7;
+}
+
+:root[data-theme='light'] .lut-builtin-info-desc {
+	color: #334155;
+}
+
+:root[data-theme='light'] .lut-preset-btn {
+	background: #f8fafc;
+	border-color: #e2e8f0;
+	color: #475569;
+}
+
+:root[data-theme='light'] .lut-preset-btn:hover {
+	background: #f1f5f9;
+	border-color: #0284c7;
+	color: #0f172a;
+}
+
+:root[data-theme='light'] .lut-preset-btn.is-active {
+	background: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, #e0f2fe 100%);
+	border-color: #0284c7;
+	color: #0369a1;
+	box-shadow: 0 0 8px rgba(2, 132, 199, 0.2);
+}
+
+:root[data-theme='light'] .lut-preset-btn.is-active .lut-preset-btn-tag {
+	color: #0284c7;
 }

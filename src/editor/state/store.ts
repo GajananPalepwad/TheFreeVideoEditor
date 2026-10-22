@@ -815,7 +815,8 @@ export interface EditorState {
 	addEffect: (
 		clipId: ClipId,
 		effectType: EffectType,
-		initialParams?: Record<string, unknown>
+		initialParams?: Record<string, unknown>,
+		options?: { revealInspector?: boolean }
 	) => EffectInstance | null;
 	removeEffect: (clipId: ClipId, effectId: string) => boolean;
 	reorderEffect: (clipId: ClipId, effectId: string, toIndex: number) => boolean;
@@ -4892,7 +4893,7 @@ export function createEditorStore() {
 						state.colorUi.activeTab = tab;
 					});
 				},
-				addEffect(clipId, effectType, initialParams) {
+				addEffect(clipId, effectType, initialParams, options) {
 					const project = get().project;
 					if (!project) return null;
 					let instance: EffectInstance | null = null;
@@ -4918,7 +4919,9 @@ export function createEditorStore() {
 								state.timeline.selection.clipIds = [clipId];
 							}
 						});
-						get().revealInspectorSection('effects');
+						if (options?.revealInspector !== false) {
+							get().revealInspectorSection('effects');
+						}
 						return created;
 					} catch (error) {
 						set((state) => {

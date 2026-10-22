@@ -16,7 +16,7 @@ import { createPlaybackClock, type PlaybackRate } from './clock';
 import { MediaPool } from './mediaPool';
 import { TextRasterCache } from '../render/text/cache';
 import { ensureFontLoaded, isFontLoaded, onFontLoaded } from '../render/text/fontLoader';
-import { ensureLutLoaded, getParsedLut } from '../media/lutCache';
+import { ensureBuiltinLutLoaded, ensureLutLoaded, getParsedLut, isBuiltinLutId } from '../media/lutCache';
 import { rasterizeShape } from '../render/shapes/shapeRasterizer';
 
 export interface PlaybackSnapshot {
@@ -575,11 +575,17 @@ class PlaybackEngineImpl implements PlaybackEngine {
 						if (eff.type === 'lut3d' && eff.params?.lutAssetId) {
 							const assetId = eff.params.lutAssetId as string;
 							if (assetId && !getParsedLut(assetId)) {
-								const asset = proj.assets[assetId as AssetId];
-								if (asset) {
-									void ensureLutLoaded(proj.id, asset).then((parsed) => {
+								if (isBuiltinLutId(assetId)) {
+									void ensureBuiltinLutLoaded(assetId).then((parsed) => {
 										if (parsed && !this.disposed) this.requestRender();
 									});
+								} else {
+									const asset = proj.assets[assetId as AssetId];
+									if (asset) {
+										void ensureLutLoaded(proj.id, asset).then((parsed) => {
+											if (parsed && !this.disposed) this.requestRender();
+										});
+									}
 								}
 							}
 						}
