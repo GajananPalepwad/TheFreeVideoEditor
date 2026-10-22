@@ -10,7 +10,7 @@ import {
 	type GraphicTemplate,
 	type GraphicCategory
 } from '../text/graphicsTemplates';
-import { createTemplateFromClips } from './templateService';
+import { createTemplateFromClips, measureTextClip } from './templateService';
 
 function hexToRgba(hex: string, alpha = 1): { r: number; g: number; b: number; a: number } {
 	let clean = hex.replace('#', '').trim();
@@ -126,6 +126,9 @@ export function convertGraphicTemplateToMotionTemplate(
 	if (template.id === 'mixkit-minimal-wipe-lower-third') {
 		return createMixkitMinimalWipeTemplate();
 	}
+	if (template.id === 'word-cascade') {
+		return createWordCascadeTemplate();
+	}
 
 	// 1. Build the primary animated text clip
 	const textClip = createGraphicClip(template.id, 0, duration, template.defaultText);
@@ -157,13 +160,24 @@ export function convertGraphicTemplateToMotionTemplate(
 		const basePos = textClip.properties?.position
 			? (textClip.properties.position as any).value ?? [0, 0]
 			: [0, 0];
-		let shapePos: [number, number] = [basePos[0], basePos[1]];
+
+		// The block the text draws, which the frame has to wrap. Text sits on its position point
+		// when it is left or right aligned, and is centred on it otherwise.
+		const block = measureTextClip(textClip);
+		const alignment = textClip.source?.type === 'text' ? textClip.source.style?.alignment : undefined;
+		const centerX =
+			basePos[0] + (alignment === 'left' ? block.width / 2 : alignment === 'right' ? -block.width / 2 : 0);
+		const centerY = basePos[1];
+		let shapePos: [number, number] = [centerX, centerY];
+		const wrap = (extraX: number, extraY: number) => {
+			width = Math.round(block.width + extraX);
+			height = Math.round(block.height + extraY);
+		};
 
 		switch (frameStyle) {
 			case 'card':
 				shapeType = 'rect';
-				width = 620;
-				height = 250;
+				wrap(24, 16);
 				cornerRadius = 16;
 				fillColor = template.properties?.['text.backgroundBoxColor']
 					? arrayToRgba(template.properties['text.backgroundBoxColor'])
@@ -174,8 +188,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'circle':
 				shapeType = 'circle';
-				width = 380;
-				height = 380;
+				width = height = Math.round(Math.hypot(block.width, block.height) + 16);
 				fillColor = { r: 0, g: 0, b: 0, a: 0 };
 				strokeColor = template.accentColor;
 				strokeWidth = 3;
@@ -185,8 +198,7 @@ export function convertGraphicTemplateToMotionTemplate(
 			case 'cinematic-box':
 			case 'divided-box':
 				shapeType = 'rect';
-				width = 600;
-				height = 230;
+				wrap(16, 8);
 				cornerRadius = 4;
 				fillColor = { r: 0, g: 0, b: 0, a: 0 };
 				strokeColor = template.accentColor;
@@ -197,45 +209,41 @@ export function convertGraphicTemplateToMotionTemplate(
 			case 'title-badge':
 			case 'social-pill':
 				shapeType = 'rect';
-				width = 460;
-				height = 68;
-				cornerRadius = 34;
+				wrap(32, 12);
+				cornerRadius = Math.round(height / 2);
 				fillColor = template.accentColor;
 				break;
 
 			case 'lower-third-line':
 				shapeType = 'rect';
-				width = 620;
+				width = Math.round(block.width);
 				height = 5;
 				cornerRadius = 2;
 				fillColor = template.accentColor;
-				shapePos = [basePos[0], basePos[1] + 48];
+				shapePos = [centerX, centerY + block.height / 2 + 4];
 				break;
 
 			case 'lower-third-glass':
 				shapeType = 'rect';
-				width = 660;
-				height = 110;
+				wrap(40, 20);
 				cornerRadius = 10;
 				fillColor = { r: 0.06, g: 0.09, b: 0.16, a: 0.85 };
 				strokeColor = template.accentColor;
 				strokeWidth = 1.5;
-				shapePos = [basePos[0], basePos[1]];
 				break;
 
 			case 'accent-bar':
 				shapeType = 'rect';
 				width = 6;
-				height = 105;
+				height = Math.round(block.height);
 				cornerRadius = 3;
 				fillColor = template.accentColor;
-				shapePos = [basePos[0] - 220, basePos[1]];
+				shapePos = [centerX - block.width / 2 - 14, centerY];
 				break;
 
 			case 'callout-pointer':
 				shapeType = 'rect';
-				width = 360;
-				height = 84;
+				wrap(24, 16);
 				cornerRadius = 12;
 				fillColor = { r: 0.08, g: 0.1, b: 0.16, a: 0.92 };
 				strokeColor = template.accentColor;
@@ -244,7 +252,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'split-slash':
 				shapeType = 'rect';
-				width = 560;
+				width = Math.round(block.width);
 				height = 5;
 				cornerRadius = 3;
 				fillColor = template.accentColor;
@@ -253,8 +261,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'diagonal-repeat':
 				shapeType = 'rect';
-				width = 660;
-				height = 230;
+				wrap(60, 40);
 				cornerRadius = 8;
 				fillColor = { r: 0.04, g: 0.05, b: 0.08, a: 0.7 };
 				strokeColor = template.accentColor;
@@ -264,8 +271,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			default:
 				shapeType = 'rect';
-				width = 560;
-				height = 200;
+				wrap(24, 16);
 				cornerRadius = 8;
 				fillColor = { r: 0.08, g: 0.08, b: 0.12, a: 0.75 };
 				break;
@@ -435,6 +441,128 @@ export function convertGraphicTemplateToMotionTemplate(
  */
 export function convertAllGraphicTemplates(): MotionGraphicTemplate[] {
 	return GRAPHIC_TEMPLATES.map((tpl) => convertGraphicTemplateToMotionTemplate(tpl));
+}
+
+/**
+ * Kinetic type built from stacked layers: three lines, each on its own track, that reveal word by
+ * word one after another while sliding up into place.
+ */
+export function createWordCascadeTemplate(): MotionGraphicTemplate {
+	const duration = 5_000_000;
+	const lines = [
+		{ id: 'tpl_clip_line_1', name: 'Line 1', text: 'MAKE EVERY', y: -120, color: [1, 1, 1, 1] },
+		{ id: 'tpl_clip_line_2', name: 'Line 2', text: 'WORD', y: 0, color: [0.98, 0.85, 0.2, 1] },
+		{ id: 'tpl_clip_line_3', name: 'Line 3', text: 'COUNT', y: 120, color: [1, 1, 1, 1] }
+	];
+
+	const clips = lines.map((line, index): Clip => {
+		const start = 300_000 + index * 450_000;
+		const revealed = start + 450_000;
+		return {
+			id: line.id as ClipId,
+			start: 0,
+			duration,
+			sourceIn: 0,
+			sourceOut: duration,
+			speed: 1,
+			volume: 0,
+			source: {
+				type: 'text',
+				text: line.text,
+				style: {
+					fontFamily: 'Montserrat',
+					fontWeight: '900',
+					alignment: 'center',
+					letterSpacing: 4,
+					revealUnit: 'word'
+				},
+				box: { autoSize: true, verticalAnchor: 'center', paddingX: 0, paddingY: 0, frameStyle: 'none' }
+			},
+			properties: {
+				'text.fontSize': { value: 96 },
+				'text.fillColor': { value: line.color },
+				'text.letterSpacing': { value: 4 },
+				'text.lineHeight': { value: 1.2 },
+				'text.reveal': {
+					keyframes: [
+						{ time: 0, value: 0, interpolation: 'linear' },
+						{ time: start, value: 0, interpolation: 'linear' },
+						{ time: revealed, value: 1, interpolation: 'linear' }
+					]
+				},
+				position: {
+					keyframes: [
+						{ time: 0, value: [0, line.y + 40], interpolation: 'linear' },
+						{ time: start, value: [0, line.y + 40], interpolation: 'linear' },
+						{
+							time: revealed,
+							value: [0, line.y],
+							interpolation: 'bezier',
+							easeOut: { x: 0.16, y: 1 },
+							easeIn: { x: 0.3, y: 1 }
+						}
+					]
+				},
+				opacity: {
+					keyframes: [
+						{ time: 0, value: 1, interpolation: 'linear' },
+						{ time: duration - 400_000, value: 1, interpolation: 'linear' },
+						{ time: duration, value: 0, interpolation: 'linear' }
+					]
+				}
+			},
+			effects: []
+		};
+	});
+
+	const tracks: Track[] = clips.map((clip, index) => ({
+		id: `track_line_${index + 1}` as TrackId,
+		kind: 'video',
+		name: lines[index]!.name,
+		muted: false,
+		locked: false,
+		hidden: false,
+		clips: [clip]
+	}));
+
+	const publishedParams: PublishedTemplateParam[] = [];
+	lines.forEach((line, index) => {
+		const n = index + 1;
+		publishedParams.push(
+			{
+				id: `param_line_${n}_text`,
+				name: `Line ${n} Text`,
+				type: 'text',
+				targetClipId: line.id as ClipId,
+				targetProperty: 'text.content',
+				defaultValue: line.text
+			},
+			textSizeParam(`param_line_${n}_size`, `Line ${n} Size`, line.id as ClipId, 96),
+			{
+				id: `param_line_${n}_color`,
+				name: `Line ${n} Color`,
+				type: 'color',
+				targetClipId: line.id as ClipId,
+				targetProperty: 'text.fill',
+				defaultValue: arrayToRgba(line.color)
+			}
+		);
+	});
+
+	const template = createTemplateFromClips({
+		name: 'Word Cascade',
+		category: 'Kinetic',
+		description:
+			'Three stacked lines of bold type that reveal word by word and slide into place, one after the other',
+		author: 'TheFreeVideoEditor',
+		clips,
+		tracks,
+		publishedParams,
+		responsiveTiming: { introDuration: 1_650_000, outroDuration: 400_000 },
+		textScale: TEXT_SIZE_MAX_SCALE
+	});
+	template.id = 'word-cascade';
+	return template;
 }
 
 /**

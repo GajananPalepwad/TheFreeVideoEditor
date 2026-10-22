@@ -4,7 +4,7 @@
   "version": 1,
   "id": "bouncy-spring-pop",
   "name": "Bouncy Pop Headline",
-  "category": "Titles",
+  "category": "Kinetic",
   "description": "Energetic spring drop with squash and stretch settling for YouTube vlogs and social videos",
   "author": "TheFreeVideoEditor",
   "createdAt": 1792321125276,
@@ -196,8 +196,8 @@
           "source": {
             "type": "shape",
             "shapeType": "rect",
-            "width": 620,
-            "height": 250,
+            "width": 1129,
+            "height": 210,
             "cornerRadius": 16,
             "fillColor": {
               "r": 1,

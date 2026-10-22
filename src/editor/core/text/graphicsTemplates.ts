@@ -410,7 +410,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'bouncy-spring-pop',
 		name: 'Bouncy Pop Headline',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Energetic spring drop with squash and stretch settling for YouTube vlogs and social videos',
 		tags: ['title', 'bouncy', 'pop', 'youtube', 'vlog', 'fun', 'social', 'yellow'],
 		defaultText: 'NEW EPISODE!\nWATCH UNTIL THE VERY END',
@@ -452,7 +452,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'split-slash-action',
 		name: 'Dynamic Split Angle',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'High-velocity horizontal slash with angular snap for sports, fitness, and energetic reels',
 		tags: ['title', 'action', 'sports', 'dynamic', 'fitness', 'speed', 'red'],
 		defaultText: 'BREAKING LIMITS\nTHE ULTIMATE PERFORMANCE',
@@ -494,7 +494,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'typewriter-terminal',
 		name: 'Typewriter Terminal',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Authentic character-by-character digital typewriter reveal for coding tutorials and tech intros',
 		tags: ['title', 'typewriter', 'code', 'terminal', 'retro', 'tech', 'green'],
 		defaultText: 'INITIALIZING SYSTEM...\nCORE ENGINE OPERATIONAL',
@@ -534,7 +534,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'broadcast-news-header',
 		name: 'Broadcast News Header',
-		category: 'titles',
+		category: 'lower-third',
 		description: 'Television-style breaking news banner header with top badge banner for journalism and reports',
 		tags: ['title', 'broadcast', 'news', 'press', 'report', 'journalism', 'blue'],
 		defaultText: 'BREAKING NEWS\nGLOBAL ECONOMIC SUMMIT',
@@ -575,7 +575,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'kinetic-marquee-stack',
 		name: 'Kinetic Marquee Stack',
-		category: 'titles',
+		category: 'kinetic',
 		description: 'Streetwear kinetic typography with bold angular frame and punch zoom for music videos',
 		tags: ['title', 'kinetic', 'streetwear', 'music', 'trend', 'hype', 'pink'],
 		defaultText: 'NEVER STOP\nTHE FUTURE IS CREATED TODAY',
@@ -616,7 +616,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'circle-crest-seal',
 		name: 'Circular Crest Emblem',
-		category: 'titles',
+		category: 'callouts',
 		description: 'Regal circular crest outline badge with smooth pop-in for podcasts, luxury, and creator brands',
 		tags: ['title', 'circle', 'seal', 'badge', 'luxury', 'podcast', 'gold'],
 		defaultText: 'EST. 2026\nMASTERCLASS SERIES',
@@ -657,7 +657,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'documentary-speaker-card',
 		name: 'Documentary Elegant Card',
-		category: 'titles',
+		category: 'lower-third',
 		description: 'Glass-morphism lower third card with smooth slide-in-left for documentaries and interviews',
 		tags: ['title', 'documentary', 'interview', 'speaker', 'glass', 'executive', 'cyan'],
 		defaultText: 'DR. ELENA VANCE\nCHIEF RESEARCH SCIENTIST',
@@ -698,7 +698,7 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 	{
 		id: 'social-creator-pill',
 		name: 'Social Creator Pill',
-		category: 'titles',
+		category: 'social',
 		description: 'Smooth rounded pill badge with bouncy pop-in for YouTube and social media handles',
 		tags: ['title', 'social', 'pill', 'creator', 'youtube', 'tiktok', 'instagram', 'purple'],
 		defaultText: '@CREATIVE_STUDIO\nFOLLOW FOR WEEKLY DROPS',
@@ -734,6 +734,212 @@ export const GRAPHIC_TEMPLATES: readonly GraphicTemplate[] = [
 			background: '#120b1c',
 			primary: '#ffffff',
 			accent: '#8c40f2'
+		}
+	},
+	{
+		id: 'corporate-name-strap',
+		name: 'Corporate Name Strap',
+		category: 'lower-third',
+		description: 'Understated name and role strap with a thin accent rule, for interviews and corporate video',
+		tags: ['lower-third', 'corporate', 'interview', 'name', 'role', 'orange'],
+		defaultText: 'JORDAN LEE\nHEAD OF PRODUCT',
+		primaryLine: 'JORDAN LEE',
+		secondaryLine: 'HEAD OF PRODUCT',
+		frameStyle: 'lower-third-line',
+		accentColor: { r: 0.98, g: 0.55, b: 0.15, a: 1.0 },
+		style: {
+			fontFamily: 'Inter',
+			fontWeight: '700',
+			alignment: 'left',
+			letterSpacing: 1.5
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 28,
+			paddingY: 16,
+			frameStyle: 'lower-third-line'
+		},
+		properties: {
+			position: [-100, 0],
+			'text.fontSize': 46,
+			'text.letterSpacing': 1.5,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.lineHeight': 1.25,
+			opacity: 1
+		},
+		animationPresetId: 'slide-in-left',
+		inDurationUs: 600000,
+		outDurationUs: 450000,
+		previewColors: {
+			background: '#0d0f14',
+			primary: '#ffffff',
+			accent: '#fa8c26'
+		}
+	},
+	{
+		id: 'subscribe-banner',
+		name: 'Subscribe Banner',
+		category: 'social',
+		description: 'Bold pill call to action that pops in to ask viewers to subscribe and follow',
+		tags: ['social', 'subscribe', 'youtube', 'call-to-action', 'pill', 'red'],
+		defaultText: 'SUBSCRIBE\nNEW VIDEOS EVERY WEEK',
+		primaryLine: 'SUBSCRIBE',
+		secondaryLine: 'NEW VIDEOS EVERY WEEK',
+		frameStyle: 'title-badge',
+		accentColor: { r: 0.92, g: 0.12, b: 0.15, a: 1.0 },
+		style: {
+			fontFamily: 'Montserrat',
+			fontWeight: '900',
+			alignment: 'center',
+			letterSpacing: 1.5
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 28,
+			paddingY: 16,
+			frameStyle: 'title-badge'
+		},
+		properties: {
+			position: [0, 0],
+			'text.fontSize': 50,
+			'text.letterSpacing': 1.5,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.lineHeight': 1.25,
+			opacity: 1
+		},
+		animationPresetId: 'pop-pill-in',
+		inDurationUs: 500000,
+		outDurationUs: 400000,
+		previewColors: {
+			background: '#140a0b',
+			primary: '#ffffff',
+			accent: '#eb1f26'
+		}
+	},
+	{
+		id: 'highlight-callout',
+		name: 'Highlight Callout',
+		category: 'callouts',
+		description: 'Boxed note that points out a key fact or number on screen',
+		tags: ['callout', 'highlight', 'note', 'stat', 'fact', 'yellow'],
+		defaultText: 'KEY INSIGHT\nREVENUE UP 42% THIS QUARTER',
+		primaryLine: 'KEY INSIGHT',
+		secondaryLine: 'REVENUE UP 42% THIS QUARTER',
+		frameStyle: 'callout-pointer',
+		accentColor: { r: 0.98, g: 0.85, b: 0.2, a: 1.0 },
+		style: {
+			fontFamily: 'Inter',
+			fontWeight: '800',
+			alignment: 'center',
+			letterSpacing: 1
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 28,
+			paddingY: 16,
+			frameStyle: 'callout-pointer'
+		},
+		properties: {
+			position: [0, 0],
+			'text.fontSize': 44,
+			'text.letterSpacing': 1,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.lineHeight': 1.25,
+			opacity: 1
+		},
+		animationPresetId: 'slide-in-up',
+		inDurationUs: 500000,
+		outDurationUs: 400000,
+		previewColors: {
+			background: '#0b0d14',
+			primary: '#ffffff',
+			accent: '#fad933'
+		}
+	},
+	{
+		id: 'chapter-marker',
+		name: 'Chapter Marker',
+		category: 'titles',
+		description: 'Chapter number and title beside a slim accent bar, for documentaries and long videos',
+		tags: ['title', 'chapter', 'documentary', 'section', 'teal'],
+		defaultText: 'CHAPTER 01\nTHE BEGINNING',
+		primaryLine: 'CHAPTER 01',
+		secondaryLine: 'THE BEGINNING',
+		frameStyle: 'accent-bar',
+		accentColor: { r: 0.1, g: 0.78, b: 0.7, a: 1.0 },
+		style: {
+			fontFamily: 'Montserrat',
+			fontWeight: '800',
+			alignment: 'left',
+			letterSpacing: 4
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 28,
+			paddingY: 16,
+			frameStyle: 'accent-bar'
+		},
+		properties: {
+			position: [60, 0],
+			'text.fontSize': 58,
+			'text.letterSpacing': 4,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.lineHeight': 1.25,
+			opacity: 1
+		},
+		animationPresetId: 'fade-in',
+		inDurationUs: 700000,
+		outDurationUs: 500000,
+		previewColors: {
+			background: '#08100f',
+			primary: '#ffffff',
+			accent: '#1ac7b3'
+		}
+	},
+	{
+		id: 'word-cascade',
+		name: 'Word Cascade',
+		category: 'kinetic',
+		description:
+			'Three stacked lines of bold type that reveal word by word and slide into place, one after the other',
+		tags: ['kinetic', 'stacked', 'reveal', 'words', 'typography', 'yellow'],
+		defaultText: 'MAKE EVERY\nWORD\nCOUNT',
+		primaryLine: 'MAKE EVERY',
+		secondaryLine: 'WORD',
+		tertiaryLine: 'COUNT',
+		accentColor: { r: 0.98, g: 0.85, b: 0.2, a: 1.0 },
+		style: {
+			fontFamily: 'Montserrat',
+			fontWeight: '900',
+			alignment: 'center',
+			letterSpacing: 4
+		},
+		box: {
+			autoSize: true,
+			verticalAnchor: 'center',
+			paddingX: 0,
+			paddingY: 0,
+			frameStyle: 'none'
+		},
+		properties: {
+			position: [0, 0],
+			'text.fontSize': 96,
+			'text.letterSpacing': 4,
+			'text.fillColor': [1, 1, 1, 1],
+			'text.lineHeight': 1.2,
+			opacity: 1
+		},
+		animationPresetId: 'slide-in-up',
+		inDurationUs: 1_650_000,
+		outDurationUs: 400_000,
+		previewColors: {
+			background: '#0b0b10',
+			primary: '#ffffff',
+			accent: '#fad933'
 		}
 	},
 	{

@@ -4,7 +4,7 @@
   "version": 1,
   "id": "circle-crest-seal",
   "name": "Circular Crest Emblem",
-  "category": "Titles",
+  "category": "Callouts",
   "description": "Regal circular crest outline badge with smooth pop-in for podcasts, luxury, and creator brands",
   "author": "TheFreeVideoEditor",
   "createdAt": 1792321125276,
@@ -15,7 +15,7 @@
   },
   "bounds": {
     "width": 1072,
-    "height": 496,
+    "height": 830,
     "originX": 0,
     "originY": 0
   },
@@ -174,8 +174,8 @@
           "source": {
             "type": "shape",
             "shapeType": "circle",
-            "width": 380,
-            "height": 380,
+            "width": 698,
+            "height": 698,
             "cornerRadius": 12,
             "fillColor": {
               "r": 0,
