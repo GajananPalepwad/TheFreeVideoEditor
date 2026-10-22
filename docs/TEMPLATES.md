@@ -52,12 +52,11 @@ Each entry in `publishedParams` points at a clip in the template and a property 
 
 `text.stroke` is accepted by the schema but not applied yet.
 
-## Fonts and media inside a file
+## Templates inside templates
 
-- **Export** (Graphics panel, Custom Templates, Export): the file embeds the custom fonts its text uses and the project media its clips use. Fonts that ship with the editor are not embedded. Media that is not in the open project cannot be embedded; the panel says what is missing. More than 8 MB is refused with the name of the file that did not fit.
-- **Import**: embedded fonts are installed as custom fonts (unless the family is already available) and embedded media is imported into the open project, with the template's clips pointed at the new assets. The copy kept in the template library is the light one, without the embedded data.
-- **Missing pieces**: adding a template whose font is not available says so in the panel and the default font is drawn; a clip whose media is missing stays offline as any missing media does.
-- **Media follows the project**: imported media lives in the project that imported it. Adding the template in another project needs the file imported again there.
+With a template sequence open, "+ Add", a drag from a card and the store's `instantiateTemplate` place the new
+template in that sequence, as one undo step. Its published fields work, it can be unpacked into the open
+sequence, and the root timeline draws it through both levels. `resolveFrame` stops at a nesting depth of 8.
 
 ## Writing a template
 
@@ -116,8 +115,8 @@ depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` chec
 - `templateFidelity.test.ts`: every template saves and reopens unchanged and draws the same layers; the
   drawn layers at three times are pinned as snapshots (`__snapshots__/`). Update them with
   `npx vitest run -u` only when a template is meant to change.
-- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, and repeated
-  drops never overlap.
+- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, repeated
+  drops never overlap, and a template can be placed, edited and unpacked inside another template.
 - `tests/e2e/template-text-bounds.spec.ts`: nothing reaches the edge of any template's bounds, at the
   default size and at the slider maximum.
 - `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor, for every template at
@@ -125,3 +124,5 @@ depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` chec
 - `templateResources.test.ts`: base64, which fonts and assets a template uses, embedding with the size limit, missing resources, remapping.
 - `tests/e2e/template-resources.spec.ts`: a custom font and a picture travel with a template and are installed on import, through the Graphics panel as well.
 - `tests/e2e/template-fidelity.spec.ts`: dragging each card and pressing "+ Add" build the same instance.
+- `tests/e2e/template-nested.spec.ts`: "+ Add" and a drag inside an open template sequence, and the real
+  renderer drawing the inner template.

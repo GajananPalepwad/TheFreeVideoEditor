@@ -136,8 +136,6 @@ Each item below is deferred on purpose. They follow the *Accepted Technical Debt
   encode of a template cannot run in CI. Mitigation: export and the Program monitor share `resolveFrame` and
   the frame renderer, and `tests/e2e/template-parity.spec.ts` compares them for all 18 templates; run the
   export spec in real Google Chrome before a release.
-- **Nested template inside a template**: status `deferred`; owner Templates Lead. Reason: instantiation of a
-  template into another template's sequence is not supported. Mitigation: unpack the instance first.
 
 ## Gate P (Captions & Subtitles System)
 
