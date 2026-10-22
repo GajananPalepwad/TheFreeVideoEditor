@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Track } from '../core';
-import { BUILTIN_MOTION_TEMPLATES } from '../core/templates/builtinTemplates';
+import { migrate, projectSchema, resolveFrame } from '../core';
+import type { SequenceId, Track } from '../core';
+import {
+	BUILTIN_MOTION_TEMPLATES,
+	getBuiltinMotionTemplate
+} from '../core/templates/builtinTemplates';
 import { createEditorStore } from './store';
 
 const services = vi.hoisted(() => ({
@@ -159,4 +163,96 @@ describe('placing a template on the timeline', () => {
 			expectNoOverlap(project.tracks, template.id);
 		});
 	}
+});
+
+describe('placing a template inside another template', () => {
+	beforeEach(() => {
+		resetServiceMocks();
+	});
+
+	async function insideCinematic(): Promise<{
+		store: Store;
+		outerId: SequenceId;
+		inner: NonNullable<ReturnType<typeof getBuiltinMotionTemplate>>;
+	}> {
+		const store = await newStore();
+		store.getState().instantiateTemplate(getBuiltinMotionTemplate('cinematic-blockbuster')!, 0);
+		const [instance] = store.getState().project!.tracks.flatMap((track) => track.clips);
+		const outerId = (instance!.source as { sequenceId: SequenceId }).sequenceId;
+		store.getState().openSequence(outerId);
+		return { store, outerId, inner: getBuiltinMotionTemplate('subscribe-banner')! };
+	}
+
+	it('adds the instance to the open template sequence, not to the root', async () => {
+		const { store, outerId, inner } = await insideCinematic();
+		const rootBefore = store.getState().project!.tracks.flatMap((track) => track.clips).length;
+
+		const created = store.getState().instantiateTemplate(inner, 0);
+
+		const project = store.getState().project!;
+		const outerClips = project.sequences![outerId]!.tracks.flatMap((track) => track.clips);
+		expect(created).not.toBeNull();
+		expect(outerClips.some((clip) => clip.id === created)).toBe(true);
+		expect(project.tracks.flatMap((track) => track.clips)).toHaveLength(rootBefore);
+		expectNoOverlap(project.sequences![outerId]!.tracks, 'outer sequence');
+	});
+
+	it('draws the inner template inside the outer one', async () => {
+		const { store, inner } = await insideCinematic();
+		store.getState().instantiateTemplate(inner, 0);
+		store.getState().closeSequence();
+
+		const [outerLayer] = resolveFrame(store.getState().project!, 1_500_000).videoLayers;
+		const innerLayer = outerLayer!.nested!.layers.find((layer) => layer.kind === 'sequence');
+		expect(innerLayer?.nested?.layers.some((layer) => layer.kind === 'text')).toBe(true);
+	});
+
+	it('survives save and reload', async () => {
+		const { store, inner } = await insideCinematic();
+		store.getState().instantiateTemplate(inner, 0);
+		const project = store.getState().project!;
+
+		const reopened = migrate(projectSchema.parse(JSON.parse(JSON.stringify(project))));
+
+		expect(reopened.sequences).toEqual(project.sequences);
+	});
+
+	it('applies a published parameter of the inner template', async () => {
+		const { store, inner } = await insideCinematic();
+		const innerId = store.getState().instantiateTemplate(inner, 0)!;
+		const param = inner.publishedParams.find((item) => item.targetProperty === 'text.content')!;
+
+		store.getState().setTemplateParamOverride(innerId, param.id, 'FROM THE OUTER TEMPLATE');
+		store.getState().closeSequence();
+
+		const [outerLayer] = resolveFrame(store.getState().project!, 1_500_000).videoLayers;
+		const innerLayer = outerLayer!.nested!.layers.find((layer) => layer.kind === 'sequence');
+		const text = innerLayer!.nested!.layers.find((layer) => layer.kind === 'text');
+		expect(text!.textData!.text).toBe('FROM THE OUTER TEMPLATE');
+	});
+
+	it('unpacks the inner template into the outer sequence without overlap', async () => {
+		const { store, outerId, inner } = await insideCinematic();
+		const innerId = store.getState().instantiateTemplate(inner, 0)!;
+		const layers = inner.tracks.flatMap((track) => track.clips).length;
+		const before = store.getState().project!.sequences![outerId]!.tracks.flatMap((t) => t.clips);
+
+		expect(store.getState().unpackTemplateClip(innerId)).toBe(true);
+
+		const outer = store.getState().project!.sequences![outerId]!;
+		const clips = outer.tracks.flatMap((track) => track.clips);
+		expect(clips).toHaveLength(before.length - 1 + layers);
+		expect(clips.some((clip) => clip.id === innerId)).toBe(false);
+		expectNoOverlap(outer.tracks, 'outer sequence after unpack');
+	});
+
+	it('is one undo step', async () => {
+		const { store, outerId, inner } = await insideCinematic();
+		const before = store.getState().project!.sequences![outerId]!.tracks;
+
+		store.getState().instantiateTemplate(inner, 0);
+		store.getState().undo();
+
+		expect(store.getState().project!.sequences![outerId]!.tracks).toEqual(before);
+	});
 });
