@@ -1,0 +1,2386 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`template fidelity > what a template draws > bouncy-spring-pop: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        0.97,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 102.76,
+    },
+    {
+      "fill": [
+        0.1,
+        0.1,
+        0.14,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        0.97,
+      ],
+      "text": "NEW EPISODE!
+WATCH UNTIL THE VERY END",
+      "x": 0,
+      "y": 102.76,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 96,
+    },
+    {
+      "fill": [
+        0.1,
+        0.1,
+        0.14,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "NEW EPISODE!
+WATCH UNTIL THE VERY END",
+      "x": 0,
+      "y": 96,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 96,
+    },
+    {
+      "fill": [
+        0.1,
+        0.1,
+        0.14,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "NEW EPISODE!
+WATCH UNTIL THE VERY END",
+      "x": 0,
+      "y": 96,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > broadcast-news-header: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 68.13,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 56,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING NEWS
+GLOBAL ECONOMIC SUMMIT",
+      "x": 0,
+      "y": 68.13,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 56,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING NEWS
+GLOBAL ECONOMIC SUMMIT",
+      "x": 0,
+      "y": 75,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 56,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING NEWS
+GLOBAL ECONOMIC SUMMIT",
+      "x": 0,
+      "y": 75,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > chapter-marker: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -438,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CHAPTER 01
+THE BEGINNING",
+      "x": -424,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -438,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CHAPTER 01
+THE BEGINNING",
+      "x": -424,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -438,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CHAPTER 01
+THE BEGINNING",
+      "x": -424,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > cinematic-blockbuster: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 0.77,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1.01,
+        1.01,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 0.77,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1.01,
+        1.01,
+      ],
+      "text": "THE HORIZON
+AN EPIC ADVENTURE BEGINS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        1.03,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        1.03,
+      ],
+      "text": "THE HORIZON
+AN EPIC ADVENTURE BEGINS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        1.03,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1.03,
+        1.03,
+      ],
+      "text": "THE HORIZON
+AN EPIC ADVENTURE BEGINS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > circle-crest-seal: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EST. 2026
+MASTERCLASS SERIES",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EST. 2026
+MASTERCLASS SERIES",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EST. 2026
+MASTERCLASS SERIES",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > corporate-name-strap: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -0.95,
+      "y": 77.5,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "JORDAN LEE
+HEAD OF PRODUCT",
+      "x": -252.45,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 10.5,
+      "y": 77.5,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "JORDAN LEE
+HEAD OF PRODUCT",
+      "x": -241,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 10.5,
+      "y": 77.5,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "JORDAN LEE
+HEAD OF PRODUCT",
+      "x": -241,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > cyber-glitch-tech: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        0,
+        0.95,
+        0.9,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CYBER PROTOCOL
+SYSTEM INITIALIZED // 2049",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        0,
+        0.95,
+        0.9,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CYBER PROTOCOL
+SYSTEM INITIALIZED // 2049",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        0,
+        0.95,
+        0.9,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "CYBER PROTOCOL
+SYSTEM INITIALIZED // 2049",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > documentary-speaker-card: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -57.95,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "DR. ELENA VANCE
+CHIEF RESEARCH SCIENTIST",
+      "x": -448.45,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -46.5,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "DR. ELENA VANCE
+CHIEF RESEARCH SCIENTIST",
+      "x": -437,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -46.5,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "DR. ELENA VANCE
+CHIEF RESEARCH SCIENTIST",
+      "x": -437,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > highlight-callout: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -68.13,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 44,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "KEY INSIGHT
+REVENUE UP 42% THIS QUARTER",
+      "x": 0,
+      "y": -68.13,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 44,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "KEY INSIGHT
+REVENUE UP 42% THIS QUARTER",
+      "x": 0,
+      "y": -75,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 44,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "KEY INSIGHT
+REVENUE UP 42% THIS QUARTER",
+      "x": 0,
+      "y": -75,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > kinetic-marquee-stack: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -18,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "NEVER STOP
+THE FUTURE IS CREATED TODAY",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -18,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "NEVER STOP
+THE FUTURE IS CREATED TODAY",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -18,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "NEVER STOP
+THE FUTURE IS CREATED TODAY",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > minimal-editorial: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -68.13,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EDITORIAL VOL. 10
+AUTUMN & WINTER COLLECTION",
+      "x": 0,
+      "y": -68.13,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EDITORIAL VOL. 10
+AUTUMN & WINTER COLLECTION",
+      "x": 0,
+      "y": -75,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -75,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "EDITORIAL VOL. 10
+AUTUMN & WINTER COLLECTION",
+      "x": 0,
+      "y": -75,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > mixkit-minimal-wipe-lower-third: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 22,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 0,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "ART DEPARTMENT ASSISTANT",
+      "x": -320,
+      "y": 42,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -202.1,
+      "y": -22,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MATT TYLER",
+      "x": -320,
+      "y": -22,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -360,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 22,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "ART DEPARTMENT ASSISTANT",
+      "x": -320,
+      "y": 28,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 0,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        0.1,
+        1,
+      ],
+      "text": undefined,
+      "x": 180,
+      "y": -22,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MATT TYLER",
+      "x": -320,
+      "y": -22,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -360,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 22,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 0,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "ART DEPARTMENT ASSISTANT",
+      "x": -320,
+      "y": 42,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 0.27,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        0.15,
+        1,
+      ],
+      "text": undefined,
+      "x": -320,
+      "y": -22,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 58,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 0.45,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MATT TYLER",
+      "x": -320,
+      "y": -22,
+    },
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 0.18,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        0,
+      ],
+      "text": undefined,
+      "x": -360,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > modern-bold-punch: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -903,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 68,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BOLD IMPACT
+FUTURE OF CREATIVE DESIGN",
+      "x": -889,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -903,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 68,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BOLD IMPACT
+FUTURE OF CREATIVE DESIGN",
+      "x": -889,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": -903,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 68,
+      "kind": "text",
+      "lineHeight": 1.15,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BOLD IMPACT
+FUTURE OF CREATIVE DESIGN",
+      "x": -889,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > social-creator-pill: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "@CREATIVE_STUDIO
+FOLLOW FOR WEEKLY DROPS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "@CREATIVE_STUDIO
+FOLLOW FOR WEEKLY DROPS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 46,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "@CREATIVE_STUDIO
+FOLLOW FOR WEEKLY DROPS",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > split-slash-action: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -12,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 93,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 62,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING LIMITS
+THE ULTIMATE PERFORMANCE",
+      "x": 93,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -12,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 93,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 62,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING LIMITS
+THE ULTIMATE PERFORMANCE",
+      "x": 93,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": -12,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 93,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 62,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "BREAKING LIMITS
+THE ULTIMATE PERFORMANCE",
+      "x": 93,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > subscribe-banner: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -6,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "SUBSCRIBE
+NEW VIDEOS EVERY WEEK",
+      "x": 0,
+      "y": -6,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -6,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "SUBSCRIBE
+NEW VIDEOS EVERY WEEK",
+      "x": 0,
+      "y": -6,
+    },
+  ],
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": -6,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 50,
+      "kind": "text",
+      "lineHeight": 1.25,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "SUBSCRIBE
+NEW VIDEOS EVERY WEEK",
+      "x": 0,
+      "y": -6,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > typewriter-terminal: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": [
+        0.2,
+        0.95,
+        0.45,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 0.33,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "INITIALIZING SYSTEM...
+CORE ENGINE OPERATIONAL",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": [
+        0.2,
+        0.95,
+        0.45,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "INITIALIZING SYSTEM...
+CORE ENGINE OPERATIONAL",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": [
+        0.2,
+        0.95,
+        0.45,
+        1,
+      ],
+      "fontSize": 52,
+      "kind": "text",
+      "lineHeight": 1.3,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "INITIALIZING SYSTEM...
+CORE ENGINE OPERATIONAL",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+]
+`;
+
+exports[`template fidelity > what a template draws > word-cascade: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 0,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "COUNT",
+      "x": 0,
+      "y": 140,
+    },
+    {
+      "fill": [
+        0.98,
+        0.85,
+        0.2,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 0,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "WORD",
+      "x": 0,
+      "y": 20,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 0.44,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MAKE EVERY",
+      "x": 0,
+      "y": -117.78,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "COUNT",
+      "x": 0,
+      "y": 100,
+    },
+    {
+      "fill": [
+        0.98,
+        0.85,
+        0.2,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "WORD",
+      "x": 0,
+      "y": -20,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MAKE EVERY",
+      "x": 0,
+      "y": -140,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "COUNT",
+      "x": 0,
+      "y": 100,
+    },
+    {
+      "fill": [
+        0.98,
+        0.85,
+        0.2,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "WORD",
+      "x": 0,
+      "y": -20,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 96,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MAKE EVERY",
+      "x": 0,
+      "y": -140,
+    },
+  ],
+]
+`;
