@@ -110,6 +110,11 @@ export const textStyleSchema = z.object({
 	revealUnit: z.enum(['char', 'word', 'line']).optional()
 });
 
+export const gradientStopSchema = z.object({
+	offset: z.number().min(0).max(1),
+	color: colorSchema
+});
+
 export const gradientTypeSchema = z.enum([
 	'none',
 	'linear-horizontal',
@@ -141,7 +146,8 @@ export const textBoxSchema = z.object({
 	accentBarWidth: z.number().nonnegative().optional(),
 	gradientType: gradientTypeSchema.optional(),
 	gradientColorEnd: colorSchema.optional(),
-	gradientAngle: z.number().optional()
+	gradientAngle: z.number().optional(),
+	gradientStops: z.array(gradientStopSchema).min(2).max(16).optional()
 });
 
 export const clipSourceSchema = z.discriminatedUnion('type', [
@@ -175,7 +181,8 @@ export const clipSourceSchema = z.discriminatedUnion('type', [
 		color: colorSchema,
 		gradientType: gradientTypeSchema.optional(),
 		gradientColorEnd: colorSchema.optional(),
-		gradientAngle: z.number().optional()
+		gradientAngle: z.number().optional(),
+		gradientStops: z.array(gradientStopSchema).min(2).max(16).optional()
 	}),
 	z.object({ type: z.literal('adjustment') }),
 	z.object({
@@ -196,7 +203,8 @@ export const clipSourceSchema = z.discriminatedUnion('type', [
 		shadowOffsetY: z.number().optional(),
 		gradientType: gradientTypeSchema.optional(),
 		gradientColorEnd: colorSchema.optional(),
-		gradientAngle: z.number().optional()
+		gradientAngle: z.number().optional(),
+		gradientStops: z.array(gradientStopSchema).min(2).max(16).optional()
 	})
 ]) as unknown as z.ZodType<ClipSource>;
 
