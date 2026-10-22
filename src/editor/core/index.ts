@@ -18,6 +18,7 @@ export * from './crop';
 export * from './properties';
 export * from './keyframeEdit';
 export * from './graphProperties';
+export * from './curveNumerics';
 export * from './gizmo';
 export * from './effects';
 export * from './colorMath';
