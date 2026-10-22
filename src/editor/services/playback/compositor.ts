@@ -1,7 +1,9 @@
 import { fitRect } from '../../core/composition';
 import { croppedFitRect } from '../../core/layerGeometry';
 import type { ActiveLayer } from '../../core/playback';
+import { layerGradient, type GradientStop } from '../../core/gradient';
 import type { BlendMode } from '../../core/types';
+import { createGradientPaint, rgbaCss } from '../render/gradientPaint';
 
 const CANVAS_BLEND: Record<BlendMode, GlobalCompositeOperation> = {
 	normal: 'source-over',
@@ -121,50 +123,19 @@ function applySolidFill(
 	gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle',
 	gradientColorEnd?: { r: number; g: number; b: number; a: number },
 	gradientAngle?: number,
+	gradientStops?: GradientStop[],
 	rect?: { x: number; y: number; width: number; height: number }
 ): void {
+	const gradient = layerGradient(gradientType, color, gradientColorEnd, gradientAngle, gradientStops);
 	if (
-		gradientType &&
-		gradientType !== 'none' &&
-		gradientColorEnd &&
+		gradient &&
 		rect &&
 		typeof context.createLinearGradient === 'function' &&
 		typeof context.createRadialGradient === 'function'
 	) {
-		const startStr = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a})`;
-		const endStr = `rgba(${Math.round(gradientColorEnd.r * 255)}, ${Math.round(gradientColorEnd.g * 255)}, ${Math.round(gradientColorEnd.b * 255)}, ${gradientColorEnd.a})`;
-		let grad: CanvasGradient;
-		const { x, y, width: w, height: h } = rect;
-		if (gradientType === 'linear-vertical') {
-			grad = context.createLinearGradient(x, y, x, y + h);
-		} else if (gradientType === 'radial') {
-			grad = context.createRadialGradient(
-				x + w / 2,
-				y + h / 2,
-				0,
-				x + w / 2,
-				y + h / 2,
-				Math.max(w, h) / 2
-			);
-		} else if (gradientType === 'linear-angle') {
-			const rad = ((gradientAngle ?? 45) * Math.PI) / 180;
-			const halfDiag = Math.sqrt(w * w + h * h) / 2;
-			const cx = x + w / 2;
-			const cy = y + h / 2;
-			grad = context.createLinearGradient(
-				cx - Math.cos(rad) * halfDiag,
-				cy - Math.sin(rad) * halfDiag,
-				cx + Math.cos(rad) * halfDiag,
-				cy + Math.sin(rad) * halfDiag
-			);
-		} else {
-			grad = context.createLinearGradient(x, y, x + w, y);
-		}
-		grad.addColorStop(0, startStr);
-		grad.addColorStop(1, endStr);
-		context.fillStyle = grad;
+		context.fillStyle = createGradientPaint(context as CanvasRenderingContext2D, gradient, rect);
 	} else {
-		context.fillStyle = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a})`;
+		context.fillStyle = rgbaCss(color);
 	}
 }
 
@@ -231,6 +202,7 @@ export function renderFrame(
 							sub.solidGradientType,
 							sub.solidGradientColorEnd,
 							sub.solidGradientAngle,
+							sub.solidGradientStops,
 							{
 								x: drawRect.x - offsetX,
 								y: drawRect.y - offsetY,
@@ -351,6 +323,7 @@ export function renderFrame(
 					layer.solidGradientType,
 					layer.solidGradientColorEnd,
 					layer.solidGradientAngle,
+					layer.solidGradientStops,
 					{
 						x: drawRect.x - offsetX,
 						y: drawRect.y - offsetY,

@@ -1,5 +1,7 @@
 import { layout, revealCount, getGraphemes, type MeasureFunction } from '../../../core/text/layout';
+import { gradientKey, layerGradient, type GradientStop } from '../../../core/gradient';
 import type { TextStyle, TextBox } from '../../../core/types';
+import { createGradientPaint } from '../gradientPaint';
 
 export interface TextColorRun {
 	startIndex: number;
@@ -51,6 +53,7 @@ export interface TextRasterConfig {
 	gradientType?: 'none' | 'linear-horizontal' | 'linear-vertical' | 'radial' | 'linear-angle';
 	gradientColorEnd?: { r: number; g: number; b: number; a: number };
 	gradientAngle?: number;
+	gradientStops?: GradientStop[];
 	colorRuns?: TextColorRun[];
 	scale?: number;
 }
@@ -433,33 +436,15 @@ export function rasterizeText(
 	let fillStyleStr: string | CanvasGradient =
 		`rgba(${Math.round(fillColor.r * 255)}, ${Math.round(fillColor.g * 255)}, ${Math.round(fillColor.b * 255)}, ${fillColor.a})`;
 
-	if (config.gradientType && config.gradientType !== 'none' && config.gradientColorEnd) {
-		const end = config.gradientColorEnd;
-		const startStr = fillStyleStr;
-		const endStr = `rgba(${Math.round(end.r * 255)}, ${Math.round(end.g * 255)}, ${Math.round(end.b * 255)}, ${end.a})`;
-		let grad: CanvasGradient;
-		if (config.gradientType === 'linear-vertical') {
-			grad = ctx.createLinearGradient(0, 0, 0, boxH);
-		} else if (config.gradientType === 'radial') {
-			const cx = boxW / 2;
-			const cy = boxH / 2;
-			grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(boxW, boxH) / 2);
-		} else if (config.gradientType === 'linear-angle') {
-			const angleRad = ((config.gradientAngle ?? 45) * Math.PI) / 180;
-			const halfDiag = Math.sqrt(boxW * boxW + boxH * boxH) / 2;
-			const cx = boxW / 2;
-			const cy = boxH / 2;
-			const x0 = cx - Math.cos(angleRad) * halfDiag;
-			const y0 = cy - Math.sin(angleRad) * halfDiag;
-			const x1 = cx + Math.cos(angleRad) * halfDiag;
-			const y1 = cy + Math.sin(angleRad) * halfDiag;
-			grad = ctx.createLinearGradient(x0, y0, x1, y1);
-		} else {
-			grad = ctx.createLinearGradient(0, 0, boxW, 0);
-		}
-		grad.addColorStop(0, startStr);
-		grad.addColorStop(1, endStr);
-		fillStyleStr = grad;
+	const textGradient = layerGradient(
+		config.gradientType,
+		fillColor,
+		config.gradientColorEnd,
+		config.gradientAngle,
+		config.gradientStops
+	);
+	if (textGradient) {
+		fillStyleStr = createGradientPaint(ctx, textGradient, { x: 0, y: 0, width: boxW, height: boxH });
 	}
 
 	const renderString = (str: string, x: number, y: number, isStroke: boolean) => {
@@ -712,9 +697,14 @@ export function hashTextConfig(config: TextRasterConfig): string {
 				`${r.startIndex}-${r.endIndex}:${r.fillColor ? `${Math.round(r.fillColor.r * 255)},${Math.round(r.fillColor.g * 255)},${Math.round(r.fillColor.b * 255)},${r.fillColor.a}` : ''}`
 		)
 		.join(';');
-	const gradKey =
-		config.gradientType && config.gradientType !== 'none' && config.gradientColorEnd
-			? `${config.gradientType}:${Math.round(config.gradientColorEnd.r * 255)},${Math.round(config.gradientColorEnd.g * 255)},${Math.round(config.gradientColorEnd.b * 255)},${config.gradientColorEnd.a}:${config.gradientAngle ?? 0}`
-			: '0';
+	const gradKey = gradientKey(
+		layerGradient(
+			config.gradientType,
+			config.fillColor ?? { r: 1, g: 1, b: 1, a: 1 },
+			config.gradientColorEnd,
+			config.gradientAngle,
+			config.gradientStops
+		)
+	);
 	return `${styleKey}#${boxKey}#${Math.round(config.fontSize)}#${scale}#${colorKey}#${stroke}#${reveal}#${revealUnit}#${shadow}#${bg}#${borderKey}#${barKey}#${frameKey}#${badgeKey}#${runsKey}#${gradKey}#${text}`;
 }
