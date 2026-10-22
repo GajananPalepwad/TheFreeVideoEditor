@@ -5,22 +5,6 @@ import { expect, test } from '@playwright/test';
  * outer edge of the template's bounds, which is where text that does not fit gets cut off.
  */
 
-const TEMPLATE_IDS = [
-	'bouncy-spring-pop',
-	'broadcast-news-header',
-	'cinematic-blockbuster',
-	'circle-crest-seal',
-	'cyber-glitch-tech',
-	'documentary-speaker-card',
-	'kinetic-marquee-stack',
-	'minimal-editorial',
-	'mixkit-minimal-wipe-lower-third',
-	'modern-bold-punch',
-	'social-creator-pill',
-	'split-slash-action',
-	'typewriter-terminal'
-];
-
 /** Width of the edge ring that has to stay empty. */
 const EDGE = 4;
 
@@ -46,9 +30,9 @@ test.describe('Template text fits its bounds', () => {
 	for (const scale of ['default', 'slider-max'] as const) {
 		test(`${scale} size leaves the edge of every built-in template empty`, async ({ page }) => {
 			const failures = await page.evaluate(
-				async ({ ids, mode, edge }) => {
+				async ({ mode, edge }) => {
 					const path = (name: string) => `/src/editor/${name}`;
-					const { getBuiltinMotionTemplate } = await import(
+					const { BUILTIN_MOTION_TEMPLATES, getBuiltinMotionTemplate } = await import(
 						/* @vite-ignore */ path('core/templates/builtinTemplates.ts')
 					);
 					const { buildTemplatePreviewProject } = await import(
@@ -71,7 +55,7 @@ test.describe('Template text fits its bounds', () => {
 					}
 
 					const found: string[] = [];
-					for (const id of ids) {
+					for (const { id } of BUILTIN_MOTION_TEMPLATES) {
 						const template = structuredClone(getBuiltinMotionTemplate(id));
 						if (mode === 'slider-max') {
 							for (const param of template.publishedParams) {
@@ -134,7 +118,7 @@ test.describe('Template text fits its bounds', () => {
 					}
 					return found;
 				},
-				{ ids: TEMPLATE_IDS, mode: scale, edge: EDGE }
+				{ mode: scale, edge: EDGE }
 			);
 
 			expect(failures).toEqual([]);
