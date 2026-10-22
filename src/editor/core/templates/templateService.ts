@@ -213,8 +213,10 @@ export function offsetClipPosition(clip: Clip, dx: number, dy: number): Clip {
  */
 export function calculateClipsBoundingBox(
 	clips: Clip[],
-	projectSettings: { width: number; height: number } = { width: 1920, height: 1080 }
+	projectSettings: { width: number; height: number } = { width: 1920, height: 1080 },
+	options: { textScale?: number } = {}
 ): ClipsBoundingBox {
+	const textScale = options.textScale ?? 1;
 	if (!clips || clips.length === 0) {
 		return {
 			width: projectSettings.width,
@@ -259,19 +261,28 @@ export function calculateClipsBoundingBox(
 				if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
 			}
 
+			fontSize *= textScale;
+			letterSpacing *= textScale;
+
+			let lineHeight = clip.source.style?.lineHeight ?? 1.2;
+			try {
+				const lh = readProperty(clip, 'text.lineHeight', 0);
+				if (typeof lh === 'number' && Number.isFinite(lh) && lh > 0) lineHeight = lh;
+			} catch {
+				// The style line height stands.
+			}
+
 			const text = clip.source.text || clip.text || 'Sample Text';
+			// The same style the renderer lays the text out with.
 			const style = {
 				fontFamily: 'Montserrat',
 				...(clip.source.style || {}),
+				lineHeight,
 				letterSpacing
 			};
 			let dims = { width: 300, height: 100 };
 			try {
 				dims = getTextDimensions(text, style, clip.source.box, fontSize);
-				if (letterSpacing > 0) {
-					const longestLine = Math.max(...text.split('\n').map((l) => l.length));
-					dims.width += longestLine * letterSpacing;
-				}
 				if (clip.source.box?.frameStyle === 'accent-bar') {
 					const barW = (readProperty(clip, 'text.accentBarWidth', 0) as number) || clip.source.box.accentBarWidth || 16;
 					dims.width += barW + 28;
@@ -295,7 +306,7 @@ export function calculateClipsBoundingBox(
 				strokeColor: { r: 0, g: 0, b: 0, a: 1 },
 				strokeWidth: 0,
 				letterSpacing,
-				lineHeight: 1.2,
+				lineHeight,
 				reveal: 1
 			};
 		} else if (clip.source?.type === 'shape') {
@@ -470,6 +481,8 @@ export function createTemplateFromClips(options: {
 		introDuration: Time;
 		outroDuration: Time;
 	};
+	/** How much larger than drawn the text may get, so the bounds leave room for it. */
+	textScale?: number;
 }): MotionGraphicTemplate {
 	const {
 		name,
@@ -480,14 +493,15 @@ export function createTemplateFromClips(options: {
 		tracks,
 		publishedParams,
 		projectSettings = { width: 1920, height: 1080 },
-		responsiveTiming
+		responsiveTiming,
+		textScale
 	} = options;
 
 	if (clips.length === 0) {
 		throw new Error('Cannot create a template from zero clips.');
 	}
 
-	const bounds = calculateClipsBoundingBox(clips, projectSettings);
+	const bounds = calculateClipsBoundingBox(clips, projectSettings, { textScale });
 	const originX = bounds.originX;
 	const originY = bounds.originY;
 
