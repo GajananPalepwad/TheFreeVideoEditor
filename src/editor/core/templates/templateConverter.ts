@@ -10,7 +10,7 @@ import {
 	type GraphicTemplate,
 	type GraphicCategory
 } from '../text/graphicsTemplates';
-import { createTemplateFromClips } from './templateService';
+import { createTemplateFromClips, measureTextClip } from './templateService';
 
 function hexToRgba(hex: string, alpha = 1): { r: number; g: number; b: number; a: number } {
 	let clean = hex.replace('#', '').trim();
@@ -157,13 +157,24 @@ export function convertGraphicTemplateToMotionTemplate(
 		const basePos = textClip.properties?.position
 			? (textClip.properties.position as any).value ?? [0, 0]
 			: [0, 0];
-		let shapePos: [number, number] = [basePos[0], basePos[1]];
+
+		// The block the text draws, which the frame has to wrap. Text sits on its position point
+		// when it is left or right aligned, and is centred on it otherwise.
+		const block = measureTextClip(textClip);
+		const alignment = textClip.source?.type === 'text' ? textClip.source.style?.alignment : undefined;
+		const centerX =
+			basePos[0] + (alignment === 'left' ? block.width / 2 : alignment === 'right' ? -block.width / 2 : 0);
+		const centerY = basePos[1];
+		let shapePos: [number, number] = [centerX, centerY];
+		const wrap = (extraX: number, extraY: number) => {
+			width = Math.round(block.width + extraX);
+			height = Math.round(block.height + extraY);
+		};
 
 		switch (frameStyle) {
 			case 'card':
 				shapeType = 'rect';
-				width = 620;
-				height = 250;
+				wrap(24, 16);
 				cornerRadius = 16;
 				fillColor = template.properties?.['text.backgroundBoxColor']
 					? arrayToRgba(template.properties['text.backgroundBoxColor'])
@@ -174,8 +185,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'circle':
 				shapeType = 'circle';
-				width = 380;
-				height = 380;
+				width = height = Math.round(Math.hypot(block.width, block.height) + 16);
 				fillColor = { r: 0, g: 0, b: 0, a: 0 };
 				strokeColor = template.accentColor;
 				strokeWidth = 3;
@@ -185,8 +195,7 @@ export function convertGraphicTemplateToMotionTemplate(
 			case 'cinematic-box':
 			case 'divided-box':
 				shapeType = 'rect';
-				width = 600;
-				height = 230;
+				wrap(16, 8);
 				cornerRadius = 4;
 				fillColor = { r: 0, g: 0, b: 0, a: 0 };
 				strokeColor = template.accentColor;
@@ -197,45 +206,41 @@ export function convertGraphicTemplateToMotionTemplate(
 			case 'title-badge':
 			case 'social-pill':
 				shapeType = 'rect';
-				width = 460;
-				height = 68;
-				cornerRadius = 34;
+				wrap(32, 12);
+				cornerRadius = Math.round(height / 2);
 				fillColor = template.accentColor;
 				break;
 
 			case 'lower-third-line':
 				shapeType = 'rect';
-				width = 620;
+				width = Math.round(block.width);
 				height = 5;
 				cornerRadius = 2;
 				fillColor = template.accentColor;
-				shapePos = [basePos[0], basePos[1] + 48];
+				shapePos = [centerX, centerY + block.height / 2 + 4];
 				break;
 
 			case 'lower-third-glass':
 				shapeType = 'rect';
-				width = 660;
-				height = 110;
+				wrap(40, 20);
 				cornerRadius = 10;
 				fillColor = { r: 0.06, g: 0.09, b: 0.16, a: 0.85 };
 				strokeColor = template.accentColor;
 				strokeWidth = 1.5;
-				shapePos = [basePos[0], basePos[1]];
 				break;
 
 			case 'accent-bar':
 				shapeType = 'rect';
 				width = 6;
-				height = 105;
+				height = Math.round(block.height);
 				cornerRadius = 3;
 				fillColor = template.accentColor;
-				shapePos = [basePos[0] - 220, basePos[1]];
+				shapePos = [centerX - block.width / 2 - 14, centerY];
 				break;
 
 			case 'callout-pointer':
 				shapeType = 'rect';
-				width = 360;
-				height = 84;
+				wrap(24, 16);
 				cornerRadius = 12;
 				fillColor = { r: 0.08, g: 0.1, b: 0.16, a: 0.92 };
 				strokeColor = template.accentColor;
@@ -244,7 +249,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'split-slash':
 				shapeType = 'rect';
-				width = 560;
+				width = Math.round(block.width);
 				height = 5;
 				cornerRadius = 3;
 				fillColor = template.accentColor;
@@ -253,8 +258,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			case 'diagonal-repeat':
 				shapeType = 'rect';
-				width = 660;
-				height = 230;
+				wrap(60, 40);
 				cornerRadius = 8;
 				fillColor = { r: 0.04, g: 0.05, b: 0.08, a: 0.7 };
 				strokeColor = template.accentColor;
@@ -264,8 +268,7 @@ export function convertGraphicTemplateToMotionTemplate(
 
 			default:
 				shapeType = 'rect';
-				width = 560;
-				height = 200;
+				wrap(24, 16);
 				cornerRadius = 8;
 				fillColor = { r: 0.08, g: 0.08, b: 0.12, a: 0.75 };
 				break;

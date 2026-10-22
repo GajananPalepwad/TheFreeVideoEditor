@@ -79,7 +79,7 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 			const file = path.join(dir, `${tpl.id}.tfvetemplate`);
 			expect(fs.existsSync(file), `${tpl.id}.tfvetemplate is missing`).toBe(true);
 			const shipped = deserializeTemplate(fs.readFileSync(file, 'utf-8'));
-			// The bounds, and the positions that depend on them, come from measuring text with the
+			// The bounds, the size of each frame and the positions that depend on them come from measuring text with the
 			// browser's fonts, which Node cannot do. tests/e2e/template-text-bounds.spec.ts checks them.
 			const design = (t: typeof tpl) => ({
 				id: t.id,
@@ -89,7 +89,14 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 				responsiveTiming: t.responsiveTiming,
 				tracks: t.tracks.map((track) => ({
 					name: track.name,
-					clips: track.clips.map((clip) => ({ id: clip.id, source: clip.source }))
+					clips: track.clips.map((clip) => ({
+						id: clip.id,
+						// A frame is sized to the measured text, so its size is not compared.
+						source:
+							clip.source?.type === 'shape'
+								? { ...clip.source, width: 0, height: 0, cornerRadius: 0 }
+								: clip.source
+					}))
 				})),
 				publishedParams: t.publishedParams.map((param) => ({
 					id: param.id,
