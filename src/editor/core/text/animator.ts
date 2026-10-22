@@ -90,3 +90,10 @@ export function resolveTextAnimator(read: (propertyId: string) => unknown): Text
 		opacity: clamp01(numberOr(read('text.anim.opacity'), DEFAULTS.opacity))
 	};
 }
+
+/** The margin around a text layer's picture for its animation, in the layer's own pixels; 0 with none. */
+export function textAnimationInset(
+	textData: { animator?: TextAnimator | null; fontSize: number } | undefined
+): number {
+	return textData?.animator ? animatorMargin(textData.animator, textData.fontSize) : 0;
+}
