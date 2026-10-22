@@ -945,6 +945,15 @@ LUT_3D_SIZE 2
 		expect(store.getState().exportCompletedResult).toBeNull();
 	});
 
+	it('manages export frame dialog lifecycle', () => {
+		const store = createEditorStore();
+		expect(store.getState().isExportFrameDialogOpen).toBe(false);
+		store.getState().openExportFrameDialog();
+		expect(store.getState().isExportFrameDialogOpen).toBe(true);
+		store.getState().closeExportFrameDialog();
+		expect(store.getState().isExportFrameDialogOpen).toBe(false);
+	});
+
 	it('updates solid and text gradients via setSolidGradient and setTextGradient', async () => {
 		const store = createEditorStore();
 		await store.getState().createProject({ name: 'Gradient Store Test' });

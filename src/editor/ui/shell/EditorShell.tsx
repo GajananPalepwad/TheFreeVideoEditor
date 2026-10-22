@@ -20,6 +20,7 @@ import ImportDialog from '../dialogs/ImportDialog';
 import MarkerDialog from '../dialogs/MarkerDialog';
 import ExportDialog from '../export/ExportDialog';
 import ExportCompleteDialog from '../export/ExportCompleteDialog';
+import ExportFrameDialog from '../dialogs/ExportFrameDialog';
 import PreviewWorkspace from '../preview/PreviewWorkspace';
 import SourceMonitor from '../preview/SourceMonitor';
 import Timeline from '../timeline/Timeline';
@@ -411,6 +412,10 @@ function EditorShell() {
 			'new-project': () => state().openNewProjectDialog(),
 			'open-project': () => state().openProjectManager(),
 			export: () => state().openExportDialog(),
+			'export-frame': () => {
+				if (playbackRef.current?.snapshot.playing) playbackRef.current.pause();
+				state().openExportFrameDialog();
+			},
 			'save-project': () => {
 				void (async () => {
 					try {
@@ -1869,6 +1874,7 @@ function EditorShell() {
 			<SaveCopyPrompt />
 			<ExportDialog />
 			<ExportCompleteDialog />
+			<ExportFrameDialog />
 			<SpeedDurationDialog />
 			<SequenceSettingsDialog />
 			<MarkerDialog />

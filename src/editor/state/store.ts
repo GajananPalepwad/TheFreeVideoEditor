@@ -548,6 +548,7 @@ export interface EditorState {
 	isSaveCopyPromptOpen: boolean;
 	saveCopyPromptShown: boolean;
 	isExportDialogOpen: boolean;
+	isExportFrameDialogOpen: boolean;
 	isExportClosePromptOpen: boolean;
 	isExporting: boolean;
 	exportCompletedResult: ExportCompletedResult | null;
@@ -619,6 +620,8 @@ export interface EditorState {
 	closeSaveCopyPrompt: () => void;
 	openExportDialog: () => void;
 	closeExportDialog: () => void;
+	openExportFrameDialog: () => void;
+	closeExportFrameDialog: () => void;
 	openExportCompleteDialog: (result: ExportCompletedResult) => void;
 	closeExportCompleteDialog: () => void;
 	openImportDialog: () => void;
@@ -1563,6 +1566,7 @@ export function createEditorStore() {
 				isSaveCopyPromptOpen: false,
 				saveCopyPromptShown: false,
 				isExportDialogOpen: false,
+				isExportFrameDialogOpen: false,
 				isExportClosePromptOpen: false,
 				isExporting: false,
 				exportCompletedResult: null,
@@ -2430,6 +2434,17 @@ export function createEditorStore() {
 					if (get().isExporting) return;
 					set((state) => {
 						state.isExportDialogOpen = false;
+					});
+				},
+				openExportFrameDialog() {
+					set((state) => {
+						state.isExportFrameDialogOpen = true;
+						state.isFileMenuOpen = false;
+					});
+				},
+				closeExportFrameDialog() {
+					set((state) => {
+						state.isExportFrameDialogOpen = false;
 					});
 				},
 				openExportCompleteDialog(result) {
