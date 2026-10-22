@@ -51,6 +51,12 @@ Each entry in `publishedParams` points at a clip in the template and a property 
 
 `text.stroke` is accepted by the schema but not applied yet.
 
+## Templates inside templates
+
+With a template sequence open, "+ Add", a drag from a card and the store's `instantiateTemplate` place the new
+template in that sequence, as one undo step. Its published fields work, it can be unpacked into the open
+sequence, and the root timeline draws it through both levels. `resolveFrame` stops at a nesting depth of 8.
+
 ## Writing a template
 
 1. Copy `public/templates/example.tfvetemplate`, give it a new `id` and `name`.
@@ -108,10 +114,12 @@ depend on browser font metrics, so `tests/e2e/template-text-bounds.spec.ts` chec
 - `templateFidelity.test.ts`: every template saves and reopens unchanged and draws the same layers; the
   drawn layers at three times are pinned as snapshots (`__snapshots__/`). Update them with
   `npx vitest run -u` only when a template is meant to change.
-- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, and repeated
-  drops never overlap.
+- `state/templatePlacement.test.ts`: dropping onto a track equals "+ Add" at the playhead, repeated
+  drops never overlap, and a template can be placed, edited and unpacked inside another template.
 - `tests/e2e/template-text-bounds.spec.ts`: nothing reaches the edge of any template's bounds, at the
   default size and at the slider maximum.
 - `tests/e2e/template-parity.spec.ts`: a card's pixels match the Program monitor, for every template at
   three times.
 - `tests/e2e/template-fidelity.spec.ts`: dragging each card and pressing "+ Add" build the same instance.
+- `tests/e2e/template-nested.spec.ts`: "+ Add" and a drag inside an open template sequence, and the real
+  renderer drawing the inner template.
