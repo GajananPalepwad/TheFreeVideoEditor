@@ -1064,6 +1064,95 @@ export function TextSection({
 			</div>
 
 			<div className="text-divider">
+				<span className="text-divider-title">Animate each {textStyle.revealUnit === 'word' ? 'word' : textStyle.revealUnit === 'line' ? 'line' : 'character'}</span>
+			</div>
+
+			<div className="property-row">
+				<button
+					type="button"
+					className="text-action-btn"
+					onClick={() => {
+						const end = Math.min(1_000_000, clip.duration);
+						store.getState().addKeyframeAtTime(clip.id, 'text.anim.progress', 0, 0);
+						store.getState().addKeyframeAtTime(clip.id, 'text.anim.progress', end, 1);
+					}}
+					title="Make each unit rise into place one after another over the first second"
+				>
+					Animate in
+				</button>
+			</div>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.progress"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.stagger"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.offsetX"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.offsetY"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.scale"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.rotation"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<PropertyRow
+				clip={clip}
+				propertyId="text.anim.opacity"
+				localTime={localTime}
+				fps={fps}
+				confirmDisable={confirmDisable}
+				onStartDisableConfirm={onStartDisableConfirm}
+				onCancelDisableConfirm={onCancelDisableConfirm}
+			/>
+
+			<div className="text-divider">
 				<span className="text-divider-title">Shadow</span>
 				<div className="timeline-counter-badge" style={{ margin: 0 }}>
 					<span className="timeline-badge-dot" aria-hidden="true" />4 channels
