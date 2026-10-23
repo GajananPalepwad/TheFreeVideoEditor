@@ -29,6 +29,8 @@ We welcome contributions from developers, video editors, designers, and technica
 
 We are committed to providing a welcoming, inclusive, harassment-free, and respectful environment for everyone.
 
+Read the full [Code of Conduct](./CODE_OF_CONDUCT.md).
+
 - **Be Respectful**: Treat fellow contributors, maintainers, and community members with empathy and kindness.
 - **Constructive Communication**: Focus on constructive feedback, collaborative problem-solving, and shared learning.
 - **Inclusivity**: Welcome beginners and experienced developers alike.
@@ -147,7 +149,7 @@ Create a topic branch branched off the latest `main`:
 ```bash
 git checkout -b feat/add-magnetic-timeline
 # or
-git fix/webcodecs-decoder-stall
+git checkout -b fix/webcodecs-decoder-stall
 ```
 
 Use standard prefixes:
@@ -157,6 +159,8 @@ Use standard prefixes:
 - `perf/` for performance optimizations
 - `docs/` for documentation improvements
 - `refactor/` for code refactoring with no behavioral change
+- `test/` for adding or improving tests only
+- `chore/` for tooling, dependencies and housekeeping
 
 ---
 
@@ -176,6 +180,9 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 | `test`     | Adding or updating tests | `test(audio): add unit tests for 3-band parametric EQ biquad filters`    |
 | `docs`     | Documentation changes    | `docs(readme): add browser compatibility matrix and shortcut cheatsheet` |
 | `refactor` | Code restructuring       | `refactor(state): modularize sequence-scoped editing actions`            |
+| `chore`    | Tooling and housekeeping | `chore: ignore local handoff notes and build output`                     |
+
+Keep commits small: one logical change plus its tests per commit, with a body that says _why_.
 
 ---
 
@@ -193,12 +200,22 @@ npm test
 # 3. Run ESLint code checks
 npm run lint
 
-# 4. Check formatting with Prettier
-npx prettier --check .
+# 4. Check formatting of the files you changed (the repo is not Prettier-clean yet)
+npx prettier --check <files you created or changed>
 
-# 5. Run end-to-end browser tests (Playwright)
-npm run test:e2e
+# 5. Run end-to-end browser tests (Playwright) for the area you changed.
+#    Start the dev server first: npx astro dev --background
+npx playwright test tests/e2e/<spec> --project=chromium --workers=1
 ```
+
+> [!NOTE]
+> Some checks already fail on `main` (lint errors, unformatted files, `interop.test.ts` needs `xmllint`, a
+> few slow unit tests, some e2e specs). Compare with `main` before blaming your change, and do not fix
+> unrelated failures inside a feature PR. There is no CI yet; it is tracked in
+> [#40](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues/40), so run the checks yourself.
+>
+> Working with an AI coding agent? Point it at [`AGENTS.md`](./AGENTS.md). You are responsible for every
+> line you submit, so read the diff before you push.
 
 ---
 
@@ -231,8 +248,8 @@ sequenceDiagram
 
     Contributor->>Fork: Push branch (git push origin feat/my-feature)
     Contributor->>Repo: Open Pull Request
-    Repo->>CI: Trigger Automated Checks (tsc, lint, vitest, e2e)
-    CI-->>Repo: Checks PASS ✅
+    Repo->>CI: Trigger Automated Checks (tsc, lint, vitest, e2e) once CI exists
+    CI-->>Repo: Checks PASS ✅ (planned, see #40)
     Reviewer->>Contributor: Review & Feedback
     Contributor->>Fork: Push refinements (if requested)
     Reviewer->>Repo: Approve & Merge 🎉
@@ -245,6 +262,8 @@ sequenceDiagram
 Need help or have ideas? We'd love to chat!
 
 - 💡 **Open an Issue**: For feature proposals, bug reports, and discussion, open a [GitHub Issue](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues).
+- 🔒 **Security**: report vulnerabilities privately, as described in [SECURITY.md](./SECURITY.md).
+- 📜 **Conduct**: see [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 - 📖 **Read the Guides**: Technical architecture guides and RFCs live in [`docs/`](./docs/).
 
 Thank you for contributing to **The Free Video Editor**! 🎬✨
