@@ -13,3 +13,5 @@ in `AGENTS.md`.
 - Instructions here are context, not enforcement. Anything that must never happen belongs in a hook or a
   permission rule in `.claude/settings.json`, and in CI once it exists.
 - Personal preferences go in `CLAUDE.local.md`, which git ignores, not in this file.
+- Run `/doctor prompt-audit` now and then to find outdated or conflicting lines in `AGENTS.md` and this
+  file, and fix them in the same PR as the change that made them stale.
