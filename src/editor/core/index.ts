@@ -36,4 +36,3 @@ export * from './proxy';
 export * from './sequences';
 export * from './markers';
 export * from './aspectRatio';
-export * from './gradient';

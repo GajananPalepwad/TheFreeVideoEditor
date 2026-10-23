@@ -27,3 +27,12 @@ pnpm-debug.log*
 
 # test coverage output
 coverage/
+
+# brainstorming visual companion
+.superpowers/
+
+# local development notes and knowledge graph
+HANDOFF.md
+PLAN_A.md
+PLAN_B.md
+graphify-out/
