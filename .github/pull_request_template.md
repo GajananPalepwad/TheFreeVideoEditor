@@ -29,6 +29,7 @@
 - [ ] Core invariants hold: zero frame drift, non-destructive editing, no overlapping clips on a track, client-side privacy.
 - [ ] `npx tsc --noEmit` reports 0 errors.
 - [ ] `npm test` passes, and new behaviour has unit or Playwright tests written first.
+- [ ] The PR title is `type(scope): subject`, for example `fix(timeline): stop clips overlapping`.
 - [ ] Linked the related issue below.
 
 <!-- Required: one line per related issue, for example `Fixes #123` or `Refs #123`. -->
