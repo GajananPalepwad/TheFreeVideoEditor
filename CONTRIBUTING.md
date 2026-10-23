@@ -161,6 +161,7 @@ Use standard prefixes:
 - `refactor/` for code refactoring with no behavioral change
 - `test/` for adding or improving tests only
 - `chore/` for tooling, dependencies and housekeeping
+- `ci/` for GitHub Actions and other automation
 
 ---
 
@@ -181,8 +182,11 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 | `docs`     | Documentation changes    | `docs(readme): add browser compatibility matrix and shortcut cheatsheet` |
 | `refactor` | Code restructuring       | `refactor(state): modularize sequence-scoped editing actions`            |
 | `chore`    | Tooling and housekeeping | `chore: ignore local handoff notes and build output`                     |
+| `style`    | Formatting only          | `style(timeline): format the clip view`                                  |
+| `ci`       | CI and workflows         | `ci: pin GitHub Actions to commit SHAs`                                  |
 
 Keep commits small: one logical change plus its tests per commit, with a body that says _why_.
+Name the pull request the same way (`type(scope): subject`); a CI check fails otherwise.
 
 ---
 
@@ -211,8 +215,9 @@ npx playwright test tests/e2e/<spec> --project=chromium --workers=1
 > [!NOTE]
 > Some checks already fail on `main` (lint errors, unformatted files, `interop.test.ts` needs `xmllint`, a
 > few slow unit tests, some e2e specs). Compare with `main` before blaming your change, and do not fix
-> unrelated failures inside a feature PR. There is no CI yet; it is tracked in
-> [#40](https://github.com/GajananPalepwad/TheFreeVideoEditor/issues/40), so run the checks yourself.
+> unrelated failures inside a feature PR. GitHub Actions runs the checks on every PR (see
+> [docs/CI.md](./docs/CI.md)); lint and format only fail when your change makes a file worse than it was.
+> On a fresh clone run `npx astro sync` once before `npx tsc --noEmit`.
 >
 > Working with an AI coding agent? Point it at [`AGENTS.md`](./AGENTS.md). You are responsible for every
 > line you submit, so read the diff before you push.
@@ -248,8 +253,8 @@ sequenceDiagram
 
     Contributor->>Fork: Push branch (git push origin feat/my-feature)
     Contributor->>Repo: Open Pull Request
-    Repo->>CI: Trigger Automated Checks (tsc, lint, vitest, e2e) once CI exists
-    CI-->>Repo: Checks PASS ✅ (planned, see #40)
+    Repo->>CI: Trigger Automated Checks (typecheck, tests, build, lint, format)
+    CI-->>Repo: Checks PASS ✅
     Reviewer->>Contributor: Review & Feedback
     Contributor->>Fork: Push refinements (if requested)
     Reviewer->>Repo: Approve & Merge 🎉

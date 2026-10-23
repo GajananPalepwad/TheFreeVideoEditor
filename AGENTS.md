@@ -17,7 +17,7 @@ Tailwind 4, Zustand 5 + Immer, Zod 4, WebGL2/Canvas2D rendering, WebCodecs (medi
 | ----------------------- | --------------------------------------------------------------------- |
 | Dev server (agents)     | `npx astro dev --background`, then `astro dev status \| logs \| stop` |
 | Editor URL              | `http://localhost:4321/editor`                                        |
-| Typecheck (required)    | `npx tsc --noEmit`                                                    |
+| Typecheck (required)    | `npx astro sync` once on a fresh clone, then `npx tsc --noEmit`       |
 | Unit tests, whole suite | `npm test`                                                            |
 | Unit tests, some files  | `npx vitest run <path> [<path>...]`                                   |
 | e2e, one spec           | `npx playwright test tests/e2e/<spec> --project=chromium --workers=1` |
@@ -130,7 +130,7 @@ templates you meant to change.
 ## Git and pull requests
 
 - Open or claim an issue first for anything larger than a typo; small fixes can go straight to a PR.
-- Branch from the latest `main` as `feat/`, `fix/`, `perf/`, `docs/`, `refactor/`, `test/` or `chore/`.
+- Branch from the latest `main` as `feat/`, `fix/`, `perf/`, `docs/`, `refactor/`, `test/`, `chore/` or `ci/`.
 - Conventional commits: `type(scope): short description`; the body says why. Make several short commits,
   each one logical change plus its tests. Stage explicit paths, not `git add -A`.
 - Rebase on `main`; do not merge `main` into your branch. Before pushing: fetch upstream, rebase, re-run
@@ -138,6 +138,7 @@ templates you meant to change.
 - Before every commit run `git status` and check that no `.env`, local notes, build output, `test-results/`
   or generated files you did not mean to change are staged.
 - Never commit straight to `main`.
+- Title the PR `type(scope): subject` (feat, fix, perf, docs, style, refactor, test, chore, ci); CI checks it.
 - Use the PR template in `.github/pull_request_template.md`, link the issue (`Fixes #n` or `Refs #n`), and
   add before/after screenshots or a recording for UI changes. Keep PRs small and single-purpose.
 - You are responsible for everything you submit, including AI-written code. Read the diff before pushing.
@@ -168,17 +169,18 @@ templates you meant to change.
 
 ## Where each rule is enforced
 
-| Rule                                     | Enforced by                                    |
-| ---------------------------------------- | ---------------------------------------------- |
-| No `any`, hooks before early returns     | ESLint (`npm run lint`)                        |
-| Types                                    | `npx tsc --noEmit`                             |
-| Render modules stay worker-safe          | `renderBoundary.test.ts`                       |
-| Behaviour, invariants, template fidelity | Vitest and Playwright specs                    |
-| Formatting                               | Prettier config; not yet checked on every file |
-| Everything else in this file             | Convention and code review only                |
+| Rule                                     | Enforced by                                |
+| ---------------------------------------- | ------------------------------------------ |
+| No `any`, hooks before early returns     | ESLint (`npm run lint`); CI: changed files |
+| Types                                    | `npx tsc --noEmit` (CI: Typecheck)         |
+| Render modules stay worker-safe          | `renderBoundary.test.ts`                   |
+| Behaviour, invariants, template fidelity | Vitest and Playwright specs                |
+| Formatting                               | Prettier; CI: changed files only           |
+| PR title format                          | CI: PR title check                         |
+| Everything else in this file             | Convention and code review only            |
 
-There is no CI yet, so every check above is run by hand. The GitHub Actions workflow that will run them
-on each PR is tracked in issue #40; until it lands, run them before you push.
+GitHub Actions runs the typecheck, unit tests, build, and lint and format of changed files on every PR
+(see [docs/CI.md](./docs/CI.md)), and checks the PR title. Run the same commands before you push.
 
 ## External docs
 
