@@ -64,17 +64,32 @@ changes. `docs/KNOWN_LIMITATIONS.md` lists accepted gaps; do not re-report them 
 - Write the failing test first, run it, and confirm it fails for the right reason before the fix. A test
   that passes immediately proves nothing.
 - Every behaviour change ships with a unit test (preferred, in `core/` or `state/`) or a Playwright spec.
+- Never copy an expected value from the code's own output: the test would only prove the code equals
+  itself. Derive it by hand or from the spec.
+- Tests never use the network or paid APIs (the opt-in `npm run test:captions:real` is the one exception). Use files in `tests/fixtures/` or build data in the test.
+- A change that breaks a passing test is a regression, even if the total number of passing tests goes up.
+  When behaviour changes, report the numbers as before and after, and name anything that went from pass
+  to fail.
 - Some checks already fail on `main` (lint errors, unformatted files, `interop.test.ts` needs
   `xmllint`, a few slow unit tests time out under load, some e2e specs). Compare against `main` before
   blaming your change, and do not fix unrelated failures inside a feature PR.
 - Run the affected tests and `npx tsc --noEmit` before saying work is done. Report failures as they are.
 
-## Code style
+## Coding rules
 
+- Keep it simple. No speculative abstractions, no features beyond the task, but think through the edge
+  cases (empty tracks, zero-length clips, missing assets, undo of the action).
 - Match the surrounding code: naming, idiom, comment density. Prettier config: tabs, single quotes, no
   trailing commas, width 100. The repo is not prettier-clean, so format only files you create.
-- No dead code, no speculative abstractions, no unrelated reformatting or renames in the same change.
-- Avoid `any`; validate file and project data with Zod.
+- No dead code and no unrelated reformatting or renames in the same change.
+- Types: no `any` (use `unknown` and narrow). Validate file and project data with Zod at the boundary.
+- Errors: throw a named subclass of `Error` (see `core/operations/errors.ts`), never a bare string. Wrap
+  third-party failures with `new XError('...', { cause })`. One bad file or clip must not stop the app.
+- Logging: no `console.log` in committed code. `console.warn` and `console.error` are for real failures and
+  fallbacks only, with a message that says what went wrong. Never log user media or file contents.
+- Comments: a short doc comment on every exported function and type saying what it is for and why, not how.
+- Time and numbers: integer microseconds for time, never floats that can drift. Parse and validate numbers
+  from files before using them.
 - Fix root causes in the data mapping or renderer, not with visual workarounds.
 
 ## Generated files
@@ -82,6 +97,19 @@ changes. `docs/KNOWN_LIMITATIONS.md` lists accepted gaps; do not re-report them 
 `public/templates/*.tfvetemplate` (except the hand-written `example.tfvetemplate`) are generated. Edit
 `src/editor/core/templates/templateConverter.ts`, run `npm run templates:generate` (it uses headless
 Chromium through Playwright), and commit the regenerated files with the change. Never edit them by hand.
+Text bounds are measured in the browser, so the output depends on the fonts installed on your machine and
+can differ by a pixel or two. Regenerate only when you changed the converter, and commit only the
+templates you meant to change.
+
+## Working as an agent
+
+- Work in small blocks: one logical change plus its tests, then run the checks.
+- Never claim something works without running the command and showing its real output.
+- If the user asked for step-by-step review, stop after each block and wait. Otherwise stop at the end
+  and report what changed, what you ran, and what you did not verify.
+- If the task is unclear or looks infeasible, stop and say so. Do not redesign the task.
+- Explain changes in plain language: what changed and why.
+- Commit, push and open PRs only when asked.
 
 ## Git and pull requests
 
@@ -89,7 +117,11 @@ Chromium through Playwright), and commit the regenerated files with the change. 
 - Branch from the latest `main` as `feat/`, `fix/`, `perf/`, `docs/`, `refactor/`, `test/` or `chore/`.
 - Conventional commits: `type(scope): short description`; the body says why. Make several short commits,
   each one logical change plus its tests. Stage explicit paths, not `git add -A`.
-- Before pushing: fetch upstream, rebase on `main`, re-run the checks above.
+- Rebase on `main`; do not merge `main` into your branch. Before pushing: fetch upstream, rebase, re-run
+  the checks above.
+- Before every commit run `git status` and check that no `.env`, local notes, build output, `test-results/`
+  or generated files you did not mean to change are staged.
+- Never commit straight to `main`.
 - Use the PR template in `.github/pull_request_template.md`, link the issue (`Fixes #n` or `Refs #n`), and
   add before/after screenshots or a recording for UI changes. Keep PRs small and single-purpose.
 - You are responsible for everything you submit, including AI-written code. Read the diff before pushing.
@@ -117,6 +149,20 @@ Chromium through Playwright), and commit the regenerated files with the change. 
 - Hand-edit generated files, `dist/`, `node_modules/` or `.astro/`.
 - Delete, skip or weaken a failing test to get a green run.
 - Force-push a shared branch or bypass a hook.
+
+## Where each rule is enforced
+
+| Rule                                     | Enforced by                                    |
+| ---------------------------------------- | ---------------------------------------------- |
+| No `any`, React hooks rules              | ESLint (`npm run lint`)                        |
+| Types                                    | `npx tsc --noEmit`                             |
+| Render modules stay worker-safe          | `renderBoundary.test.ts`                       |
+| Behaviour, invariants, template fidelity | Vitest and Playwright specs                    |
+| Formatting                               | Prettier config; not yet checked on every file |
+| Everything else in this file             | Convention and code review only                |
+
+There is no CI yet, so every check above is run by hand. The GitHub Actions workflow that will run them
+on each PR is tracked in issue #40; until it lands, run them before you push.
 
 ## External docs
 
