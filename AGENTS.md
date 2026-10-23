@@ -92,6 +92,22 @@ changes. `docs/KNOWN_LIMITATIONS.md` lists accepted gaps; do not re-report them 
   from files before using them.
 - Fix root causes in the data mapping or renderer, not with visual workarounds.
 
+### Language and framework specifics
+
+- **React**: declare every hook unconditionally at the top of a component, before any early `return`
+  (`react-hooks/rules-of-hooks` reports it as an ESLint error).
+- **TypeScript**: narrow with the discriminated unions (`source.type`, `track.kind`) instead of casting.
+  Use the branded ids (`ClipId`, `TrackId`, `AssetId`, `SequenceId`) from `core/types.ts`; `Time` is
+  integer microseconds, never float seconds.
+- **Zustand + Immer**: the producer passed to `set((state) => ...)` is synchronous. Await OPFS, decoders and
+  parsers before or after it, never inside. Components subscribe with a selector
+  (`useEditorStore((s) => s.x)`), never to the whole store, to keep playback smooth.
+- **WebGL2 / GLSL**: shaders live in `services/render/shaders/*.glsl` with `precision highp float;`.
+  Textures are premultiplied, so output premultiplied alpha. Every texture, program and framebuffer needs a
+  `dispose()` path.
+- **CSS**: scope class names by panel (`.inspector-*`, `.color-*`, `.timeline-*`) and add a
+  `:root[data-theme='light']` variant next to the default dark styles.
+
 ## Generated files
 
 `public/templates/*.tfvetemplate` (except the hand-written `example.tfvetemplate`) are generated. Edit
@@ -154,7 +170,7 @@ templates you meant to change.
 
 | Rule                                     | Enforced by                                    |
 | ---------------------------------------- | ---------------------------------------------- |
-| No `any`, React hooks rules              | ESLint (`npm run lint`)                        |
+| No `any`, hooks before early returns     | ESLint (`npm run lint`)                        |
 | Types                                    | `npx tsc --noEmit`                             |
 | Render modules stay worker-safe          | `renderBoundary.test.ts`                       |
 | Behaviour, invariants, template fidelity | Vitest and Playwright specs                    |
