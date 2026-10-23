@@ -1,0 +1,61 @@
+name: Changed files
+description: Lists the files a pull request or push changed, as a NUL-separated file. The job must check out with fetch-depth 0.
+
+inputs:
+  include:
+    description: Extended regex a path must match to be listed. The default lists everything.
+    default: '.*'
+  exclude:
+    description: Extended regex of paths to leave out. Empty leaves nothing out.
+    default: ''
+
+outputs:
+  base:
+    description: The commit the changes are measured against.
+    value: ${{ steps.diff.outputs.base }}
+  files:
+    description: Path of the NUL-separated list of changed files.
+    value: ${{ steps.diff.outputs.files }}
+  count:
+    description: How many files are in the list.
+    value: ${{ steps.diff.outputs.count }}
+
+runs:
+  using: composite
+  steps:
+    - name: List changed files
+      id: diff
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        PUSH_BEFORE_SHA: ${{ github.event.before }}
+        INCLUDE: ${{ inputs.include }}
+        EXCLUDE: ${{ inputs.exclude }}
+      run: |
+        set -euo pipefail
+        if [ "$EVENT_NAME" = "pull_request" ]; then
+          base="$PR_BASE_SHA"
+        else
+          base="$PUSH_BEFORE_SHA"
+          if [[ ! "$base" =~ ^[0-9a-f]{40}$ ]] || [[ "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$(git rev-parse HEAD~1)"
+          fi
+        fi
+        if [[ ! "$base" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::Could not work out the base commit."
+          exit 1
+        fi
+
+        list="$RUNNER_TEMP/changed-files.nul"
+        git diff --name-only --no-renames --diff-filter=ACMR -z "$base" HEAD \
+          | { grep -zE -- "$INCLUDE" || true; } \
+          | { if [ -n "$EXCLUDE" ]; then grep -zvE -- "$EXCLUDE" || true; else cat; fi; } > "$list"
+
+        count="$(tr -cd '\0' < "$list" | wc -c | tr -d ' ')"
+        {
+          echo "base=$base"
+          echo "files=$list"
+          echo "count=$count"
+        } >> "$GITHUB_OUTPUT"
+        echo "Compared HEAD with $base: $count changed file(s) selected."

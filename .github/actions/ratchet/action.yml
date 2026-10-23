@@ -1,0 +1,30 @@
+name: Ratchet check
+description: Fails when a changed file has more lint errors or formatting problems than it had on the base commit. Dependencies must already be installed.
+
+inputs:
+  tool:
+    description: eslint or prettier.
+    required: true
+  base:
+    description: Commit to compare against, from the changed-files action.
+    required: true
+  files:
+    description: NUL-separated list of changed files, from the changed-files action.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check changed files
+      shell: bash
+      env:
+        TOOL: ${{ inputs.tool }}
+        BASE: ${{ inputs.base }}
+        FILES: ${{ inputs.files }}
+      run: |
+        set -euo pipefail
+        if [ ! -s "$FILES" ]; then
+          echo "No matching changed files, nothing to check."
+          exit 0
+        fi
+        node scripts/ci/ratchet.mjs --tool "$TOOL" --base "$BASE" --files "$FILES"
