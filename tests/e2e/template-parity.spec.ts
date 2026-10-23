@@ -135,6 +135,9 @@ async function compare(page: Page, id: string): Promise<Parity[]> {
 				if (!ok)
 					return { litMonitor: lit(monitorPixels), litCard: 0, meanDiff: 255, badFraction: 1 };
 				const { context: cardContext } = read(target, tw, th);
+				// The card is transparent; the monitor shows the template over black.
+				cardContext.fillStyle = '#000';
+				cardContext.fillRect(0, 0, tw, th);
 				cardContext.drawImage(target, 0, 0);
 				const cardPixels = cardContext.getImageData(
 					Math.round((tw - bw) / 2),

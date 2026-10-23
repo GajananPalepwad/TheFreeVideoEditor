@@ -72,6 +72,7 @@ export class TemplatePreviewRenderer {
 			const renderer = createFrameRenderer(canvas, {
 				forceCanvas2d: kind === 'canvas2d',
 				preserveDrawingBuffer: true,
+				alpha: true,
 				onContextLost: () => this.slots.delete(kind)
 			});
 			if (!renderer) return null;
