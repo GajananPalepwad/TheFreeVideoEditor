@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  typecheck:
+    name: Typecheck
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Generate Astro types
+        run: npx astro sync
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  test:
+    name: Unit tests
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libxml2-utils
+
+      - name: Run unit tests
+        run: npx vitest run --testTimeout=30000
+
+      - name: Run CI script tests
+        run: node --test "scripts/ci/*.test.mjs"
+
+  build:
+    name: Build
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Build
+        run: npm run build
+
+  lint:
+    name: Lint changed files
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Find changed files
+        id: changed
+        uses: ./.github/actions/changed-files
+        with:
+          include: '^src/.*\.(ts|tsx)$'
+
+      - name: Check lint ratchet
+        uses: ./.github/actions/ratchet
+        with:
+          tool: eslint
+          base: ${{ steps.changed.outputs.base }}
+          files: ${{ steps.changed.outputs.files }}
+
+  format:
+    name: Format changed files
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Find changed files
+        id: changed
+        uses: ./.github/actions/changed-files
+        with:
+          exclude: '^(package-lock\.json|public/.*|dist/.*)$'
+
+      - name: Check format ratchet
+        uses: ./.github/actions/ratchet
+        with:
+          tool: prettier
+          base: ${{ steps.changed.outputs.base }}
+          files: ${{ steps.changed.outputs.files }}
+
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [typecheck, test, build, lint, format]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail if any job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "* | *" cancelled "*) echo "::error::At least one CI job did not pass."; exit 1 ;;
+          esac
