@@ -5,10 +5,7 @@ import {
 	detectPublishableProperties,
 	downloadTemplateFile
 } from '../../core/templates/templateService';
-import type {
-	PublishedTemplateParam,
-	TemplateCategory
-} from '../../core/templates/templateTypes';
+import type { PublishedTemplateParam, TemplateCategory } from '../../core/templates/templateTypes';
 import './saveTemplateModal.css';
 
 interface SaveTemplateModalProps {
@@ -54,7 +51,9 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 	const [outroSec, setOutroSec] = useState('0.6');
 
 	// Map of param.id -> { enabled: boolean; label: string }
-	const [paramConfigs, setParamConfigs] = useState<Record<string, { enabled: boolean; label: string }>>({});
+	const [paramConfigs, setParamConfigs] = useState<
+		Record<string, { enabled: boolean; label: string }>
+	>({});
 
 	// Initialize paramConfigs when detectedParams changes
 	React.useEffect(() => {
@@ -94,7 +93,7 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 				? {
 						introDuration,
 						outroDuration
-				  }
+					}
 				: undefined
 		});
 
@@ -116,7 +115,8 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 						<div>
 							<h3 className="template-modal-title">Create Motion Graphic Template</h3>
 							<p className="template-modal-subtitle">
-								Package {selectedClips.length} selected clip{selectedClips.length === 1 ? '' : 's'} into a single, fully editable template (.tfvetemplate).
+								Package {selectedClips.length} selected clip{selectedClips.length === 1 ? '' : 's'}{' '}
+								into a single, fully editable template (.grafree).
 							</p>
 						</div>
 					</div>
@@ -242,7 +242,8 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 								Editable Properties (Exposed in Inspector)
 							</span>
 							<span className="template-hint">
-								Select which text lines, colors, and fonts future users can edit directly from the Inspector.
+								Select which text lines, colors, and fonts future users can edit directly from the
+								Inspector.
 							</span>
 						</div>
 
@@ -297,8 +298,8 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 												{typeof param.defaultValue === 'string'
 													? `"${param.defaultValue}"`
 													: param.type === 'color'
-													? 'Color/Gradient'
-													: String(param.defaultValue)}
+														? 'Color/Gradient'
+														: String(param.defaultValue)}
 											</span>
 										</div>
 									);
@@ -317,9 +318,9 @@ export function SaveTemplateModal({ isOpen, onClose, onSuccess }: SaveTemplateMo
 						className="template-btn-secondary"
 						onClick={() => handleSave(true)}
 						disabled={!templateName.trim() || selectedClips.length === 0}
-						title="Save to your template library and download .tfvetemplate file"
+						title="Save to your template library and download .grafree file"
 					>
-						<span>Export File (.tfvetemplate)</span>
+						<span>Export File (.grafree)</span>
 					</button>
 					<button
 						type="button"

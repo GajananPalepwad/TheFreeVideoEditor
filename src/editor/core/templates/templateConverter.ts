@@ -117,7 +117,7 @@ function stripTextFrame(clip: Clip): void {
 
 /**
  * Converts a legacy GraphicTemplate into a full-featured, multi-layer,
- * animated Motion Graphic Template (.tfvetemplate).
+ * animated Motion Graphic Template (.grafree).
  */
 export function convertGraphicTemplateToMotionTemplate(
 	template: GraphicTemplate,
@@ -158,21 +158,28 @@ export function convertGraphicTemplateToMotionTemplate(
 		let width = 560;
 		let height = 220;
 		let cornerRadius = 12;
-		let fillColor: { r: number; g: number; b: number; a: number } = { r: 0.1, g: 0.1, b: 0.15, a: 0.9 };
+		let fillColor: { r: number; g: number; b: number; a: number } = {
+			r: 0.1,
+			g: 0.1,
+			b: 0.15,
+			a: 0.9
+		};
 		let strokeColor: { r: number; g: number; b: number; a: number } | undefined = undefined;
 		let strokeWidth = 0;
 		let shapeRotation = 0;
 
 		const basePos = textClip.properties?.position
-			? (textClip.properties.position as any).value ?? [0, 0]
+			? ((textClip.properties.position as any).value ?? [0, 0])
 			: [0, 0];
 
 		// The block the text draws, which the frame has to wrap. Text sits on its position point
 		// when it is left or right aligned, and is centred on it otherwise.
 		const block = measureTextClip(textClip);
-		const alignment = textClip.source?.type === 'text' ? textClip.source.style?.alignment : undefined;
+		const alignment =
+			textClip.source?.type === 'text' ? textClip.source.style?.alignment : undefined;
 		const centerX =
-			basePos[0] + (alignment === 'left' ? block.width / 2 : alignment === 'right' ? -block.width / 2 : 0);
+			basePos[0] +
+			(alignment === 'left' ? block.width / 2 : alignment === 'right' ? -block.width / 2 : 0);
 		const centerY = basePos[1];
 		let shapePos: [number, number] = [centerX, centerY];
 		const wrap = (extraX: number, extraY: number) => {
@@ -379,7 +386,11 @@ export function convertGraphicTemplateToMotionTemplate(
 			defaultValue: shapeClip.source.fillColor || template.accentColor
 		});
 
-		if (shapeClip.source.strokeWidth && shapeClip.source.strokeWidth > 0 && shapeClip.source.strokeColor) {
+		if (
+			shapeClip.source.strokeWidth &&
+			shapeClip.source.strokeWidth > 0 &&
+			shapeClip.source.strokeColor
+		) {
 			publishedParams.push({
 				id: 'param_shape_stroke',
 				name: 'Border Color',
@@ -443,7 +454,7 @@ export function convertGraphicTemplateToMotionTemplate(
 }
 
 /**
- * Converts all built-in GraphicTemplates into full MotionGraphicTemplates (.tfvetemplate).
+ * Converts all built-in GraphicTemplates into full MotionGraphicTemplates (.grafree).
  */
 export function convertAllGraphicTemplates(): MotionGraphicTemplate[] {
 	return GRAPHIC_TEMPLATES.map((tpl) => convertGraphicTemplateToMotionTemplate(tpl));
@@ -475,7 +486,12 @@ export function createKineticMarqueeStackTemplate(): MotionGraphicTemplate {
 			easeIn: { x: 0.25, y: 1 }
 		},
 		{ time: 450_000, value: [1.0, 1.0], interpolation: 'linear' as const },
-		{ time: 4_550_000, value: [1.0, 1.0], interpolation: 'linear' as const, anchor: 'end' as const },
+		{
+			time: 4_550_000,
+			value: [1.0, 1.0],
+			interpolation: 'linear' as const,
+			anchor: 'end' as const
+		},
 		{
 			time: 4_800_000,
 			value: [1.07, 1.07],
@@ -484,7 +500,12 @@ export function createKineticMarqueeStackTemplate(): MotionGraphicTemplate {
 			easeIn: { x: 0.3, y: 1 },
 			anchor: 'end' as const
 		},
-		{ time: 5_000_000, value: [0.35, 0.35], interpolation: 'linear' as const, anchor: 'end' as const }
+		{
+			time: 5_000_000,
+			value: [0.35, 0.35],
+			interpolation: 'linear' as const,
+			anchor: 'end' as const
+		}
 	];
 
 	const opacityKeyframes = [
@@ -680,7 +701,13 @@ export function createWordCascadeTemplate(): MotionGraphicTemplate {
 					letterSpacing: 4,
 					revealUnit: 'word'
 				},
-				box: { autoSize: true, verticalAnchor: 'center', paddingX: 0, paddingY: 0, frameStyle: 'none' }
+				box: {
+					autoSize: true,
+					verticalAnchor: 'center',
+					paddingX: 0,
+					paddingY: 0,
+					frameStyle: 'none'
+				}
 			},
 			properties: {
 				'text.fontSize': { value: 96 },
@@ -1553,5 +1580,3 @@ export function createMixkitBoldItalicSplitTitleTemplate(): MotionGraphicTemplat
 		publishedParams
 	};
 }
-
-

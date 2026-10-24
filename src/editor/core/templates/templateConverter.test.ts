@@ -7,7 +7,7 @@ import {
 import { serializeTemplate, deserializeTemplate } from './templateService';
 
 describe('convertGraphicTemplateToMotionTemplate', () => {
-	it('converts all existing graphic templates to valid Motion Graphic Templates (.tfvetemplate)', () => {
+	it('converts all existing graphic templates to valid Motion Graphic Templates (.grafree)', () => {
 		const convertedList = convertAllGraphicTemplates();
 		expect(convertedList.length).toBe(19);
 
@@ -24,7 +24,7 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 			expect(tpl.responsiveTiming?.introDuration).toBeGreaterThan(0);
 			expect(tpl.responsiveTiming?.outroDuration).toBeGreaterThan(0);
 
-			// Test round-trip serialization to .tfvetemplate format
+			// Test round-trip serialization to .grafree format
 			const json = serializeTemplate(tpl);
 			const deserialized = deserializeTemplate(json);
 			expect(deserialized.id).toBe(tpl.id);
@@ -106,14 +106,14 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 		expect(paramIds).toContain('param_color_line');
 	});
 
-	it('ships a .tfvetemplate file for every converted template (run `npm run templates:generate` if not)', async () => {
+	it('ships a .grafree file for every converted template (run `npm run templates:generate` if not)', async () => {
 		const fs = await import('fs');
 		const path = await import('path');
 		const dir = path.resolve(process.cwd(), 'public/templates');
 		const templates = convertAllGraphicTemplates();
 		for (const tpl of templates) {
-			const file = path.join(dir, `${tpl.id}.tfvetemplate`);
-			expect(fs.existsSync(file), `${tpl.id}.tfvetemplate is missing`).toBe(true);
+			const file = path.join(dir, `${tpl.id}.grafree`);
+			expect(fs.existsSync(file), `${tpl.id}.grafree is missing`).toBe(true);
 			const shipped = deserializeTemplate(fs.readFileSync(file, 'utf-8'));
 			// The bounds, the size of each frame and the positions that depend on them come from measuring text with the
 			// browser's fonts, which Node cannot do. tests/e2e/template-text-bounds.spec.ts checks them.
@@ -145,7 +145,7 @@ describe('convertGraphicTemplateToMotionTemplate', () => {
 		}
 		const files = fs
 			.readdirSync(dir)
-			.filter((f) => f.endsWith('.tfvetemplate') && f !== 'example.tfvetemplate');
+			.filter((f) => f.endsWith('.grafree') && f !== 'example.grafree');
 		expect(files.length).toBeGreaterThanOrEqual(templates.length);
 	});
 });

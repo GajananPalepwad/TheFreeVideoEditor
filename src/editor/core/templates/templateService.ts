@@ -1,12 +1,4 @@
-import type {
-	Clip,
-	ClipId,
-	Project,
-	Sequence,
-	SequenceId,
-	Time,
-	Track
-} from '../types';
+import type { Clip, ClipId, Project, Sequence, SequenceId, Time, Track } from '../types';
 import type {
 	ClipsBoundingBox,
 	MotionGraphicTemplate,
@@ -46,9 +38,8 @@ export function detectPublishableProperties(clips: Clip[]): PublishedTemplatePar
 
 	for (const clip of clips) {
 		if (clip.source?.type === 'text') {
-			const labelPrefix = clips.filter((c) => c.source?.type === 'text').length > 1
-				? `Text ${textIndex++}`
-				: 'Text';
+			const labelPrefix =
+				clips.filter((c) => c.source?.type === 'text').length > 1 ? `Text ${textIndex++}` : 'Text';
 
 			params.push({
 				id: `param_${clip.id}_text`,
@@ -162,8 +153,7 @@ export function offsetClipPosition(clip: Clip, dx: number, dy: number): Clip {
 	const cloned: Clip = JSON.parse(JSON.stringify(clip));
 	const shift = (id: string, index: 0 | 1, by: number): boolean => {
 		const prop = cloned.properties?.[id] as
-			| { value?: unknown; keyframes?: Array<{ value: unknown }> }
-			| undefined;
+			{ value?: unknown; keyframes?: Array<{ value: unknown }> } | undefined;
 		if (!prop) return false;
 		const apply = (value: unknown): unknown => {
 			if (Array.isArray(value)) {
@@ -228,9 +218,11 @@ export function measureTextClip(clip: Clip, textScale = 1) {
 	try {
 		const ls = readProperty(clip, 'text.letterSpacing', 0);
 		if (typeof ls === 'number' && Number.isFinite(ls)) letterSpacing = ls;
-		else if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
+		else if (typeof clip.source.style?.letterSpacing === 'number')
+			letterSpacing = clip.source.style.letterSpacing;
 	} catch {
-		if (typeof clip.source.style?.letterSpacing === 'number') letterSpacing = clip.source.style.letterSpacing;
+		if (typeof clip.source.style?.letterSpacing === 'number')
+			letterSpacing = clip.source.style.letterSpacing;
 	}
 
 	fontSize *= textScale;
@@ -256,7 +248,10 @@ export function measureTextClip(clip: Clip, textScale = 1) {
 	try {
 		dims = getTextDimensions(text, style, clip.source.box, fontSize);
 		if (clip.source.box?.frameStyle === 'accent-bar') {
-			const barW = (readProperty(clip, 'text.accentBarWidth', 0) as number) || clip.source.box.accentBarWidth || 16;
+			const barW =
+				(readProperty(clip, 'text.accentBarWidth', 0) as number) ||
+				clip.source.box.accentBarWidth ||
+				16;
 			dims.width += barW + 28;
 		}
 	} catch {
@@ -266,7 +261,15 @@ export function measureTextClip(clip: Clip, textScale = 1) {
 		};
 	}
 
-	return { text, style, fontSize, letterSpacing, lineHeight, width: dims.width, height: dims.height };
+	return {
+		text,
+		style,
+		fontSize,
+		letterSpacing,
+		lineHeight,
+		width: dims.width,
+		height: dims.height
+	};
 }
 
 /**
@@ -322,7 +325,8 @@ export function calculateClipsBoundingBox(
 		} else if (clip.source?.type === 'shape') {
 			try {
 				sourceWidth = (readProperty(clip, 'shape.width', 0) as number) ?? clip.source.width ?? 300;
-				sourceHeight = (readProperty(clip, 'shape.height', 0) as number) ?? clip.source.height ?? 200;
+				sourceHeight =
+					(readProperty(clip, 'shape.height', 0) as number) ?? clip.source.height ?? 200;
 			} catch {
 				sourceWidth = clip.source.width ?? 300;
 				sourceHeight = clip.source.height ?? 200;
@@ -678,7 +682,7 @@ export function deserializeTemplate(jsonString: string): MotionGraphicTemplate {
 }
 
 /**
- * Triggers a client-side download of the .tfvetemplate file.
+ * Triggers a client-side download of the .grafree file.
  */
 export function downloadTemplateFile(template: MotionGraphicTemplate): void {
 	if (typeof window === 'undefined') return;
@@ -688,7 +692,7 @@ export function downloadTemplateFile(template: MotionGraphicTemplate): void {
 	const link = document.createElement('a');
 	const safeName = template.name.toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
 	link.href = url;
-	link.download = `${safeName || 'motion-template'}.tfvetemplate`;
+	link.download = `${safeName || 'motion-template'}.grafree`;
 	document.body.appendChild(link);
 	link.click();
 	document.body.removeChild(link);
@@ -756,8 +760,7 @@ function sameColor(a: Rgba, b: Rgba): boolean {
 function recolorProperty(clip: Clip, id: string, color: Rgba): void {
 	const properties = (clip.properties ??= {});
 	const current = properties[id] as
-		| { keyframes?: Array<{ value: unknown }>; value?: unknown }
-		| undefined;
+		{ keyframes?: Array<{ value: unknown }>; value?: unknown } | undefined;
 	if (current?.keyframes && current.keyframes.length > 0) {
 		for (const keyframe of current.keyframes) {
 			const alpha = Array.isArray(keyframe.value) ? (keyframe.value[3] ?? 1) : 1;
@@ -772,8 +775,7 @@ function recolorProperty(clip: Clip, id: string, color: Rgba): void {
 function setNumberProperty(clip: Clip, id: string, value: number): void {
 	const properties = (clip.properties ??= {});
 	const current = properties[id] as
-		| { keyframes?: Array<{ value: unknown }>; value?: unknown }
-		| undefined;
+		{ keyframes?: Array<{ value: unknown }>; value?: unknown } | undefined;
 	const first = current?.keyframes?.[0]?.value;
 	if (current?.keyframes && typeof first === 'number' && first !== 0) {
 		const ratio = value / first;
@@ -866,7 +868,11 @@ export function applyParamOverridesToSequence(
 						case 'text.accentBarColor':
 							if (clip.source?.type === 'text') {
 								if (!clip.source.box) {
-									clip.source.box = { autoSize: true, verticalAnchor: 'bottom', frameStyle: 'accent-bar' };
+									clip.source.box = {
+										autoSize: true,
+										verticalAnchor: 'bottom',
+										frameStyle: 'accent-bar'
+									};
 								}
 								const color = toRgba(value, { r: 0, g: 0.82, b: 0.95, a: 1 });
 								clip.source.box.accentBarColor = color;
@@ -958,8 +964,16 @@ export function computeResponsiveTemplateTime(
 ): Time {
 	if (instanceDuration <= 0 || templateDuration <= 0) return rawSource;
 
-	const intro = Math.min(responsiveTiming.introDuration, instanceDuration * 0.45, templateDuration * 0.45);
-	const outro = Math.min(responsiveTiming.outroDuration, instanceDuration * 0.45, templateDuration * 0.45);
+	const intro = Math.min(
+		responsiveTiming.introDuration,
+		instanceDuration * 0.45,
+		templateDuration * 0.45
+	);
+	const outro = Math.min(
+		responsiveTiming.outroDuration,
+		instanceDuration * 0.45,
+		templateDuration * 0.45
+	);
 
 	// 1. In intro phase: play at normal speed
 	if (rawSource <= intro) {
@@ -1081,10 +1095,12 @@ export function instantiateTemplateIntoProject(
 	}));
 
 	// Remap published parameter targetClipIds to the new clip IDs
-	const remappedPublishedParams: PublishedTemplateParam[] = template.publishedParams.map((param) => ({
-		...param,
-		targetClipId: clipIdMap.get(param.targetClipId) || param.targetClipId
-	}));
+	const remappedPublishedParams: PublishedTemplateParam[] = template.publishedParams.map(
+		(param) => ({
+			...param,
+			targetClipId: clipIdMap.get(param.targetClipId) || param.targetClipId
+		})
+	);
 
 	const newSequence: Sequence = {
 		id: newSubSequenceId,
@@ -1265,4 +1281,3 @@ export function unpackTemplateInstanceClip(
 		sequences: finalSequences
 	};
 }
-

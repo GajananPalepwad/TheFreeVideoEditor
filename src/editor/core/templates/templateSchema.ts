@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { timeSchema, trackSchema } from '../schema';
 import type { PublishedTemplateParam } from './templateTypes';
 
-/** The `.tfvetemplate` format version this editor reads and writes. */
+/** The `.grafree` format version this editor reads and writes. */
 export const TEMPLATE_FORMAT_VERSION = 1;
 
 /** The `tfve_type` marker written into every template file. */
@@ -34,7 +34,7 @@ const publishedParamSchema = z.object({
 }) as unknown as z.ZodType<PublishedTemplateParam>;
 
 /**
- * Shape of a `.tfvetemplate` file. Tracks reuse the project's own track schema so a template can
+ * Shape of a `.grafree` file. Tracks reuse the project's own track schema so a template can
  * never hold anything a project could not. Unknown top-level fields are kept, not stripped.
  */
 export const templateSchema = z.looseObject({
@@ -65,7 +65,9 @@ export const templateSchema = z.looseObject({
 	resources: z
 		.object({
 			fonts: z
-				.array(z.object({ family: z.string().min(1), fileName: z.string().min(1), data: z.string() }))
+				.array(
+					z.object({ family: z.string().min(1), fileName: z.string().min(1), data: z.string() })
+				)
 				.optional(),
 			assets: z
 				.array(

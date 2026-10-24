@@ -2,17 +2,17 @@ import type { MotionGraphicTemplate } from './templateTypes';
 import { deserializeTemplate, getCustomTemplates } from './templateService';
 
 /**
- * The shipped `.tfvetemplate` files. The files are the source of truth, so the same read path
- * serves them and any template a user imports. `example.tfvetemplate` is a sample for template
+ * The shipped `.grafree` files. The files are the source of truth, so the same read path
+ * serves them and any template a user imports. `example.grafree` is a sample for template
  * authors and is not part of the library.
  */
 const TEMPLATE_FILES = import.meta.glob(
-	['/public/templates/*.tfvetemplate', '!/public/templates/example.tfvetemplate'],
+	['/public/templates/*.grafree', '!/public/templates/example.grafree'],
 	{ query: '?raw', import: 'default', eager: true }
 ) as Record<string, string>;
 
 /**
- * Built-in Motion Graphic Templates (.tfvetemplate), in file-name order.
+ * Built-in Motion Graphic Templates (.grafree), in file-name order.
  */
 export const BUILTIN_MOTION_TEMPLATES: MotionGraphicTemplate[] = Object.entries(TEMPLATE_FILES)
 	.sort(([a], [b]) => a.localeCompare(b))

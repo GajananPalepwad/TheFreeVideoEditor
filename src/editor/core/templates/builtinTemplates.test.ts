@@ -20,7 +20,7 @@ const DIR = 'public/templates';
 const read = (name: string) => readFileSync(`${DIR}/${name}`, 'utf8');
 const libraryFiles = () =>
 	readdirSync(DIR)
-		.filter((name) => name.endsWith('.tfvetemplate') && name !== 'example.tfvetemplate')
+		.filter((name) => name.endsWith('.grafree') && name !== 'example.grafree')
 		.sort();
 
 describe('built-in templates are data', () => {
@@ -37,7 +37,7 @@ describe('built-in templates are data', () => {
 	it('has unique ids and lists templates in file-name order', () => {
 		const ids = BUILTIN_MOTION_TEMPLATES.map((template) => template.id);
 		expect(new Set(ids).size).toBe(ids.length);
-		expect(ids).toEqual(libraryFiles().map((name) => name.replace(/\.tfvetemplate$/, '')));
+		expect(ids).toEqual(libraryFiles().map((name) => name.replace(/\.grafree$/, '')));
 	});
 
 	it('resolves a built-in id and returns undefined for an unknown one', () => {
@@ -48,14 +48,14 @@ describe('built-in templates are data', () => {
 
 describe('example template', () => {
 	it('ships a valid sample for authors but keeps it out of the library', () => {
-		const example = deserializeTemplate(read('example.tfvetemplate'));
+		const example = deserializeTemplate(read('example.grafree'));
 		expect(example.tracks.length).toBeGreaterThan(0);
 		expect(getBuiltinMotionTemplate(example.id)).toBeUndefined();
 		expect(deserializeTemplate(serializeTemplate(example))).toEqual(example);
 	});
 
 	it('instantiates and renders its own text, with every published field pointing at a clip', () => {
-		const example = deserializeTemplate(read('example.tfvetemplate'));
+		const example = deserializeTemplate(read('example.grafree'));
 		const clipIds = new Set(example.tracks.flatMap((track) => track.clips.map((clip) => clip.id)));
 		for (const param of example.publishedParams) expect(clipIds.has(param.targetClipId)).toBe(true);
 

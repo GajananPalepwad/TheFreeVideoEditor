@@ -69,7 +69,9 @@ const FRAME_STYLES: Array<{ id: GraphicFrameStyle; label: string }> = [
 /** A sentence naming what a template needs that is not here, or nothing when it has everything. */
 function describeMissing(missing: { fonts: string[]; assets: string[] }): string {
 	const parts = [
-		...(missing.fonts.length > 0 ? [`font ${missing.fonts.join(', ')} (a default font is used)`] : []),
+		...(missing.fonts.length > 0
+			? [`font ${missing.fonts.join(', ')} (a default font is used)`]
+			: []),
 		...(missing.assets.length > 0 ? [`${missing.assets.length} media file(s)`] : [])
 	];
 	return parts.length > 0 ? ` Missing: ${parts.join('; ')}.` : '';
@@ -103,10 +105,8 @@ export default function GraphicsPanel() {
 	const handleAddCustomTemplate = (template: MotionGraphicTemplate) => {
 		const createdId = store.getState().instantiateTemplate(template);
 		if (createdId) {
-			const missing = missingTemplateResources(
-				template,
-				isFontAvailable,
-				(id) => Boolean(store.getState().project?.assets[id as keyof Project['assets']])
+			const missing = missingTemplateResources(template, isFontAvailable, (id) =>
+				Boolean(store.getState().project?.assets[id as keyof Project['assets']])
 			);
 			setAnnouncement(`Added ${template.name} template to timeline.` + describeMissing(missing));
 		}
@@ -128,13 +128,11 @@ export default function GraphicsPanel() {
 				...(bundled.resources?.fonts ?? []).map((font) => font.family),
 				...(bundled.resources?.assets ?? []).map((asset) => asset.name)
 			];
-			const missing = missingTemplateResources(
-				bundled,
-				isFontAvailable,
-				(id) => Boolean(store.getState().project?.assets[id as keyof Project['assets']])
+			const missing = missingTemplateResources(bundled, isFontAvailable, (id) =>
+				Boolean(store.getState().project?.assets[id as keyof Project['assets']])
 			);
 			setAnnouncement(
-				`Exported ${template.name}.tfvetemplate` +
+				`Exported ${template.name}.grafree` +
 					(embedded.length > 0 ? ` with ${embedded.join(', ')} inside` : '') +
 					describeMissing(missing)
 			);
@@ -219,7 +217,7 @@ export default function GraphicsPanel() {
 		}
 	};
 
-	// The library is the shipped .tfvetemplate files, filtered by category and search query
+	// The library is the shipped .grafree files, filtered by category and search query
 	const filteredTemplates = useMemo(
 		() => filterBuiltinTemplates(activeCategory, searchQuery),
 		[searchQuery, activeCategory]
@@ -539,7 +537,9 @@ export default function GraphicsPanel() {
 							data-testid="tab-graphic-templates"
 						>
 							<span>Templates</span>
-							<span style={{ opacity: 0.65, fontSize: '10px' }}>{BUILTIN_MOTION_TEMPLATES.length}</span>
+							<span style={{ opacity: 0.65, fontSize: '10px' }}>
+								{BUILTIN_MOTION_TEMPLATES.length}
+							</span>
 						</button>
 						<button
 							type="button"
@@ -598,7 +598,7 @@ export default function GraphicsPanel() {
 						<input
 							type="file"
 							ref={fileInputRef}
-							accept=".tfvetemplate,.json"
+							accept=".grafree,.tfvetemplate,.json"
 							style={{ display: 'none' }}
 							onChange={handleImportFileChange}
 						/>
@@ -612,7 +612,13 @@ export default function GraphicsPanel() {
 									: 'Select clips on the timeline first'
 							}
 						>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+							<svg
+								width="13"
+								height="13"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								aria-hidden="true"
+							>
 								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
 							</svg>
 							<span>Create From Selection</span>
@@ -624,14 +630,24 @@ export default function GraphicsPanel() {
 							type="button"
 							className="custom-template-btn-secondary"
 							onClick={() => fileInputRef.current?.click()}
-							title="Import a .tfvetemplate file from your computer"
+							title="Import a .grafree file from your computer"
 						>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+							<svg
+								width="13"
+								height="13"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								aria-hidden="true"
+							>
 								<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
 								<polyline points="17 8 12 3 7 8" />
 								<line x1="12" y1="3" x2="12" y2="15" />
 							</svg>
-							<span>Import .tfvetemplate</span>
+							<span>Import .grafree</span>
 						</button>
 					</div>
 				)}
@@ -701,7 +717,10 @@ export default function GraphicsPanel() {
 							<div className="graphics-empty-state">
 								<div className="graphics-empty-title">✦ No Custom Motion Templates Yet</div>
 								<div className="graphics-empty-desc">
-									Create your own animated lower thirds, title sequences, callouts, or transitions by arranging text, shapes, keyframes, and masks on the timeline. Select the clips, then click <strong>"Create From Selection"</strong> to export or save a reusable template clip (.tfvetemplate).
+									Create your own animated lower thirds, title sequences, callouts, or transitions
+									by arranging text, shapes, keyframes, and masks on the timeline. Select the clips,
+									then click <strong>"Create From Selection"</strong> to export or save a reusable
+									template clip (.grafree).
 								</div>
 								<div className="custom-empty-actions">
 									<button
@@ -717,7 +736,7 @@ export default function GraphicsPanel() {
 										className="custom-template-btn-secondary"
 										onClick={() => fileInputRef.current?.click()}
 									>
-										📥 Import .tfvetemplate File
+										📥 Import .grafree File
 									</button>
 								</div>
 							</div>
@@ -789,7 +808,8 @@ export default function GraphicsPanel() {
 											type="button"
 											className="graphic-apply-btn"
 											onClick={() => {
-												const defaultId = GRAPHIC_TEMPLATES[0]?.id ?? 'mixkit-minimal-wipe-lower-third';
+												const defaultId =
+													GRAPHIC_TEMPLATES[0]?.id ?? 'mixkit-minimal-wipe-lower-third';
 												const created = store.getState().addGraphicClip(defaultId);
 												if (created) setActiveTab('editor');
 											}}
@@ -1313,7 +1333,8 @@ export default function GraphicsPanel() {
 										type="button"
 										className="graphics-create-btn"
 										onClick={() => {
-											const defaultId = GRAPHIC_TEMPLATES[0]?.id ?? 'mixkit-minimal-wipe-lower-third';
+											const defaultId =
+												GRAPHIC_TEMPLATES[0]?.id ?? 'mixkit-minimal-wipe-lower-third';
 											const created = store.getState().addGraphicClip(defaultId);
 											if (created) setActiveTab('editor');
 										}}
