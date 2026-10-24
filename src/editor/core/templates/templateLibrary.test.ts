@@ -11,8 +11,8 @@ function textClips(template: (typeof BUILTIN_MOTION_TEMPLATES)[number]): Clip[] 
 }
 
 describe('the built-in template library', () => {
-	it('ships 20 templates', () => {
-		expect(BUILTIN_MOTION_TEMPLATES).toHaveLength(20);
+	it('ships 23 templates', () => {
+		expect(BUILTIN_MOTION_TEMPLATES).toHaveLength(23);
 	});
 
 	it('fills every category tab with at least two templates', () => {
