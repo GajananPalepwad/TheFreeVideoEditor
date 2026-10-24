@@ -1,0 +1,1019 @@
+{
+	"$schema": "https://thefreevideoeditor.com/schemas/motion-template-v1.json",
+	"tfve_type": "motion_template",
+	"version": 1,
+	"id": "mixkit-fast-stomp-title",
+	"name": "Fast Stomp Kinetic Title",
+	"category": "Kinetic",
+	"description": "High-energy urban stomp intro with rapid color-flash beats, morphing outline typography, and dynamic slide outro inspired by Mixkit 14",
+	"author": "TheFreeVideoEditor",
+	"createdAt": 1792829000000,
+	"duration": 5000000,
+	"responsiveTiming": {
+		"introDuration": 1400000,
+		"outroDuration": 1000000
+	},
+	"bounds": {
+		"width": 1600,
+		"height": 800,
+		"originX": 0,
+		"originY": 0
+	},
+	"tracks": [
+		{
+			"id": "trk_letter_y",
+			"kind": "video",
+			"name": "Letter Y",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_letter_y",
+					"start": 833333,
+					"duration": 4166667,
+					"sourceIn": 0,
+					"sourceOut": 4166667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "Y",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 0
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 280
+						},
+						"text.strokeColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.strokeWidth": {
+							"value": 4
+						},
+						"text.letterSpacing": {
+							"value": 0
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"text.fillColor": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1, 1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 166667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [-420, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3166667,
+									"value": [-420, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3366667,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "trk_letter_o",
+			"kind": "video",
+			"name": "Letter O",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_letter_o",
+					"start": 833333,
+					"duration": 4166667,
+					"sourceIn": 0,
+					"sourceOut": 4166667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "O",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 0
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 280
+						},
+						"text.strokeColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.strokeWidth": {
+							"value": 4
+						},
+						"text.letterSpacing": {
+							"value": 0
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"text.fillColor": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1, 1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 166667,
+									"value": [1, 1, 1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 346667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [0, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3200000,
+									"value": [0, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3400000,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "trk_letter_u",
+			"kind": "video",
+			"name": "Letter U",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_letter_u",
+					"start": 833333,
+					"duration": 4166667,
+					"sourceIn": 0,
+					"sourceOut": 4166667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "U",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 0
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 280
+						},
+						"text.strokeColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.strokeWidth": {
+							"value": 4
+						},
+						"text.letterSpacing": {
+							"value": 0
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"text.fillColor": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1, 1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 346667,
+									"value": [1, 1, 1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 566667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [1, 1, 1, 0],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [420, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3250000,
+									"value": [420, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3450000,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								},
+								{
+									"time": 4166667,
+									"value": [-1600, 30],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "trk_subtitle",
+			"kind": "video",
+			"name": "Subtitle",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_subtitle",
+					"start": 1150000,
+					"duration": 3850000,
+					"sourceIn": 0,
+					"sourceOut": 3850000,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "MIXKIT",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 3
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 64
+						},
+						"text.fillColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.letterSpacing": {
+							"value": 3
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [420, -130],
+									"interpolation": "linear"
+								},
+								{
+									"time": 2933333,
+									"value": [420, -130],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3133333,
+									"value": [-1600, -130],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3850000,
+									"value": [-1600, -130],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 150000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 2933333,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3133333,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3850000,
+									"value": 0,
+									"interpolation": "linear"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "trk_intro_text",
+			"kind": "video",
+			"name": "Intro Text",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_intro_new1",
+					"start": 0,
+					"duration": 133333,
+					"sourceIn": 0,
+					"sourceOut": 133333,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "NEW",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 240
+						},
+						"text.fillColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_new2",
+					"start": 133333,
+					"duration": 166667,
+					"sourceIn": 0,
+					"sourceOut": 166667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "NEW",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 240
+						},
+						"text.fillColor": {
+							"value": [0.925, 0.89, 0.965, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_way",
+					"start": 300000,
+					"duration": 266667,
+					"sourceIn": 0,
+					"sourceOut": 266667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "WAY",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 240
+						},
+						"text.fillColor": {
+							"value": [1, 0.941, 0.941, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_for",
+					"start": 566667,
+					"duration": 266666,
+					"sourceIn": 0,
+					"sourceOut": 266666,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "FOR",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "900",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-fast-stomp-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 240
+						},
+						"text.fillColor": {
+							"value": [1, 1, 1, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"value": 1
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "trk_intro_bg",
+			"kind": "video",
+			"name": "Intro Background",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "clip_intro_bg_1",
+					"start": 0,
+					"duration": 133333,
+					"sourceIn": 0,
+					"sourceOut": 133333,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "shape",
+						"shapeType": "rect",
+						"width": 1600,
+						"height": 800,
+						"fillColor": {
+							"r": 0.953,
+							"g": 0.745,
+							"b": 0.051,
+							"a": 1
+						}
+					},
+					"properties": {
+						"shape.fillColor": {
+							"value": [0.953, 0.745, 0.051, 1]
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_bg_2",
+					"start": 133333,
+					"duration": 166667,
+					"sourceIn": 0,
+					"sourceOut": 166667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "shape",
+						"shapeType": "rect",
+						"width": 1600,
+						"height": 800,
+						"fillColor": {
+							"r": 0.49,
+							"g": 0.224,
+							"b": 0.635,
+							"a": 1
+						}
+					},
+					"properties": {
+						"shape.fillColor": {
+							"value": [0.49, 0.224, 0.635, 1]
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_bg_3",
+					"start": 300000,
+					"duration": 266667,
+					"sourceIn": 0,
+					"sourceOut": 266667,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "shape",
+						"shapeType": "rect",
+						"width": 1600,
+						"height": 800,
+						"fillColor": {
+							"r": 0.769,
+							"g": 0.055,
+							"b": 0.082,
+							"a": 1
+						}
+					},
+					"properties": {
+						"shape.fillColor": {
+							"value": [0.769, 0.055, 0.082, 1]
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				},
+				{
+					"id": "clip_intro_bg_4",
+					"start": 566667,
+					"duration": 266666,
+					"sourceIn": 0,
+					"sourceOut": 266666,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "shape",
+						"shapeType": "rect",
+						"width": 1600,
+						"height": 800,
+						"fillColor": {
+							"r": 0,
+							"g": 0,
+							"b": 0,
+							"a": 1
+						}
+					},
+					"properties": {
+						"shape.fillColor": {
+							"value": [0, 0, 0, 1]
+						},
+						"position": {
+							"value": [0, 0]
+						},
+						"scale": {
+							"value": [1, 1]
+						},
+						"rotation": {
+							"value": 0
+						},
+						"opacity": {
+							"value": 1
+						}
+					}
+				}
+			]
+		}
+	],
+	"publishedParams": [
+		{
+			"id": "param_beat1_text",
+			"name": "Beat 1 Text",
+			"type": "text",
+			"targetClipId": "clip_intro_new1",
+			"targetProperty": "text.content",
+			"defaultValue": "NEW"
+		},
+		{
+			"id": "param_beat2_text",
+			"name": "Beat 2 Text",
+			"type": "text",
+			"targetClipId": "clip_intro_new2",
+			"targetProperty": "text.content",
+			"defaultValue": "NEW"
+		},
+		{
+			"id": "param_beat3_text",
+			"name": "Beat 3 Text",
+			"type": "text",
+			"targetClipId": "clip_intro_way",
+			"targetProperty": "text.content",
+			"defaultValue": "WAY"
+		},
+		{
+			"id": "param_beat4_text",
+			"name": "Beat 4 Text",
+			"type": "text",
+			"targetClipId": "clip_intro_for",
+			"targetProperty": "text.content",
+			"defaultValue": "FOR"
+		},
+		{
+			"id": "param_letter_y_text",
+			"name": "Letter 1",
+			"type": "text",
+			"targetClipId": "clip_letter_y",
+			"targetProperty": "text.content",
+			"defaultValue": "Y"
+		},
+		{
+			"id": "param_letter_o_text",
+			"name": "Letter 2",
+			"type": "text",
+			"targetClipId": "clip_letter_o",
+			"targetProperty": "text.content",
+			"defaultValue": "O"
+		},
+		{
+			"id": "param_letter_u_text",
+			"name": "Letter 3",
+			"type": "text",
+			"targetClipId": "clip_letter_u",
+			"targetProperty": "text.content",
+			"defaultValue": "U"
+		},
+		{
+			"id": "param_subtitle_text",
+			"name": "Subtitle Text",
+			"type": "text",
+			"targetClipId": "clip_subtitle",
+			"targetProperty": "text.content",
+			"defaultValue": "MIXKIT"
+		},
+		{
+			"id": "param_title_size",
+			"name": "Title Size",
+			"type": "number",
+			"targetClipId": "clip_letter_o",
+			"targetProperty": "text.fontSize",
+			"defaultValue": 280,
+			"min": 160,
+			"max": 340,
+			"step": 2
+		},
+		{
+			"id": "param_subtitle_size",
+			"name": "Subtitle Size",
+			"type": "number",
+			"targetClipId": "clip_subtitle",
+			"targetProperty": "text.fontSize",
+			"defaultValue": 64,
+			"min": 32,
+			"max": 96,
+			"step": 1
+		},
+		{
+			"id": "param_beat1_color",
+			"name": "Beat 1 Color",
+			"type": "color",
+			"targetClipId": "clip_intro_bg_1",
+			"targetProperty": "shape.fill",
+			"defaultValue": {
+				"r": 0.953,
+				"g": 0.745,
+				"b": 0.051,
+				"a": 1
+			}
+		},
+		{
+			"id": "param_beat2_color",
+			"name": "Beat 2 Color",
+			"type": "color",
+			"targetClipId": "clip_intro_bg_2",
+			"targetProperty": "shape.fill",
+			"defaultValue": {
+				"r": 0.49,
+				"g": 0.224,
+				"b": 0.635,
+				"a": 1
+			}
+		},
+		{
+			"id": "param_beat3_color",
+			"name": "Beat 3 Color",
+			"type": "color",
+			"targetClipId": "clip_intro_bg_3",
+			"targetProperty": "shape.fill",
+			"defaultValue": {
+				"r": 0.769,
+				"g": 0.055,
+				"b": 0.082,
+				"a": 1
+			}
+		},
+		{
+			"id": "param_outline_color",
+			"name": "Outline Color",
+			"type": "color",
+			"targetClipId": "clip_letter_o",
+			"targetProperty": "text.stroke",
+			"defaultValue": {
+				"r": 1,
+				"g": 1,
+				"b": 1,
+				"a": 1
+			}
+		}
+	]
+}
+

@@ -2253,6 +2253,222 @@ exports[`template fidelity > what a template draws > mixkit-central-divider-titl
 ]
 `;
 
+exports[`template fidelity > what a template draws > mixkit-fast-stomp-title: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
+[
+  [
+    {
+      "fill": undefined,
+      "fontSize": undefined,
+      "kind": "shape",
+      "lineHeight": undefined,
+      "opacity": 1,
+      "reveal": undefined,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": undefined,
+      "x": 0,
+      "y": 0,
+    },
+    {
+      "fill": [
+        1,
+        0.94,
+        0.94,
+        1,
+      ],
+      "fontSize": 240,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "WAY",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MIXKIT",
+      "x": 420,
+      "y": -130,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "U",
+      "x": 420,
+      "y": 30,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "O",
+      "x": 0,
+      "y": 30,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "Y",
+      "x": -420,
+      "y": 30,
+    },
+  ],
+  [
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        1,
+      ],
+      "fontSize": 64,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 0,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "MIXKIT",
+      "x": -1600,
+      "y": -130,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "U",
+      "x": -1600,
+      "y": 30,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "O",
+      "x": -1600,
+      "y": 30,
+    },
+    {
+      "fill": [
+        1,
+        1,
+        1,
+        0,
+      ],
+      "fontSize": 280,
+      "kind": "text",
+      "lineHeight": 1.2,
+      "opacity": 1,
+      "reveal": 1,
+      "rotation": 0,
+      "scale": [
+        1,
+        1,
+      ],
+      "text": "Y",
+      "x": -1600,
+      "y": 30,
+    },
+  ],
+]
+`;
+
 exports[`template fidelity > what a template draws > mixkit-kinetic-title: draws the same layers at 0.1, 0.5, 0.9 of its length 1`] = `
 [
   [
