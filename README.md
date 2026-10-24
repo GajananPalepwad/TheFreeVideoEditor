@@ -12,6 +12,7 @@
 [![WebGL2](https://img.shields.io/badge/WebGL2-GPU_Compositor-990000?style=for-the-badge&logo=opengl&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](./CONTRIBUTING.md)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/6MtmjsA53V)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20Project-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/beestack)
 
 <p align="center">
   <a href="#-key-features"><strong>Explore Features</strong></a> •
@@ -45,6 +46,7 @@
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
 - [📦 Building & Production](#-building--production)
 - [📚 Deep-Dive Documentation](#-deep-dive-documentation)
+- [☕ Support the Project](#-support-the-project)
 - [💬 Community](#-community)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -274,6 +276,18 @@ Explore our comprehensive technical specifications located in the [`docs/`](./do
 - 🤖 [**AI Transcription & Captions**](./docs/CAPTIONS.md): In-browser Whisper ONNX runtime and word synchronization.
 - 📐 [**Motion Graphics & Templates**](./docs/TEMPLATES.md): Reusable graphic templates and parameter controls.
 - 🔄 [**Interchange & XML Formats**](./docs/INTERCHANGE.md): FCPXML, OTIO, EDL, and xmeml schemas.
+
+---
+
+## ☕ Support the Project
+
+The Free Video Editor is 100% free, private, and open-source with no cloud paywalls, subscriptions, or watermarks. If you find the editor helpful for your creative workflow, consider buying us a coffee to support continuous development!
+
+<p align="left">
+  <a href="https://buymeacoffee.com/beestack" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="210" />
+  </a>
+</p>
 
 ---
 
