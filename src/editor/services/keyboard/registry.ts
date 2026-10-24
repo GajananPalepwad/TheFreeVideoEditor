@@ -449,6 +449,33 @@ export function createEditorShortcutRegistry(handlers: ShortcutHandlers): Shortc
 			preventDefault: true
 		},
 		{
+			id: 'copy',
+			keys: { mac: 'mod+c', other: 'mod+c' },
+			label: 'Copy Selected Clips',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('copy'),
+			preventDefault: true
+		},
+		{
+			id: 'paste',
+			keys: { mac: 'mod+v', other: 'mod+v' },
+			label: 'Paste Clips at Playhead',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('paste'),
+			preventDefault: true
+		},
+		{
+			id: 'paste-attributes',
+			keys: { mac: 'mod+alt+v', other: 'mod+alt+v' },
+			label: 'Paste Clip Attributes',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('paste-attributes'),
+			preventDefault: true
+		},
+		{
 			id: 'duplicate',
 			keys: { mac: 'mod+d', other: 'mod+d' },
 			label: 'Duplicate Clips',
