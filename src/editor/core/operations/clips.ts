@@ -4,6 +4,7 @@ import { framesToTicks } from '../time';
 import { timelineToSource } from '../timeRemap';
 import { clipEnd, findFreeGap, groupOf, nearestValidStart } from '../timeline';
 import type { Asset, Clip, ClipId, Project, Time, Track, TrackId } from '../types';
+import { addTrack } from './tracks';
 import {
 	AssetNotFoundError,
 	ClipNotFoundError,
@@ -697,4 +698,123 @@ export function unlinkClips(project: Project, clipIds: readonly ClipId[]): Proje
 			return next;
 		})
 	}));
+}
+
+export interface CopiedClipItem {
+	clip: Clip;
+	trackId: TrackId;
+	trackKind: Track['kind'];
+	trackIndex?: number;
+}
+
+export interface ClipClipboard {
+	items: CopiedClipItem[];
+	minStart: Time;
+}
+
+export interface PasteClipsResult {
+	project: Project;
+	pastedClipIds: ClipId[];
+}
+
+/** Pastes copied clips starting at pasteTime, placing them onto compatible tracks non-destructively. */
+export function pasteClips(
+	project: Project,
+	clipboard: ClipClipboard,
+	pasteTime: Time,
+	preferredTrackId?: TrackId
+): PasteClipsResult {
+	if (clipboard.items.length === 0) {
+		return { project, pastedClipIds: [] };
+	}
+
+	let currentProject = project;
+	const pastedClipIds: ClipId[] = [];
+	const linkMap = new Map<string, string>();
+	const minStart = clipboard.minStart;
+
+	const preferredTrack = preferredTrackId
+		? currentProject.tracks.find((t) => t.id === preferredTrackId)
+		: undefined;
+
+	const trackMapping = new Map<TrackId, TrackId>();
+
+	for (const item of clipboard.items) {
+		const desiredStart = Math.max(0, pasteTime + (item.clip.start - minStart));
+		const duration = item.clip.duration;
+
+		let targetTrackId: TrackId | undefined = trackMapping.get(item.trackId);
+
+		if (!targetTrackId) {
+			if (preferredTrack && preferredTrack.kind === item.trackKind && !preferredTrack.locked) {
+				if (findFreeGap(preferredTrack, desiredStart, duration) === desiredStart) {
+					targetTrackId = preferredTrack.id;
+				}
+			}
+			if (!targetTrackId) {
+				const existingSourceTrack = currentProject.tracks.find(
+					(t) => t.id === item.trackId && t.kind === item.trackKind && !t.locked
+				);
+				if (
+					existingSourceTrack &&
+					findFreeGap(existingSourceTrack, desiredStart, duration) === desiredStart
+				) {
+					targetTrackId = existingSourceTrack.id;
+				}
+			}
+		}
+
+		if (
+			!targetTrackId ||
+			(() => {
+				const tr = currentProject.tracks.find((t) => t.id === targetTrackId);
+				return !tr || tr.locked || findFreeGap(tr, desiredStart, duration) !== desiredStart;
+			})()
+		) {
+			const candidateTrack = currentProject.tracks.find(
+				(t) =>
+					t.kind === item.trackKind &&
+					!t.locked &&
+					findFreeGap(t, desiredStart, duration) === desiredStart
+			);
+			if (candidateTrack) {
+				targetTrackId = candidateTrack.id;
+			} else {
+				currentProject = addTrack(currentProject, item.trackKind);
+				const created = currentProject.tracks.find(
+					(t) =>
+						t.kind === item.trackKind &&
+						!t.locked &&
+						findFreeGap(t, desiredStart, duration) === desiredStart
+				);
+				if (!created) {
+					throw new NoSpaceError('Cannot create track for pasted clip.');
+				}
+				targetTrackId = created.id;
+			}
+		}
+
+		trackMapping.set(item.trackId, targetTrackId);
+
+		const newClipId = makeId() as ClipId;
+		const linkId = item.clip.linkId
+			? (linkMap.get(item.clip.linkId) ??
+				linkMap.set(item.clip.linkId, makeId()).get(item.clip.linkId)!)
+			: undefined;
+
+		const clonedClip: Clip = {
+			...structuredClone(item.clip),
+			id: newClipId,
+			start: desiredStart,
+			...(linkId ? { linkId } : { linkId: undefined }),
+			effects: item.clip.effects?.map((e) => ({ ...structuredClone(e), id: makeId() })),
+			audioEffects: item.clip.audioEffects?.map((ae) => ({ ...structuredClone(ae), id: makeId() })),
+			masks: item.clip.masks?.map((m) => ({ ...structuredClone(m), id: makeId() }))
+		};
+
+		currentProject = insertClip(currentProject, targetTrackId, clonedClip);
+		pastedClipIds.push(newClipId);
+	}
+
+	return { project: currentProject, pastedClipIds };
 }

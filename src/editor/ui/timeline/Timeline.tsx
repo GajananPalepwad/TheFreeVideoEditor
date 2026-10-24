@@ -45,7 +45,10 @@ import { resolveMotionTemplate } from '../../core/templates/builtinTemplates';
 import { createShapeClip } from '../../core/adjustment';
 import type { ShapeConfig } from '../../core/shapes/shapeTypes';
 import { SaveTemplateModal } from '../graphics/SaveTemplateModal';
-import { isMotionTemplateClip, type MotionGraphicTemplate } from '../../core/templates/templateTypes';
+import {
+	isMotionTemplateClip,
+	type MotionGraphicTemplate
+} from '../../core/templates/templateTypes';
 import { EFFECT_DEFINITIONS } from '../../core/effects/registry';
 import { audioEffectRegistry } from '../../core/audio/effects';
 import type { EffectType } from '../../core/effects/types';
@@ -83,6 +86,10 @@ interface ContextPosition {
 	x: number;
 	y: number;
 	clip?: Clip;
+	lane?: {
+		trackId: TrackId;
+		time: Time;
+	};
 	gap?: {
 		trackId: TrackId;
 		start: Time;
@@ -486,6 +493,9 @@ function ActiveTimeline({ project }: { project: Project }) {
 	const linkSelection = useEditorStore((state) => state.linkSelection);
 	const unlinkSelection = useEditorStore((state) => state.unlinkSelection);
 	const setTimelineMessage = useEditorStore((state) => state.setTimelineMessage);
+	const clipClipboard = useEditorStore((state) => state.clipClipboard);
+	const keyframeClipboard = useEditorStore((state) => state.keyframes.clipboard);
+	const attributesClipboard = useEditorStore((state) => state.attributesClipboard);
 	const graphOpen = useEditorStore((state) => state.keyframes.graph.open);
 	const activeTool = useEditorStore((state) => state.timeline.activeTool);
 	const scrollerRef = useRef<HTMLDivElement>(null);
@@ -1008,6 +1018,34 @@ function ActiveTimeline({ project }: { project: Project }) {
 			x: clampedX,
 			y: clampedY,
 			gap: { trackId, start, end }
+		});
+	}
+
+	function openLaneMenu(event: MouseEvent<HTMLElement>, trackId: TrackId): void {
+		if (
+			(event.target as HTMLElement).closest(
+				'.timeline-clip, .caption-segment-view, .transition-block, .timeline-gap'
+			)
+		) {
+			return;
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		store.getState().selectTrack(trackId);
+		contextTriggerRef.current = event.currentTarget;
+		const rawX = event.clientX;
+		const rawY = event.clientY;
+		const winW = typeof window !== 'undefined' ? window.innerWidth : 1280;
+		const winH = typeof window !== 'undefined' ? window.innerHeight : 800;
+		const estimatedW = 180;
+		const estimatedH = 120;
+		const clampedX = Math.max(10, Math.min(rawX, winW - estimatedW - 10));
+		const clampedY = Math.max(10, Math.min(rawY, winH - estimatedH - 10));
+		const time = pointerTime(event.clientX);
+		setContext({
+			x: clampedX,
+			y: clampedY,
+			lane: { trackId, time }
 		});
 	}
 
@@ -2987,6 +3025,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 															return;
 														store.getState().selectTrack(track.id);
 													}}
+													onContextMenu={(event) => openLaneMenu(event, track.id)}
 													onKeyDown={(event) => handleLaneKeyDown(event, track)}
 													onDragOver={(event) => handleTrackDragOver(event, track)}
 													onDrop={(event) => handleTrackDrop(event, track)}
@@ -3399,7 +3438,9 @@ function ActiveTimeline({ project }: { project: Project }) {
 					aria-label={
 						context.gap
 							? 'Gap actions'
-							: `Actions for ${context.clip?.assetId ? (activeProject.assets[context.clip.assetId]?.name ?? 'clip') : context.clip?.source?.type === 'adjustment' ? 'adjustment layer' : 'solid'}`
+							: context.lane
+								? 'Track lane actions'
+								: `Actions for ${context.clip?.assetId ? (activeProject.assets[context.clip.assetId]?.name ?? 'clip') : context.clip?.source?.type === 'adjustment' ? 'adjustment layer' : 'solid'}`
 					}
 					style={{ left: context.x, top: context.y }}
 					onKeyDown={(event) => {
@@ -3432,6 +3473,52 @@ function ActiveTimeline({ project }: { project: Project }) {
 							</svg>
 							<span>Ripple Delete Gap</span>
 						</button>
+					) : context.lane ? (
+						<>
+							<button
+								type="button"
+								disabled={!clipClipboard && !keyframeClipboard}
+								onClick={() => {
+									if (clipClipboard && clipClipboard.items.length > 0) {
+										store.getState().pasteClips(context.lane!.time, context.lane!.trackId);
+									} else {
+										store.getState().pasteKeyframes();
+									}
+									closeContextMenu();
+								}}
+							>
+								<svg
+									className="menu-icon"
+									viewBox="0 0 16 16"
+									width="14"
+									height="14"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+									<path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+								</svg>
+								<span>Paste</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									store.getState().addTimelineTrack('video');
+									closeContextMenu();
+								}}
+							>
+								<span>Add Video Track</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									store.getState().addTimelineTrack('audio');
+									closeContextMenu();
+								}}
+							>
+								<span>Add Audio Track</span>
+							</button>
+						</>
 					) : context.clip ? (
 						<>
 							<button
@@ -3495,6 +3582,72 @@ function ActiveTimeline({ project }: { project: Project }) {
 									<path d="M14 6l2 2-2 2V6z" />
 								</svg>
 								<span>Ripple delete</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									store.getState().copySelectedClips();
+									closeContextMenu();
+								}}
+							>
+								<svg
+									className="menu-icon"
+									viewBox="0 0 16 16"
+									width="14"
+									height="14"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h-1v1H2V6h1V5H2z" />
+								</svg>
+								<span>Copy</span>
+							</button>
+							<button
+								type="button"
+								disabled={!clipClipboard && !keyframeClipboard}
+								onClick={() => {
+									if (clipClipboard && clipClipboard.items.length > 0) {
+										store.getState().pasteClips();
+									} else {
+										store.getState().pasteKeyframes();
+									}
+									closeContextMenu();
+								}}
+							>
+								<svg
+									className="menu-icon"
+									viewBox="0 0 16 16"
+									width="14"
+									height="14"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+									<path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+								</svg>
+								<span>Paste</span>
+							</button>
+							<button
+								type="button"
+								disabled={!attributesClipboard}
+								onClick={() => {
+									store.getState().openPasteAttributesDialog();
+									closeContextMenu();
+								}}
+							>
+								<svg
+									className="menu-icon"
+									viewBox="0 0 16 16"
+									width="14"
+									height="14"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z" />
+									<path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+									<path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+								</svg>
+								<span>Paste Attributes…</span>
 							</button>
 							<button
 								type="button"

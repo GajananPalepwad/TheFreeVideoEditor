@@ -21,6 +21,7 @@ import MarkerDialog from '../dialogs/MarkerDialog';
 import ExportDialog from '../export/ExportDialog';
 import ExportCompleteDialog from '../export/ExportCompleteDialog';
 import ExportFrameDialog from '../dialogs/ExportFrameDialog';
+import PasteAttributesDialog from '../dialogs/PasteAttributesDialog';
 import PreviewWorkspace from '../preview/PreviewWorkspace';
 import SourceMonitor from '../preview/SourceMonitor';
 import Timeline from '../timeline/Timeline';
@@ -85,6 +86,8 @@ function EditorShell() {
 	const keyframeSelection = useEditorStore((state) => state.keyframes.selection);
 	const keyframeClipboard = useEditorStore((state) => state.keyframes.clipboard);
 	const effectsClipboard = useEditorStore((state) => state.effectsClipboard);
+	const clipClipboard = useEditorStore((state) => state.clipClipboard);
+	const attributesClipboard = useEditorStore((state) => state.attributesClipboard);
 	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
 	const proxySuggestion = useEditorStore((state) => state.proxySuggestion);
 	const acceptProxySuggestion = useEditorStore((state) => state.acceptProxySuggestion);
@@ -345,6 +348,32 @@ function EditorShell() {
 				current.deleteSelection();
 			},
 			'ripple-delete': () => state().rippleDeleteSelection(),
+			copy: () => {
+				const current = state();
+				if (current.keyframes.selection.length > 0) {
+					current.copySelectedKeyframes();
+					return;
+				}
+				if (current.timeline.selection.clipIds.length > 0) {
+					current.copySelectedClips();
+					return;
+				}
+			},
+			paste: () => {
+				const current = state();
+				if (current.clipClipboard && current.clipClipboard.items.length > 0) {
+					current.pasteClips();
+					return;
+				}
+				if (current.keyframes.clipboard && current.keyframes.clipboard.entries.length > 0) {
+					current.pasteKeyframes();
+					return;
+				}
+			},
+			'paste-attributes': () => {
+				const current = state();
+				current.openPasteAttributesDialog();
+			},
 			duplicate: () => state().duplicateSelection(),
 			'speed-duration': () => {
 				const current = state();
@@ -824,6 +853,56 @@ function EditorShell() {
 										}}
 									>
 										Select All <span>⌘/Ctrl+A</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={
+											!project || (selectedClipIds.length === 0 && keyframeSelection.length === 0)
+										}
+										onClick={() => {
+											const current = editorStore.getState();
+											if (current.keyframes.selection.length > 0) {
+												current.copySelectedKeyframes();
+											} else {
+												current.copySelectedClips();
+											}
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Copy <span>{shortcutPlatform === 'mac' ? '⌘C' : 'Ctrl+C'}</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={
+											!project ||
+											(!clipClipboard &&
+												(!keyframeClipboard || keyframeClipboard.entries.length === 0))
+										}
+										onClick={() => {
+											const current = editorStore.getState();
+											if (current.clipClipboard && current.clipClipboard.items.length > 0) {
+												current.pasteClips();
+											} else {
+												current.pasteKeyframes();
+											}
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Paste <span>{shortcutPlatform === 'mac' ? '⌘V' : 'Ctrl+V'}</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={!project || !attributesClipboard || selectedClipIds.length === 0}
+										onClick={() => {
+											editorStore.getState().openPasteAttributesDialog();
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Paste Attributes…{' '}
+										<span>{shortcutPlatform === 'mac' ? '⌥⌘V' : 'Ctrl+Alt+V'}</span>
 									</button>
 									<button
 										type="button"
@@ -1876,6 +1955,7 @@ function EditorShell() {
 			<ExportCompleteDialog />
 			<ExportFrameDialog />
 			<SpeedDurationDialog />
+			<PasteAttributesDialog />
 			<SequenceSettingsDialog />
 			<MarkerDialog />
 			<ImportDialog />
