@@ -498,6 +498,15 @@ function ActiveTimeline({ project }: { project: Project }) {
 	const rulerPointer = useRef<number | null>(null);
 	const programmaticScrollLeft = useRef<number | null>(null);
 	const dragFrame = useRef<number | null>(null);
+	const autoScrollFrame = useRef<number | null>(null);
+	const autoScrollPointer = useRef<{
+		clientX: number;
+		clientY: number;
+		pointerId?: number;
+		altKey?: boolean;
+		ctrlKey?: boolean;
+		metaKey?: boolean;
+	} | null>(null);
 	const pendingDragPreview = useRef<{
 		session: DragSession;
 		time: Time;
@@ -608,12 +617,23 @@ function ActiveTimeline({ project }: { project: Project }) {
 		if (!removePending && dialog.open) dialog.close();
 	}, [removePending]);
 
-	useEffect(
-		() => () => {
+	useEffect(() => {
+		function handleGlobalPointerUp() {
+			if (autoScrollFrame.current !== null) {
+				cancelAnimationFrame(autoScrollFrame.current);
+				autoScrollFrame.current = null;
+				autoScrollPointer.current = null;
+			}
+		}
+		window.addEventListener('pointerup', handleGlobalPointerUp);
+		window.addEventListener('pointercancel', handleGlobalPointerUp);
+		return () => {
+			window.removeEventListener('pointerup', handleGlobalPointerUp);
+			window.removeEventListener('pointercancel', handleGlobalPointerUp);
+			if (autoScrollFrame.current !== null) cancelAnimationFrame(autoScrollFrame.current);
 			if (dragFrame.current !== null) cancelAnimationFrame(dragFrame.current);
-		},
-		[]
-	);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (!context) return;
@@ -1694,6 +1714,11 @@ function ActiveTimeline({ project }: { project: Project }) {
 	}
 
 	function handleTimelineDragOver(event: DragEvent<HTMLDivElement>): void {
+		autoScrollPointer.current = {
+			clientX: event.clientX,
+			clientY: event.clientY
+		};
+		triggerAutoScroll();
 		if (event.dataTransfer.types.includes('application/x-tfve-transition')) {
 			event.preventDefault();
 			event.dataTransfer.dropEffect = 'copy';
@@ -1960,6 +1985,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 	}
 
 	function handleTimelineDrop(event: DragEvent<HTMLDivElement>): void {
+		stopAutoScroll();
+		autoScrollPointer.current = null;
 		const transitionType = event.dataTransfer.getData('application/x-tfve-transition') as
 			TransitionType | '';
 		if (transitionType) {
@@ -2040,6 +2067,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 		if (event.relatedTarget && scrollerRef.current?.contains(event.relatedTarget as Node)) {
 			return;
 		}
+		stopAutoScroll();
+		autoScrollPointer.current = null;
 		cancelTimelineDrag();
 	}
 
@@ -2083,23 +2112,145 @@ function ActiveTimeline({ project }: { project: Project }) {
 		}
 
 		const rect = scroller.getBoundingClientRect();
-		const x = event.clientX - rect.left + scroller.scrollLeft;
-		const y = event.clientY - rect.top + scroller.scrollTop;
+		const x = Math.max(headerWidth, event.clientX - rect.left + scroller.scrollLeft);
+		const y = Math.max(32, event.clientY - rect.top + scroller.scrollTop);
 		marqueeStart.current = { x, y, clientX: event.clientX, clientY: event.clientY };
 		scroller.focus({ preventScroll: true });
 	}
 
-	function updateMarquee(event: PointerEvent<HTMLDivElement>): void {
+	function computeAutoScrollSpeed(clientX: number, clientY: number): { vx: number; vy: number } {
+		const scroller = scrollerRef.current;
+		if (!scroller || scroller.clientWidth === 0) return { vx: 0, vy: 0 };
+		const rect = scroller.getBoundingClientRect();
+
+		const EDGE_ZONE = 40;
+		const BASE_SPEED = 8;
+		const MAX_SPEED = 24;
+
+		let vx = 0;
+		let vy = 0;
+
+		const laneLeft = rect.left + headerWidth;
+		const laneRight = rect.right;
+
+		if (clientX < laneLeft + EDGE_ZONE) {
+			if (scroller.scrollLeft > 0) {
+				const dist = laneLeft + EDGE_ZONE - clientX;
+				const ratio = Math.min(dist / EDGE_ZONE, 2.5);
+				vx = -Math.round(Math.max(BASE_SPEED, BASE_SPEED * ratio));
+				vx = Math.max(-MAX_SPEED, vx);
+			}
+		} else if (clientX > laneRight - EDGE_ZONE) {
+			const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+			if (scroller.scrollLeft < maxScrollLeft) {
+				const dist = clientX - (laneRight - EDGE_ZONE);
+				const ratio = Math.min(dist / EDGE_ZONE, 2.5);
+				vx = Math.round(Math.max(BASE_SPEED, BASE_SPEED * ratio));
+				vx = Math.min(MAX_SPEED, vx);
+			}
+		}
+
+		const trackTop = rect.top + 32;
+		const trackBottom = rect.bottom;
+
+		if (clientY < trackTop + EDGE_ZONE) {
+			if (scroller.scrollTop > 0) {
+				const dist = trackTop + EDGE_ZONE - clientY;
+				const ratio = Math.min(dist / EDGE_ZONE, 2.5);
+				vy = -Math.round(Math.max(BASE_SPEED, BASE_SPEED * ratio));
+				vy = Math.max(-MAX_SPEED, vy);
+			}
+		} else if (clientY > trackBottom - EDGE_ZONE) {
+			const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+			if (scroller.scrollTop < maxScrollTop) {
+				const dist = clientY - (trackBottom - EDGE_ZONE);
+				const ratio = Math.min(dist / EDGE_ZONE, 2.5);
+				vy = Math.round(Math.max(BASE_SPEED, BASE_SPEED * ratio));
+				vy = Math.min(MAX_SPEED, vy);
+			}
+		}
+
+		return { vx, vy };
+	}
+
+	function stopAutoScroll(): void {
+		if (autoScrollFrame.current !== null) {
+			cancelAnimationFrame(autoScrollFrame.current);
+			autoScrollFrame.current = null;
+		}
+	}
+
+	function startAutoScroll(): void {
+		if (autoScrollFrame.current !== null) return;
+
+		function tick(): void {
+			const pos = autoScrollPointer.current;
+			const scroller = scrollerRef.current;
+			if (!pos || !scroller) {
+				stopAutoScroll();
+				return;
+			}
+
+			const { vx, vy } = computeAutoScrollSpeed(pos.clientX, pos.clientY);
+			if (vx === 0 && vy === 0) {
+				stopAutoScroll();
+				return;
+			}
+
+			const prevScrollLeft = scroller.scrollLeft;
+			const prevScrollTop = scroller.scrollTop;
+
+			if (vx !== 0) {
+				const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+				scroller.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scroller.scrollLeft + vx));
+			}
+			if (vy !== 0) {
+				const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+				scroller.scrollTop = Math.max(0, Math.min(maxScrollTop, scroller.scrollTop + vy));
+			}
+
+			if (scroller.scrollLeft !== prevScrollLeft || scroller.scrollTop !== prevScrollTop) {
+				setScroll(scroller.scrollLeft, scroller.scrollTop);
+
+				if (marqueeStart.current) {
+					updateMarqueeBox(pos.clientX, pos.clientY);
+				} else if (store.getState().timeline.drag) {
+					updateClipDragPosition(pos.clientX, pos.clientY, {
+						altKey: pos.altKey,
+						ctrlKey: pos.ctrlKey,
+						metaKey: pos.metaKey
+					});
+				}
+			}
+
+			autoScrollFrame.current = requestAnimationFrame(tick);
+		}
+
+		autoScrollFrame.current = requestAnimationFrame(tick);
+	}
+
+	function triggerAutoScroll(): void {
+		const pos = autoScrollPointer.current;
+		if (!pos) return;
+		const { vx, vy } = computeAutoScrollSpeed(pos.clientX, pos.clientY);
+		if (vx !== 0 || vy !== 0) {
+			startAutoScroll();
+		} else {
+			stopAutoScroll();
+		}
+	}
+
+	function updateMarqueeBox(clientX: number, clientY: number, pointerId?: number): void {
 		const scroller = scrollerRef.current;
 		const start = marqueeStart.current;
 		if (!scroller || !start) return;
 		const rect = scroller.getBoundingClientRect();
-		const x = event.clientX - rect.left + scroller.scrollLeft;
-		const y = event.clientY - rect.top + scroller.scrollTop;
+		const x = Math.max(headerWidth, clientX - rect.left + scroller.scrollLeft);
+		const y = Math.max(32, clientY - rect.top + scroller.scrollTop);
 		if (Math.abs(x - start.x) > 3 || Math.abs(y - start.y) > 3) {
-			if (!scroller.hasPointerCapture(event.pointerId)) {
+			if (pointerId !== undefined && !scroller.hasPointerCapture(pointerId)) {
 				try {
-					scroller.setPointerCapture(event.pointerId);
+					scroller.setPointerCapture(pointerId);
 				} catch {
 					// ignore
 				}
@@ -2114,6 +2265,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 	}
 
 	function endMarquee(event: PointerEvent<HTMLDivElement>): void {
+		stopAutoScroll();
+		autoScrollPointer.current = null;
 		const scroller = scrollerRef.current;
 		const start = marqueeStart.current;
 		if (!scroller || !start) return;
@@ -2125,25 +2278,130 @@ function ActiveTimeline({ project }: { project: Project }) {
 			}
 		}
 		const rect = scroller.getBoundingClientRect();
-		const endX = event.clientX - rect.left + scroller.scrollLeft;
-		const endY = event.clientY - rect.top + scroller.scrollTop;
+		const endX = Math.max(headerWidth, event.clientX - rect.left + scroller.scrollLeft);
+		const endY = Math.max(32, event.clientY - rect.top + scroller.scrollTop);
 		const didDrag = Math.abs(endX - start.x) > 4 || Math.abs(endY - start.y) > 4;
 		if (didDrag) {
 			suppressClickUntil.current = Date.now() + 400;
-			const left = Math.min(start.clientX, event.clientX);
-			const right = Math.max(start.clientX, event.clientX);
-			const top = Math.min(start.clientY, event.clientY);
-			const bottom = Math.max(start.clientY, event.clientY);
-			const hitIds = Array.from(scroller.querySelectorAll<HTMLElement>('[data-clip-id]'))
-				.filter((element) => {
-					const box = element.getBoundingClientRect();
-					return box.left < right && box.right > left && box.top < bottom && box.bottom > top;
-				})
-				.map((element) => element.dataset.clipId as ClipId);
+			const marqueeLeft = Math.min(start.x, endX);
+			const marqueeRight = Math.max(start.x, endX);
+			const marqueeTop = Math.min(start.y, endY);
+			const marqueeBottom = Math.max(start.y, endY);
+
+			const hitIds: ClipId[] = [];
+			for (const track of activeProject.tracks) {
+				const laneEl = scroller.querySelector<HTMLElement>(`[data-track-lane="${track.id}"]`);
+				if (!laneEl) continue;
+				const laneBox = laneEl.getBoundingClientRect();
+				const trackTop = laneBox.top - rect.top + scroller.scrollTop;
+				const trackBottom = laneBox.bottom - rect.top + scroller.scrollTop;
+				if (trackTop >= marqueeBottom || trackBottom <= marqueeTop) {
+					continue;
+				}
+				for (const clip of track.clips) {
+					const clipLeft = headerWidth + timeToPixels(clip.start, pixelsPerSecond);
+					const clipRight = headerWidth + timeToPixels(clip.start + clip.duration, pixelsPerSecond);
+					if (clipLeft < marqueeRight && clipRight > marqueeLeft) {
+						hitIds.push(clip.id);
+					}
+				}
+			}
 			selectClips(hitIds, event.shiftKey ? 'add' : 'replace');
 		}
 		marqueeStart.current = null;
 		setMarquee(null);
+		stopAutoScroll();
+		autoScrollPointer.current = null;
+	}
+
+	function updateClipDragPosition(
+		clientX: number,
+		clientY: number,
+		modifiers?: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }
+	): void {
+		const session = store.getState().timeline.drag;
+		const scroller = scrollerRef.current;
+		if (!session || !scroller) return;
+
+		let targetTrackId: TrackId | undefined;
+		let createTrackKind: Track['kind'] | undefined;
+
+		const target = document.elementFromPoint(clientX, clientY);
+		const trackLaneEl = target?.closest<HTMLElement>('[data-track-lane]');
+		if (
+			trackLaneEl &&
+			!trackLaneEl.classList.contains('is-preview-lane') &&
+			activeProject.tracks.some((t) => t.id === trackLaneEl.dataset.trackLane)
+		) {
+			targetTrackId = trackLaneEl.dataset.trackLane as TrackId | undefined;
+			createTrackKind = undefined;
+		} else {
+			const scrollerRect = scroller.getBoundingClientRect();
+			if (
+				clientX < scrollerRect.left - 40 ||
+				clientX > scrollerRect.right + 40 ||
+				clientY < scrollerRect.top - 60 ||
+				clientY > scrollerRect.bottom + 60
+			) {
+				targetTrackId = undefined;
+				createTrackKind = undefined;
+			} else {
+				// Check if dragged outside existing tracks
+				const primary = session.original[0];
+				const primaryTrack = primary
+					? activeProject.tracks.find((t) => t.id === primary.trackId)
+					: undefined;
+				const draggedKind =
+					primaryTrack?.kind ??
+					(session.assetId ? activeProject.assets[session.assetId]?.kind : undefined) ??
+					'video';
+				const normalizedKind: Track['kind'] = draggedKind === 'audio' ? 'audio' : 'video';
+
+				const rowsContainer = scroller.querySelector('.timeline-track-rows');
+				if (rowsContainer) {
+					const trackRows = Array.from(
+						rowsContainer.querySelectorAll<HTMLElement>(
+							'.timeline-track-row:not(.is-new-track-preview)'
+						)
+					);
+					if (trackRows.length > 0) {
+						const firstRowRect = trackRows[0]!.getBoundingClientRect();
+						const lastRowRect = trackRows[trackRows.length - 1]!.getBoundingClientRect();
+
+						if (clientY < firstRowRect.top) {
+							// Dragged above the top track (Premiere Pro style: add track at top)
+							createTrackKind = normalizedKind;
+							targetTrackId = undefined;
+						} else if (clientY > lastRowRect.bottom) {
+							// Dragged below the bottom track (add track at bottom)
+							createTrackKind = normalizedKind;
+							targetTrackId = undefined;
+						} else {
+							// Inside tracks vertically: definitely do NOT create a new track
+							createTrackKind = undefined;
+							for (const row of trackRows) {
+								const r = row.getBoundingClientRect();
+								if (clientY >= r.top && clientY <= r.bottom) {
+									const lane = row.querySelector<HTMLElement>('[data-track-lane]');
+									targetTrackId = lane?.dataset.trackLane as TrackId | undefined;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		const time = pointerTime(clientX);
+		scheduleDragPreview(
+			session,
+			time,
+			targetTrackId,
+			Boolean(modifiers?.altKey),
+			Boolean(modifiers?.ctrlKey || modifiers?.metaKey),
+			createTrackKind
+		);
 	}
 
 	function handlePointerMove(event: PointerEvent<HTMLDivElement>): void {
@@ -2154,7 +2412,13 @@ function ActiveTimeline({ project }: { project: Project }) {
 			return;
 		}
 		if (marqueeStart.current) {
-			updateMarquee(event);
+			autoScrollPointer.current = {
+				clientX: event.clientX,
+				clientY: event.clientY,
+				pointerId: event.pointerId
+			};
+			updateMarqueeBox(event.clientX, event.clientY, event.pointerId);
+			triggerAutoScroll();
 			return;
 		}
 
@@ -2195,91 +2459,20 @@ function ActiveTimeline({ project }: { project: Project }) {
 		const scroller = scrollerRef.current;
 		if (!scroller) return;
 
-		let targetTrackId: TrackId | undefined;
-		let createTrackKind: Track['kind'] | undefined;
-
-		const target = document.elementFromPoint(event.clientX, event.clientY);
-		const trackLaneEl = target?.closest<HTMLElement>('[data-track-lane]');
-		if (
-			trackLaneEl &&
-			!trackLaneEl.classList.contains('is-preview-lane') &&
-			activeProject.tracks.some((t) => t.id === trackLaneEl.dataset.trackLane)
-		) {
-			targetTrackId = trackLaneEl.dataset.trackLane as TrackId | undefined;
-			createTrackKind = undefined;
-		} else {
-			const scrollerRect = scroller.getBoundingClientRect();
-			if (
-				event.clientX < scrollerRect.left - 40 ||
-				event.clientX > scrollerRect.right + 40 ||
-				event.clientY < scrollerRect.top - 60 ||
-				event.clientY > scrollerRect.bottom + 60
-			) {
-				targetTrackId = undefined;
-				createTrackKind = undefined;
-			} else {
-				// Check if dragged outside existing tracks
-				const primary = session.original[0];
-				const primaryTrack = primary
-					? activeProject.tracks.find((t) => t.id === primary.trackId)
-					: undefined;
-				const draggedKind =
-					primaryTrack?.kind ??
-					(session.assetId ? activeProject.assets[session.assetId]?.kind : undefined) ??
-					'video';
-				const normalizedKind: Track['kind'] = draggedKind === 'audio' ? 'audio' : 'video';
-
-				const rowsContainer = scroller.querySelector('.timeline-track-rows');
-				if (rowsContainer) {
-					const trackRows = Array.from(
-						rowsContainer.querySelectorAll<HTMLElement>(
-							'.timeline-track-row:not(.is-new-track-preview)'
-						)
-					);
-					if (trackRows.length > 0) {
-						const firstRowRect = trackRows[0]!.getBoundingClientRect();
-						const lastRowRect = trackRows[trackRows.length - 1]!.getBoundingClientRect();
-
-						if (event.clientY < firstRowRect.top) {
-							// Dragged above the top track (Premiere Pro style: add track at top)
-							createTrackKind = normalizedKind;
-							targetTrackId = undefined;
-						} else if (event.clientY > lastRowRect.bottom) {
-							// Dragged below the bottom track (add track at bottom)
-							createTrackKind = normalizedKind;
-							targetTrackId = undefined;
-						} else {
-							// Inside tracks vertically: definitely do NOT create a new track
-							createTrackKind = undefined;
-							for (const row of trackRows) {
-								const r = row.getBoundingClientRect();
-								if (event.clientY >= r.top && event.clientY <= r.bottom) {
-									const lane = row.querySelector<HTMLElement>('[data-track-lane]');
-									targetTrackId = lane?.dataset.trackLane as TrackId | undefined;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		const time = pointerTime(event.clientX);
-		scheduleDragPreview(
-			session,
-			time,
-			targetTrackId,
-			event.altKey,
-			event.ctrlKey || event.metaKey,
-			createTrackKind
-		);
-
-		const rect = scroller.getBoundingClientRect();
-		if (event.clientX > rect.right - 28) scroller.scrollLeft += 14;
-		else if (event.clientX < rect.left + headerWidth + 28)
-			scroller.scrollLeft = Math.max(0, scroller.scrollLeft - 14);
-		setScroll(scroller.scrollLeft, scroller.scrollTop);
+		autoScrollPointer.current = {
+			clientX: event.clientX,
+			clientY: event.clientY,
+			pointerId: event.pointerId,
+			altKey: event.altKey,
+			ctrlKey: event.ctrlKey,
+			metaKey: event.metaKey
+		};
+		updateClipDragPosition(event.clientX, event.clientY, {
+			altKey: event.altKey,
+			ctrlKey: event.ctrlKey,
+			metaKey: event.metaKey
+		});
+		triggerAutoScroll();
 	}
 
 	function handlePointerUp(event: PointerEvent<HTMLDivElement>): void {
@@ -2307,6 +2500,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 		}
 
 		if (dragPointer.current !== event.pointerId) return;
+		stopAutoScroll();
+		autoScrollPointer.current = null;
 		dragPointer.current = null;
 		if (dragFrame.current !== null) cancelAnimationFrame(dragFrame.current);
 		dragFrame.current = null;
@@ -2432,6 +2627,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 		}
 		marqueeStart.current = null;
 		setMarquee(null);
+		stopAutoScroll();
+		autoScrollPointer.current = null;
 	}
 
 	function handleLaneKeyDown(event: KeyboardEvent<HTMLDivElement>, track: Track): void {
