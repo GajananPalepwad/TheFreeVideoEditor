@@ -77,6 +77,13 @@ import {
 	duplicateEffectInClip,
 	copyClipEffects as copyClipEffectsCore,
 	pasteClipEffects as pasteClipEffectsCore,
+	pasteClips as pasteClipsOperation,
+	type ClipClipboard,
+	type CopiedClipItem,
+	extractClipAttributes,
+	pasteAttributesToClips,
+	type ClipAttributesPayload,
+	type PasteAttributesOptions,
 	getEffectDefinition,
 	parseCubeLut,
 	normalizeProjectTransitions,
@@ -566,6 +573,9 @@ export interface EditorState {
 	scopes: ScopesUiState;
 	colorUi: ColorUiState;
 	effectsClipboard: EffectInstance[] | null;
+	clipClipboard: ClipClipboard | null;
+	attributesClipboard: ClipAttributesPayload | null;
+	isPasteAttributesOpen: boolean;
 	activeSequenceId: SequenceId;
 	sequencePlayheads: Record<SequenceId, Time>;
 	isSequenceSettingsDialogOpen: boolean;
@@ -834,6 +844,11 @@ export interface EditorState {
 	) => void;
 	copyClipEffects: (clipId: ClipId) => void;
 	pasteClipEffects: (clipId: ClipId) => boolean;
+	copySelectedClips: () => boolean;
+	pasteClips: (targetTime?: Time, targetTrackId?: TrackId) => boolean;
+	openPasteAttributesDialog: () => void;
+	closePasteAttributesDialog: () => void;
+	pasteAttributes: (options: PasteAttributesOptions) => boolean;
 	ensureColorCorrection: (clipId: ClipId) => EffectInstance | null;
 	addAdjustmentLayer: (trackId?: TrackId, start?: Time, duration?: Time) => ClipId | null;
 	addSolidLayer: (
@@ -1054,7 +1069,7 @@ export interface EditorState {
 		start?: Time,
 		trackId?: TrackId
 	) => ClipId | null;
-	setTemplateParamOverride: (clipId: ClipId, paramId: string, value: any) => void;
+	setTemplateParamOverride: (clipId: ClipId, paramId: string, value: unknown) => void;
 	resetTemplateParamOverrides: (clipId: ClipId) => void;
 	unpackTemplateClip: (clipId: ClipId) => boolean;
 	// Workspace actions
@@ -1620,6 +1635,9 @@ export function createEditorStore() {
 				},
 				isMixerOpen: false,
 				effectsClipboard: null,
+				clipClipboard: null,
+				attributesClipboard: null,
+				isPasteAttributesOpen: false,
 				activeSequenceId: ROOT_SEQUENCE_ID,
 				sequencePlayheads: {},
 				...(() => {
@@ -5224,6 +5242,131 @@ export function createEditorStore() {
 					} catch (error) {
 						set((state) => {
 							state.projectMessage = errorMessage(error);
+						});
+						return false;
+					}
+				},
+				copySelectedClips() {
+					const current = get();
+					const project = current.project;
+					const selectedIds = current.timeline.selection.clipIds;
+					if (!project || selectedIds.length === 0) return false;
+					const activeSeqId = current.activeSequenceId;
+					const activeView = viewProject(project, activeSeqId);
+					const items: CopiedClipItem[] = [];
+					let firstClip: Clip | null = null;
+					for (let trackIndex = 0; trackIndex < activeView.tracks.length; trackIndex++) {
+						const track = activeView.tracks[trackIndex]!;
+						for (const clip of track.clips) {
+							if (selectedIds.includes(clip.id)) {
+								if (!firstClip) firstClip = clip;
+								items.push({
+									clip: structuredClone(clip),
+									trackId: track.id,
+									trackKind: track.kind,
+									trackIndex
+								});
+							}
+						}
+					}
+					if (items.length === 0) return false;
+					const minStart = Math.min(...items.map((it) => it.clip.start));
+					const clipboard: ClipClipboard = { items, minStart };
+					const attributesPayload = firstClip ? extractClipAttributes(firstClip) : null;
+					set((state) => {
+						state.clipClipboard = clipboard;
+						if (attributesPayload) {
+							state.attributesClipboard = attributesPayload;
+						}
+						state.projectMessage = `Copied ${items.length} clip(s).`;
+					});
+					return true;
+				},
+				pasteClips(targetTime, targetTrackId) {
+					const current = get();
+					const project = current.project;
+					const clipboard = current.clipClipboard;
+					if (!project || !clipboard || clipboard.items.length === 0) return false;
+					const activeSeqId = current.activeSequenceId;
+					const pasteTime = targetTime !== undefined ? targetTime : current.timeline.playhead;
+					const preferredTrackId = targetTrackId ?? current.timeline.selection.trackId ?? undefined;
+
+					try {
+						let pastedIds: ClipId[] = [];
+						mutateProject(
+							`Paste ${clipboard.items.length} clip(s)`,
+							(p) =>
+								applyToSequence(p, activeSeqId, (view) => {
+									const res = pasteClipsOperation(view, clipboard, pasteTime, preferredTrackId);
+									pastedIds = res.pastedClipIds;
+									return res.project;
+								}),
+							{ history: 'record' }
+						);
+						if (pastedIds.length > 0) {
+							get().selectClips(pastedIds);
+							projectHistory.updateSelectionAfter(pastedIds);
+						}
+						set((state) => {
+							state.projectMessage = `Pasted ${pastedIds.length} clip(s).`;
+						});
+						return true;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
+				},
+				openPasteAttributesDialog() {
+					const current = get();
+					if (!current.attributesClipboard) {
+						set((state) => {
+							state.projectMessage =
+								'No clip attributes copied. Select a clip and press ⌘C / Ctrl+C first.';
+						});
+						return;
+					}
+					if (current.timeline.selection.clipIds.length === 0) {
+						set((state) => {
+							state.projectMessage = 'Select one or more target clips to paste attributes.';
+						});
+						return;
+					}
+					set((state) => {
+						state.isPasteAttributesOpen = true;
+					});
+				},
+				closePasteAttributesDialog() {
+					set((state) => {
+						state.isPasteAttributesOpen = false;
+					});
+				},
+				pasteAttributes(options) {
+					const current = get();
+					const project = current.project;
+					const payload = current.attributesClipboard;
+					const targetIds = current.timeline.selection.clipIds;
+					if (!project || !payload || targetIds.length === 0) return false;
+					const activeSeqId = current.activeSequenceId;
+
+					try {
+						mutateProject(
+							'Paste clip attributes',
+							(p) =>
+								applyToSequence(p, activeSeqId, (view) =>
+									pasteAttributesToClips(view, targetIds, payload, options)
+								),
+							{ history: 'record' }
+						);
+						set((state) => {
+							state.isPasteAttributesOpen = false;
+							state.projectMessage = `Pasted attributes to ${targetIds.length} clip(s).`;
+						});
+						return true;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
 						});
 						return false;
 					}
