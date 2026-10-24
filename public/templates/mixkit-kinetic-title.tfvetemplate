@@ -1,0 +1,928 @@
+{
+	"$schema": "https://thefreevideoeditor.com/schemas/motion-template-v1.json",
+	"tfve_type": "motion_template",
+	"version": 1,
+	"id": "mixkit-kinetic-title",
+	"name": "Kinetic Title Animation",
+	"category": "Kinetic",
+	"description": "High-energy kinetic typography title with letter-by-letter typing reveal, dynamic spring jump impact, and cinematic push-through outro inspired by Mixkit 71",
+	"author": "TheFreeVideoEditor",
+	"createdAt": 1792825000000,
+	"duration": 5000000,
+	"responsiveTiming": {
+		"introDuration": 1800000,
+		"outroDuration": 1550000
+	},
+	"bounds": {
+		"width": 1600,
+		"height": 750,
+		"originX": 0,
+		"originY": 0
+	},
+	"tracks": [
+		{
+			"id": "tpl_trk_kinetic",
+			"kind": "video",
+			"name": "Top Text",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "tpl_clip_kinetic",
+					"start": 0,
+					"duration": 5000000,
+					"sourceIn": 0,
+					"sourceOut": 5000000,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "KINETIC",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "700",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-kinetic-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 110
+						},
+						"text.fillColor": {
+							"value": [0.173, 0.173, 0.173, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 100000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 600000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": 1,
+									"interpolation": "linear"
+								}
+							]
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [0, 40],
+									"interpolation": "linear"
+								},
+								{
+									"time": 1050000,
+									"value": [0, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.22,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.36,
+										"y": 1
+									}
+								},
+								{
+									"time": 1180000,
+									"value": [-10, -350],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1320000,
+									"value": [-5, -260],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1440000,
+									"value": [-2, -180],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1550000,
+									"value": [0, -145],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3500000,
+									"value": [0, -145],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3800000,
+									"value": [-30, -420],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3980000,
+									"value": [-60, -820],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [-60, -820],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"rotation": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 1050000,
+									"value": 0,
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1180000,
+									"value": -8.0,
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1320000,
+									"value": 6.5,
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1440000,
+									"value": 2.0,
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1550000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3500000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3800000,
+									"value": -1.5,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3980000,
+									"value": -3.0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": -3.0,
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3500000,
+									"value": [1, 1],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									}
+								},
+								{
+									"time": 3750000,
+									"value": [2.2, 2.2],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									}
+								},
+								{
+									"time": 3980000,
+									"value": [4.5, 4.5],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [4.5, 4.5],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"opacity": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3800000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3980000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": 0,
+									"interpolation": "linear"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "tpl_trk_title",
+			"kind": "video",
+			"name": "Title Text",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "tpl_clip_title",
+					"start": 0,
+					"duration": 5000000,
+					"sourceIn": 0,
+					"sourceOut": 5000000,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "TITLE",
+						"style": {
+							"fontFamily": "Bebas Neue",
+							"fontWeight": "normal",
+							"alignment": "center",
+							"letterSpacing": 2
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-kinetic-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 200
+						},
+						"text.fillColor": {
+							"value": [1.0, 0.45, 0.45, 1]
+						},
+						"text.letterSpacing": {
+							"value": 2
+						},
+						"text.lineHeight": {
+							"value": 1.0
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1800, 40],
+									"interpolation": "linear"
+								},
+								{
+									"time": 1060000,
+									"value": [1800, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.16,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.3,
+										"y": 1
+									}
+								},
+								{
+									"time": 1380000,
+									"value": [-120, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1520000,
+									"value": [70, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									},
+									"easeIn": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1660000,
+									"value": [-25, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1800000,
+									"value": [0, 40],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3650000,
+									"value": [0, 40],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.35,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3900000,
+									"value": [-20, 70],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.35,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 4100000,
+									"value": [-50, 120],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.35,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 4250000,
+									"value": [-70, 160],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [-70, 160],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3650000,
+									"value": [1, 1],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3850000,
+									"value": [2, 2],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 4000000,
+									"value": [4, 4],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 4150000,
+									"value": [7.5, 7.5],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 4250000,
+									"value": [11, 11],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [11, 11],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"opacity": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 1060000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 1080000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 4150000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 4250000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": 0,
+									"interpolation": "linear"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": "tpl_trk_animations",
+			"kind": "video",
+			"name": "Subtitle Text",
+			"muted": false,
+			"locked": false,
+			"hidden": false,
+			"clips": [
+				{
+					"id": "tpl_clip_animations",
+					"start": 0,
+					"duration": 5000000,
+					"sourceIn": 0,
+					"sourceOut": 5000000,
+					"speed": 1,
+					"volume": 0,
+					"source": {
+						"type": "text",
+						"text": "ANIMATIONS",
+						"style": {
+							"fontFamily": "Montserrat",
+							"fontWeight": "500",
+							"alignment": "center",
+							"letterSpacing": 8
+						},
+						"box": {
+							"autoSize": true,
+							"verticalAnchor": "center",
+							"paddingX": 0,
+							"paddingY": 0,
+							"frameStyle": "none"
+						},
+						"colorRuns": [],
+						"graphicTemplateId": "mixkit-kinetic-title"
+					},
+					"properties": {
+						"text.fontSize": {
+							"value": 54
+						},
+						"text.fillColor": {
+							"value": [0.173, 0.173, 0.173, 1]
+						},
+						"text.letterSpacing": {
+							"value": 8
+						},
+						"text.lineHeight": {
+							"value": 1.2
+						},
+						"text.reveal": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 680000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 1450000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": 1,
+									"interpolation": "linear"
+								}
+							]
+						},
+						"position": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [0, 150],
+									"interpolation": "linear"
+								},
+								{
+									"time": 1100000,
+									"value": [0, 150],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1400000,
+									"value": [0, 205],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.25,
+										"y": 1
+									}
+								},
+								{
+									"time": 1550000,
+									"value": [0, 190],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3450000,
+									"value": [0, 190],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3600000,
+									"value": [10, 360],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									},
+									"easeIn": {
+										"x": 0.2,
+										"y": 1
+									}
+								},
+								{
+									"time": 3700000,
+									"value": [20, 600],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [20, 600],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"scale": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": [1, 1],
+									"interpolation": "linear"
+								},
+								{
+									"time": 3450000,
+									"value": [1, 1],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									}
+								},
+								{
+									"time": 3600000,
+									"value": [2.2, 2.2],
+									"interpolation": "bezier",
+									"easeOut": {
+										"x": 0.4,
+										"y": 0
+									}
+								},
+								{
+									"time": 3700000,
+									"value": [3.5, 3.5],
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": [3.5, 3.5],
+									"interpolation": "linear"
+								}
+							]
+						},
+						"opacity": {
+							"keyframes": [
+								{
+									"time": 0,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3550000,
+									"value": 1,
+									"interpolation": "linear"
+								},
+								{
+									"time": 3700000,
+									"value": 0,
+									"interpolation": "linear"
+								},
+								{
+									"time": 5000000,
+									"value": 0,
+									"interpolation": "linear"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"publishedParams": [
+		{
+			"id": "param_kinetic_text",
+			"name": "Top Text",
+			"type": "text",
+			"targetClipId": "tpl_clip_kinetic",
+			"targetProperty": "text.content",
+			"defaultValue": "KINETIC"
+		},
+		{
+			"id": "param_title_text",
+			"name": "Title Text",
+			"type": "text",
+			"targetClipId": "tpl_clip_title",
+			"targetProperty": "text.content",
+			"defaultValue": "TITLE"
+		},
+		{
+			"id": "param_animations_text",
+			"name": "Subtitle Text",
+			"type": "text",
+			"targetClipId": "tpl_clip_animations",
+			"targetProperty": "text.content",
+			"defaultValue": "ANIMATIONS"
+		},
+		{
+			"id": "param_kinetic_font",
+			"name": "Top Font",
+			"type": "font",
+			"targetClipId": "tpl_clip_kinetic",
+			"targetProperty": "text.fontFamily",
+			"defaultValue": "Montserrat"
+		},
+		{
+			"id": "param_title_font",
+			"name": "Title Font",
+			"type": "font",
+			"targetClipId": "tpl_clip_title",
+			"targetProperty": "text.fontFamily",
+			"defaultValue": "Bebas Neue"
+		},
+		{
+			"id": "param_animations_font",
+			"name": "Subtitle Font",
+			"type": "font",
+			"targetClipId": "tpl_clip_animations",
+			"targetProperty": "text.fontFamily",
+			"defaultValue": "Montserrat"
+		},
+		{
+			"id": "param_kinetic_size",
+			"name": "Top Size",
+			"type": "number",
+			"targetClipId": "tpl_clip_kinetic",
+			"targetProperty": "text.fontSize",
+			"defaultValue": 110,
+			"min": 55,
+			"max": 165,
+			"step": 1
+		},
+		{
+			"id": "param_title_size",
+			"name": "Title Size",
+			"type": "number",
+			"targetClipId": "tpl_clip_title",
+			"targetProperty": "text.fontSize",
+			"defaultValue": 200,
+			"min": 100,
+			"max": 300,
+			"step": 2
+		},
+		{
+			"id": "param_animations_size",
+			"name": "Subtitle Size",
+			"type": "number",
+			"targetClipId": "tpl_clip_animations",
+			"targetProperty": "text.fontSize",
+			"defaultValue": 54,
+			"min": 27,
+			"max": 81,
+			"step": 1
+		},
+		{
+			"id": "param_kinetic_color",
+			"name": "Top Color",
+			"type": "color",
+			"targetClipId": "tpl_clip_kinetic",
+			"targetProperty": "text.fill",
+			"defaultValue": {
+				"r": 0.173,
+				"g": 0.173,
+				"b": 0.173,
+				"a": 1
+			}
+		},
+		{
+			"id": "param_title_color",
+			"name": "Title Color",
+			"type": "color",
+			"targetClipId": "tpl_clip_title",
+			"targetProperty": "text.fill",
+			"defaultValue": {
+				"r": 1,
+				"g": 0.45,
+				"b": 0.45,
+				"a": 1
+			}
+		},
+		{
+			"id": "param_animations_color",
+			"name": "Subtitle Color",
+			"type": "color",
+			"targetClipId": "tpl_clip_animations",
+			"targetProperty": "text.fill",
+			"defaultValue": {
+				"r": 0.173,
+				"g": 0.173,
+				"b": 0.173,
+				"a": 1
+			}
+		}
+	]
+}
