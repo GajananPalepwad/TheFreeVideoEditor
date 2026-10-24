@@ -187,7 +187,7 @@ async function main() {
 				{
 					name: 'graphics-and-motion',
 					type: 0,
-					topic: 'WebGL2 shaders, motion templates (.tfvetemplate), vector masks, and keyframing.'
+					topic: 'WebGL2 shaders, motion templates (.grafree), vector masks, and keyframing.'
 				}
 			]
 		},

@@ -41,7 +41,7 @@ Tailwind 4, Zustand 5 + Immer, Zod 4, WebGL2/Canvas2D rendering, WebCodecs (medi
 | `src/editor/state/`    | Zustand store, actions, undo/redo                                        |
 | `src/editor/ui/`       | React components: timeline, inspector, graphics panel, preview           |
 | `src/pages/`           | Astro pages (`/editor` mounts the app)                                   |
-| `public/templates/`    | `.tfvetemplate` motion templates                                         |
+| `public/templates/`    | `.grafree` motion templates                                              |
 | `tests/e2e/`           | Playwright specs. Unit tests sit next to the code as `*.test.ts`         |
 | `docs/`                | One guide per area (`TEMPLATES.md`, `ANIMATION.md`, `RENDERING.md`, ...) |
 
@@ -110,7 +110,7 @@ changes. `docs/KNOWN_LIMITATIONS.md` lists accepted gaps; do not re-report them 
 
 ## Generated files
 
-`public/templates/*.tfvetemplate` (except the hand-written `example.tfvetemplate`) are generated. Edit
+`public/templates/*.grafree` (except the hand-written `example.grafree`) are generated. Edit
 `src/editor/core/templates/templateConverter.ts`, run `npm run templates:generate` (it uses headless
 Chromium through Playwright), and commit the regenerated files with the change. Never edit them by hand.
 Text bounds are measured in the browser, so the output depends on the fonts installed on your machine and
@@ -154,7 +154,7 @@ templates you meant to change.
 **Ask first**
 
 - Adding a dependency.
-- Changing the `.tfvetemplate` or project file schema (older files must still load).
+- Changing the `.grafree` or project file schema (older files must still load).
 - Moving layer boundaries or doing a large refactor.
 - Deleting files or branches, or touching anything outside the task.
 - Actions visible to others: opening a PR or issue, commenting, merging, force-pushing.
