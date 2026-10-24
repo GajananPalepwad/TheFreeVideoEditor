@@ -45,7 +45,10 @@ import { resolveMotionTemplate } from '../../core/templates/builtinTemplates';
 import { createShapeClip } from '../../core/adjustment';
 import type { ShapeConfig } from '../../core/shapes/shapeTypes';
 import { SaveTemplateModal } from '../graphics/SaveTemplateModal';
-import { isMotionTemplateClip, type MotionGraphicTemplate } from '../../core/templates/templateTypes';
+import {
+	isMotionTemplateClip,
+	type MotionGraphicTemplate
+} from '../../core/templates/templateTypes';
 import { EFFECT_DEFINITIONS } from '../../core/effects/registry';
 import { audioEffectRegistry } from '../../core/audio/effects';
 import type { EffectType } from '../../core/effects/types';

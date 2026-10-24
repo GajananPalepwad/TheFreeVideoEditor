@@ -858,8 +858,7 @@ function EditorShell() {
 										type="button"
 										role="menuitem"
 										disabled={
-											!project ||
-											(selectedClipIds.length === 0 && keyframeSelection.length === 0)
+											!project || (selectedClipIds.length === 0 && keyframeSelection.length === 0)
 										}
 										onClick={() => {
 											const current = editorStore.getState();

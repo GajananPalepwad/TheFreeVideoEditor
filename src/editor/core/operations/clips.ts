@@ -798,7 +798,8 @@ export function pasteClips(
 
 		const newClipId = makeId() as ClipId;
 		const linkId = item.clip.linkId
-			? (linkMap.get(item.clip.linkId) ?? linkMap.set(item.clip.linkId, makeId()).get(item.clip.linkId)!)
+			? (linkMap.get(item.clip.linkId) ??
+				linkMap.set(item.clip.linkId, makeId()).get(item.clip.linkId)!)
 			: undefined;
 
 		const clonedClip: Clip = {
@@ -817,4 +818,3 @@ export function pasteClips(
 
 	return { project: currentProject, pastedClipIds };
 }
-
