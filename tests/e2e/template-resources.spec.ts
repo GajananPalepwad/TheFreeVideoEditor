@@ -263,7 +263,7 @@ test.describe('fonts and media inside a template file', () => {
 		await page.locator('#graphics-panel-title').click();
 		await page.getByTestId('tab-graphic-custom').click();
 		await page.locator('.custom-templates-toolbar input[type="file"]').setInputFiles({
-			name: 'imported.tfvetemplate',
+			name: 'imported.grafree',
 			mimeType: 'application/json',
 			buffer: Buffer.from(file)
 		});

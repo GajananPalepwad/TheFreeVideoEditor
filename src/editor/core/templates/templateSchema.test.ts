@@ -116,9 +116,9 @@ describe('template format', () => {
 		expect(roundTrip(template)).toEqual(template);
 	});
 
-	it('reads every shipped .tfvetemplate file', () => {
+	it('reads every shipped .grafree file', () => {
 		const dir = 'public/templates';
-		const files = readdirSync(dir).filter((name) => name.endsWith('.tfvetemplate'));
+		const files = readdirSync(dir).filter((name) => name.endsWith('.grafree'));
 		expect(files.length).toBeGreaterThan(0);
 		for (const name of files) {
 			expect(() => deserializeTemplate(readFileSync(`${dir}/${name}`, 'utf8')), name).not.toThrow();

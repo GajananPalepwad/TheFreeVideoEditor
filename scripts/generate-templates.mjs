@@ -1,4 +1,4 @@
-// Regenerates public/templates/*.tfvetemplate from the legacy graphic-template converter.
+// Regenerates public/templates/*.grafree from the legacy graphic-template converter.
 //
 // The shipped files are the source of truth at runtime; this script is the authoring path for the
 // templates that are still defined in src/editor/core/text/graphicsTemplates.ts. Run it with
@@ -47,7 +47,7 @@ const fontFiles = [
 const createdAt = {};
 if (existsSync(outDir)) {
 	for (const name of (await import('node:fs')).readdirSync(outDir)) {
-		if (!name.endsWith('.tfvetemplate')) continue;
+		if (!name.endsWith('.grafree')) continue;
 		try {
 			const parsed = JSON.parse(readFileSync(join(outDir, name), 'utf8'));
 			if (parsed.createdAt) createdAt[parsed.id] = parsed.createdAt;
@@ -80,11 +80,11 @@ try {
 	mkdirSync(outDir, { recursive: true });
 	let written = 0;
 	for (const { id, json } of files) {
-		const file = join(outDir, `${id}.tfvetemplate`);
+		const file = join(outDir, `${id}.grafree`);
 		if (!existsSync(file) || readFileSync(file, 'utf8') !== json) {
 			writeFileSync(file, json, 'utf8');
 			written += 1;
-			console.log(`wrote ${id}.tfvetemplate`);
+			console.log(`wrote ${id}.grafree`);
 		}
 	}
 	console.log(written === 0 ? 'Templates are up to date.' : `Updated ${written} template file(s).`);
