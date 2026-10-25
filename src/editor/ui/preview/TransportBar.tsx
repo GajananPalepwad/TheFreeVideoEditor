@@ -35,6 +35,30 @@ export default function TransportBar({
 	const store = useEditorStoreApi();
 	const scopesOpen = useEditorStore((state) => state.scopes.open);
 	const proxiesEnabled = useEditorStore((state) => state.project?.proxy?.enabled ?? false);
+	const previewGuides = useEditorStore((state) => state.previewGuides);
+	const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false);
+	const guidesMenuRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!isGuidesMenuOpen) return;
+		function handleClickOutside(event: MouseEvent) {
+			if (guidesMenuRef.current && !guidesMenuRef.current.contains(event.target as Node)) {
+				setIsGuidesMenuOpen(false);
+			}
+		}
+		function handleKeyDown(event: globalThis.KeyboardEvent) {
+			if (event.key === 'Escape') {
+				setIsGuidesMenuOpen(false);
+			}
+		}
+		window.addEventListener('mousedown', handleClickOutside);
+		window.addEventListener('keydown', handleKeyDown);
+		return () => {
+			window.removeEventListener('mousedown', handleClickOutside);
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [isGuidesMenuOpen]);
+
 	const [snapshot, setSnapshot] = useState<PlaybackSnapshot | null>(engine?.snapshot ?? null);
 	const [playAnnouncement, setPlayAnnouncement] = useState('');
 	const previousPlaying = useRef<boolean | null>(null);
@@ -58,7 +82,11 @@ export default function TransportBar({
 	const totalTime = ticksToTimecode(duration, fps);
 
 	return (
-		<div className={`preview-transport ${isFullscreen ? 'is-fullscreen' : ''}`} role="toolbar" aria-label="Program playback controls">
+		<div
+			className={`preview-transport ${isFullscreen ? 'is-fullscreen' : ''}`}
+			role="toolbar"
+			aria-label="Program playback controls"
+		>
 			{/* Timeline Scrubber in Fullscreen Preview Only */}
 			{isFullscreen && (
 				<YouTubeTimelineScrubber
@@ -351,6 +379,128 @@ export default function TransportBar({
 					>
 						Scopes
 					</button>
+					<div className="preview-guides-container" ref={guidesMenuRef}>
+						<button
+							type="button"
+							aria-label="Toggle preview overlays and guides"
+							aria-pressed={Boolean(
+								previewGuides.safeMargins || previewGuides.ruleOfThirds || previewGuides.socialGuide
+							)}
+							aria-haspopup="true"
+							aria-expanded={isGuidesMenuOpen}
+							title={
+								previewGuides.safeMargins || previewGuides.ruleOfThirds || previewGuides.socialGuide
+									? 'Guides & Overlays (active)'
+									: 'Guides & Overlays'
+							}
+							className={`preview-guides-button ${
+								previewGuides.safeMargins || previewGuides.ruleOfThirds || previewGuides.socialGuide
+									? 'is-active'
+									: ''
+							} ${isGuidesMenuOpen ? 'is-open' : ''}`}
+							data-testid="toggle-guides-button"
+							onClick={() => setIsGuidesMenuOpen((prev) => !prev)}
+						>
+							<svg
+								viewBox="0 0 16 16"
+								width="13"
+								height="13"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								aria-hidden="true"
+								style={{ marginRight: '3px', verticalAlign: 'text-bottom' }}
+							>
+								<rect x="2" y="2" width="12" height="12" rx="1.5" />
+								<line x1="6" y1="2" x2="6" y2="14" />
+								<line x1="10" y1="2" x2="10" y2="14" />
+								<line x1="2" y1="6" x2="14" y2="6" />
+								<line x1="2" y1="10" x2="14" y2="10" />
+							</svg>
+							<span>Guides</span>
+							<svg
+								viewBox="0 0 8 6"
+								width="7"
+								height="5"
+								fill="currentColor"
+								aria-hidden="true"
+								style={{ marginLeft: '3px', verticalAlign: 'middle' }}
+							>
+								<path d="M0.5 1l3.5 4 3.5-4z" />
+							</svg>
+						</button>
+						{isGuidesMenuOpen && (
+							<div
+								className="preview-dropdown-menu guides-dropdown-menu"
+								role="menu"
+								aria-label="Guides and overlay options"
+								onMouseDown={(e) => e.stopPropagation()}
+							>
+								<div className="preview-dropdown-title">Overlays & Guides</div>
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									aria-checked={previewGuides.safeMargins}
+									className={`dropdown-menu-item ${previewGuides.safeMargins ? 'is-checked' : ''}`}
+									data-testid="toggle-safe-margins-button"
+									onClick={() => store.getState().togglePreviewGuide('safeMargins')}
+								>
+									<span className="menu-check">{previewGuides.safeMargins ? '✓' : ''}</span>
+									<span className="menu-label">Safe Margins (80% & 90%)</span>
+								</button>
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									aria-checked={previewGuides.ruleOfThirds}
+									className={`dropdown-menu-item ${previewGuides.ruleOfThirds ? 'is-checked' : ''}`}
+									data-testid="toggle-rule-of-thirds-button"
+									onClick={() => store.getState().togglePreviewGuide('ruleOfThirds')}
+								>
+									<span className="menu-check">{previewGuides.ruleOfThirds ? '✓' : ''}</span>
+									<span className="menu-label">Rule of Thirds (3×3)</span>
+								</button>
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									aria-checked={previewGuides.socialGuide}
+									className={`dropdown-menu-item ${previewGuides.socialGuide ? 'is-checked' : ''}`}
+									data-testid="toggle-social-guide-button"
+									onClick={() => store.getState().togglePreviewGuide('socialGuide')}
+								>
+									<span className="menu-check">{previewGuides.socialGuide ? '✓' : ''}</span>
+									<span className="menu-label">TikTok / Reels Safe Zone</span>
+								</button>
+								<div className="preview-dropdown-divider" />
+								<button
+									type="button"
+									role="menuitem"
+									className="dropdown-menu-item dropdown-menu-action"
+									data-testid="toggle-all-guides-button"
+									onClick={() => {
+										const anyActive =
+											previewGuides.safeMargins ||
+											previewGuides.ruleOfThirds ||
+											previewGuides.socialGuide;
+										if (anyActive) {
+											store.getState().resetPreviewGuides();
+										} else {
+											store.getState().setPreviewGuide('safeMargins', true);
+											store.getState().setPreviewGuide('ruleOfThirds', true);
+										}
+									}}
+								>
+									<span className="menu-check"></span>
+									<span className="menu-label">
+										{previewGuides.safeMargins ||
+										previewGuides.ruleOfThirds ||
+										previewGuides.socialGuide
+											? 'Clear All Guides'
+											: 'Show Standard Guides'}
+									</span>
+								</button>
+							</div>
+						)}
+					</div>
 					{onToggleFullscreen && (
 						<button
 							type="button"

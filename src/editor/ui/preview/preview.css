@@ -234,7 +234,9 @@
 	border-radius: 50%;
 	transform: translate(-50%, -50%) scale(0);
 	transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 0 8px rgba(56, 189, 248, 0.9), 0 2px 4px rgba(0, 0, 0, 0.6);
+	box-shadow:
+		0 0 8px rgba(56, 189, 248, 0.9),
+		0 2px 4px rgba(0, 0, 0, 0.6);
 	pointer-events: none;
 	z-index: 3;
 }
@@ -308,13 +310,15 @@
 }
 
 .preview-transport {
+	position: relative;
+	z-index: 20;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 	border-top: var(--panel-divider);
 	padding: 4px var(--spacing-sm);
 	background: var(--color-canvas-elevated);
-	overflow: hidden;
+	overflow: visible;
 }
 
 .preview-transport-row {
@@ -647,7 +651,9 @@
 .caption-canvas-overlay {
 	border: 1px dashed transparent;
 	border-radius: var(--radius-sm, 4px);
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	transition:
+		border-color 0.15s ease,
+		box-shadow 0.15s ease;
 	user-select: none;
 }
 
@@ -685,7 +691,145 @@
 	pointer-events: none;
 }
 
-.caption-canvas-handle.handle-tl { top: -3px; left: -3px; }
-.caption-canvas-handle.handle-tr { top: -3px; right: -3px; }
-.caption-canvas-handle.handle-bl { bottom: -3px; left: -3px; }
-.caption-canvas-handle.handle-br { bottom: -3px; right: -3px; }
+.caption-canvas-handle.handle-tl {
+	top: -3px;
+	left: -3px;
+}
+.caption-canvas-handle.handle-tr {
+	top: -3px;
+	right: -3px;
+}
+.caption-canvas-handle.handle-bl {
+	bottom: -3px;
+	left: -3px;
+}
+.caption-canvas-handle.handle-br {
+	bottom: -3px;
+	right: -3px;
+}
+
+/* Preview Guides & Overlays Menu */
+.preview-guides-container {
+	position: relative;
+	display: inline-flex;
+}
+
+.preview-guides-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 6px;
+}
+
+.preview-dropdown-menu {
+	position: absolute;
+	bottom: calc(100% + 6px);
+	right: 0;
+	z-index: 100;
+	min-width: 210px;
+	background: #121217;
+	border: 1px solid #23232e;
+	border-radius: 6px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+	padding: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.preview-dropdown-title {
+	font-size: 0.6875rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #64748b;
+	padding: 4px 8px;
+}
+
+.preview-dropdown-divider {
+	height: 1px;
+	background: #23232e;
+	margin: 4px 0;
+}
+
+.preview-dropdown-menu .dropdown-menu-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 6px 8px;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	color: #cbd5e1;
+	font-size: 0.75rem;
+	text-align: left;
+	cursor: pointer;
+	transition:
+		background 0.1s ease,
+		color 0.1s ease;
+}
+
+.preview-dropdown-menu .dropdown-menu-item:hover {
+	background: #1e293b;
+	color: #38bdf8;
+}
+
+.preview-dropdown-menu .dropdown-menu-item.is-checked {
+	color: #38bdf8;
+	background: rgba(56, 189, 248, 0.08);
+}
+
+.preview-dropdown-menu .dropdown-menu-item .menu-check {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	font-size: 0.75rem;
+	font-weight: bold;
+	color: #38bdf8;
+	flex-shrink: 0;
+}
+
+.preview-dropdown-menu .dropdown-menu-item .menu-label {
+	flex: 1;
+	white-space: nowrap;
+}
+
+.preview-dropdown-menu .dropdown-menu-action {
+	color: #94a3b8;
+	font-size: 0.6875rem;
+}
+
+:root[data-theme='light'] .preview-dropdown-menu {
+	background: #ffffff;
+	border-color: #e2e8f0;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme='light'] .preview-dropdown-title {
+	color: #94a3b8;
+}
+
+:root[data-theme='light'] .preview-dropdown-divider {
+	background: #e2e8f0;
+}
+
+:root[data-theme='light'] .preview-dropdown-menu .dropdown-menu-item {
+	color: #334155;
+}
+
+:root[data-theme='light'] .preview-dropdown-menu .dropdown-menu-item:hover {
+	background: #f1f5f9;
+	color: #0284c7;
+}
+
+:root[data-theme='light'] .preview-dropdown-menu .dropdown-menu-item.is-checked {
+	color: #0284c7;
+	background: rgba(2, 132, 199, 0.08);
+}
+
+:root[data-theme='light'] .preview-dropdown-menu .dropdown-menu-item .menu-check {
+	color: #0284c7;
+}

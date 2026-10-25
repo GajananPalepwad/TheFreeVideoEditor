@@ -431,6 +431,12 @@ export interface ColorUiState {
 	activeTab: 'basic' | 'curves' | 'wheels' | 'lut';
 }
 
+export interface PreviewGuidesState {
+	safeMargins: boolean;
+	ruleOfThirds: boolean;
+	socialGuide: boolean;
+}
+
 const INSPECTOR_STORAGE_KEY = 'tfve:inspector-prefs';
 
 function loadInspectorPrefs(): InspectorState {
@@ -572,6 +578,7 @@ export interface EditorState {
 	effectsUi: EffectsUiState;
 	scopes: ScopesUiState;
 	colorUi: ColorUiState;
+	previewGuides: PreviewGuidesState;
 	effectsClipboard: EffectInstance[] | null;
 	clipClipboard: ClipClipboard | null;
 	attributesClipboard: ClipAttributesPayload | null;
@@ -822,6 +829,9 @@ export interface EditorState {
 	setScopesMode: (mode: ScopesUiState['mode']) => void;
 	setScopesChannel: (channel: ScopesUiState['channel']) => void;
 	setColorTab: (tab: ColorUiState['activeTab']) => void;
+	togglePreviewGuide: (guide: keyof PreviewGuidesState) => void;
+	setPreviewGuide: (guide: keyof PreviewGuidesState, enabled: boolean) => void;
+	resetPreviewGuides: () => void;
 	addEffect: (
 		clipId: ClipId,
 		effectType: EffectType,
@@ -1624,6 +1634,11 @@ export function createEditorStore() {
 				},
 				colorUi: {
 					activeTab: 'basic'
+				},
+				previewGuides: {
+					safeMargins: false,
+					ruleOfThirds: false,
+					socialGuide: false
 				},
 				maskTool: {
 					activeTool: 'select',
@@ -4909,6 +4924,23 @@ export function createEditorStore() {
 				setColorTab(tab) {
 					set((state) => {
 						state.colorUi.activeTab = tab;
+					});
+				},
+				togglePreviewGuide(guide) {
+					set((state) => {
+						state.previewGuides[guide] = !state.previewGuides[guide];
+					});
+				},
+				setPreviewGuide(guide, enabled) {
+					set((state) => {
+						state.previewGuides[guide] = enabled;
+					});
+				},
+				resetPreviewGuides() {
+					set((state) => {
+						state.previewGuides.safeMargins = false;
+						state.previewGuides.ruleOfThirds = false;
+						state.previewGuides.socialGuide = false;
 					});
 				},
 				addEffect(clipId, effectType, initialParams, options) {
