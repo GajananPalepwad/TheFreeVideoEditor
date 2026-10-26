@@ -15,43 +15,43 @@ export const GET: APIRoute = () => {
 			priority: '1.0'
 		},
 		{
-			url: `${siteUrl}/editor`,
+			url: `${siteUrl}/editor/`,
 			lastmod: lastMod,
 			changefreq: 'daily',
 			priority: '0.9'
 		},
 		{
-			url: `${siteUrl}/guides`,
+			url: `${siteUrl}/guides/`,
 			lastmod: lastMod,
 			changefreq: 'weekly',
 			priority: '0.85'
 		},
 		...TOOL_GUIDES.map((guide) => ({
-			url: `${siteUrl}/guides/${guide.id}`,
+			url: `${siteUrl}/guides/${guide.id}/`,
 			lastmod: lastMod,
 			changefreq: 'weekly',
 			priority: '0.75'
 		})),
 		{
-			url: `${siteUrl}/about`,
+			url: `${siteUrl}/about/`,
 			lastmod: lastMod,
 			changefreq: 'monthly',
 			priority: '0.8'
 		},
 		{
-			url: `${siteUrl}/contact`,
+			url: `${siteUrl}/contact/`,
 			lastmod: lastMod,
 			changefreq: 'monthly',
 			priority: '0.7'
 		},
 		{
-			url: `${siteUrl}/privacy`,
+			url: `${siteUrl}/privacy/`,
 			lastmod: lastMod,
 			changefreq: 'monthly',
 			priority: '0.6'
 		},
 		{
-			url: `${siteUrl}/terms`,
+			url: `${siteUrl}/terms/`,
 			lastmod: lastMod,
 			changefreq: 'monthly',
 			priority: '0.6'

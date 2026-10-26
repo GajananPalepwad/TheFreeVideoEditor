@@ -98,11 +98,49 @@ describe('Cloudflare Worker API', () => {
 			expect(data.error).toContain('Please enter a valid Instagram Reel or Post link');
 		});
 
-		it('delegates non-API requests to env.ASSETS.fetch', async () => {
-			const req = new Request('https://thefreevideoeditor.com/editor');
+		it('redirects HTTP requests to HTTPS with 301', async () => {
+			const req = new Request('http://thefreevideoeditor.com/');
+			const res = await worker.fetch(req, mockEnv);
+			expect(res.status).toBe(301);
+			expect(res.headers.get('Location')).toBe('https://thefreevideoeditor.com/');
+		});
+
+		it('redirects www hostname to apex domain with 301', async () => {
+			const req = new Request('https://www.thefreevideoeditor.com/guides/razor-tool/');
+			const res = await worker.fetch(req, mockEnv);
+			expect(res.status).toBe(301);
+			expect(res.headers.get('Location')).toBe('https://thefreevideoeditor.com/guides/razor-tool/');
+		});
+
+		it('redirects page routes missing trailing slash with 301', async () => {
+			const req = new Request('https://thefreevideoeditor.com/guides/razor-tool');
+			const res = await worker.fetch(req, mockEnv);
+			expect(res.status).toBe(301);
+			expect(res.headers.get('Location')).toBe('https://thefreevideoeditor.com/guides/razor-tool/');
+		});
+
+		it('preserves query strings during canonical redirects', async () => {
+			const req = new Request('http://www.thefreevideoeditor.com/guides/?category=export');
+			const res = await worker.fetch(req, mockEnv);
+			expect(res.status).toBe(301);
+			expect(res.headers.get('Location')).toBe('https://thefreevideoeditor.com/guides/?category=export');
+		});
+
+		it('does not redirect static assets or API routes', async () => {
+			const staticReq = new Request('https://thefreevideoeditor.com/robots.txt');
+			const staticRes = await worker.fetch(staticReq, mockEnv);
+			expect(staticRes.status).toBe(200);
+
+			const sitemapReq = new Request('https://thefreevideoeditor.com/sitemap.xml');
+			const sitemapRes = await worker.fetch(sitemapReq, mockEnv);
+			expect(sitemapRes.status).toBe(200);
+		});
+
+		it('delegates canonical non-API requests to env.ASSETS.fetch', async () => {
+			const req = new Request('https://thefreevideoeditor.com/editor/');
 			const res = await worker.fetch(req, mockEnv);
 			expect(res.status).toBe(200);
-			expect(await res.text()).toBe('mock static asset: /editor');
+			expect(await res.text()).toBe('mock static asset: /editor/');
 			expect(mockEnv.ASSETS.fetch).toHaveBeenCalledWith(req);
 		});
 	});

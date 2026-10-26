@@ -3,16 +3,16 @@ import BrandIcon from './BrandIcon.astro';
 import BuyMeACoffee from './BuyMeACoffee.astro';
 
 const navItems = [
-	{ label: 'Editor', href: '/editor' },
+	{ label: 'Editor', href: '/editor/' },
 	{ label: 'Features', href: '/#features' },
-	{ label: 'Guides', href: '/guides' },
-	{ label: 'About Us', href: '/about' },
-	{ label: 'Contact Us', href: '/contact' },
-	{ label: 'Privacy Policy', href: '/privacy' },
-	{ label: 'Terms & Conditions', href: '/terms' }
+	{ label: 'Guides', href: '/guides/' },
+	{ label: 'About Us', href: '/about/' },
+	{ label: 'Contact Us', href: '/contact/' },
+	{ label: 'Privacy Policy', href: '/privacy/' },
+	{ label: 'Terms & Conditions', href: '/terms/' }
 ];
 
-const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const currentPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 ---
 
 <header class="site-header" id="site-header">
@@ -26,8 +26,8 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 		<nav class="site-nav desktop-only" aria-label="Main Navigation">
 			<ul class="nav-list">
 				{navItems.map((item) => {
-					const isActive = currentPath === item.href || (item.href === '/' && currentPath === '');
-					const isSecondary = item.href === '/privacy' || item.href === '/terms';
+					const isActive = currentPath === item.href || (item.href === '/' && currentPath === '/');
+					const isSecondary = item.href === '/privacy/' || item.href === '/terms/';
 					return (
 						<li class:list={[{ 'nav-item-secondary': isSecondary }]}>
 							<a
@@ -72,7 +72,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 				<span>GitHub</span>
 			</a>
 
-			<a href="/editor" class="header-cta-btn desktop-only">
+			<a href="/editor/" class="header-cta-btn desktop-only">
 				<span>Open Editor</span>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 					<polyline points="9 18 15 12 9 6"></polyline>
@@ -119,7 +119,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 			</ul>
 
 			<div class="mobile-cta-wrapper">
-				<a href="/editor" class="mobile-cta-btn">
+				<a href="/editor/" class="mobile-cta-btn">
 					<span>Launch Video Editor</span>
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 						<polyline points="9 18 15 12 9 6"></polyline>
