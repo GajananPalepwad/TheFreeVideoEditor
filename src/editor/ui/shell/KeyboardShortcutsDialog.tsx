@@ -100,7 +100,7 @@ export default function KeyboardShortcutsDialog({
 					style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
 				>
 					<a
-						href="/guides"
+						href="/guides/"
 						target="_blank"
 						rel="noopener noreferrer"
 						style={{ color: 'var(--color-link)', fontSize: '0.85rem', textDecoration: 'none' }}

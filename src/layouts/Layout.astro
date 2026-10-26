@@ -18,7 +18,7 @@ interface Props {
 const {
 	title = 'The Free Video Editor — Free Online Video Editor & AI Video Editor in Your Browser',
 	description = 'The Free Video Editor is a fast, free online video editor and AI video editor in your browser. Trim silences with Smart Cut, generate on-device AI captions, edit 4K multi-track video, and export without watermarks or cloud uploads.',
-	canonicalUrl = 'https://thefreevideoeditor.com',
+	canonicalUrl = 'https://thefreevideoeditor.com/',
 	ogType = 'website',
 	ogImage = 'https://thefreevideoeditor.com/og-image.png',
 	keywords = 'video editor, free video editor, online video editor, ai video editor, smart cut silence remover, remove silence from video free, ai silence trimmer, auto cut pauses, speech to text subtitles, ai subtitles generator, free ai video editor, video editor online, video editor free, youtube video editor, capcut video editor, canva video editor, movavi video editor, adobe video editor, windows video editor, openshot video editor, free online video editor, best free video editor, ai video editor free, microsoft video editor, best video editor, video editor jobs',
@@ -29,8 +29,24 @@ const {
 	modifiedTime
 } = Astro.props;
 
-const siteUrl = 'https://thefreevideoeditor.com';
-const currentCanonical = canonicalUrl || siteUrl;
+function normalizeCanonical(rawUrl: string): string {
+	try {
+		const parsed = new URL(rawUrl);
+		parsed.protocol = 'https:';
+		if (parsed.hostname.startsWith('www.')) {
+			parsed.hostname = parsed.hostname.replace(/^www\./, '');
+		}
+		const hasExt = /\.[a-zA-Z0-9]+$/.test(parsed.pathname);
+		if (!hasExt && !parsed.pathname.endsWith('/')) {
+			parsed.pathname = `${parsed.pathname}/`;
+		}
+		return `${parsed.protocol}//${parsed.hostname}${parsed.pathname}`;
+	} catch {
+		return rawUrl;
+	}
+}
+
+const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevideoeditor.com/');
 ---
 
 <!doctype html>
@@ -113,7 +129,7 @@ const currentCanonical = canonicalUrl || siteUrl;
 					description: description,
 					potentialAction: {
 						'@type': 'SearchAction',
-						target: 'https://thefreevideoeditor.com/editor?q={search_term_string}',
+						target: 'https://thefreevideoeditor.com/editor/?q={search_term_string}',
 						'query-input': 'required name=search_term_string'
 					}
 				},
@@ -121,7 +137,7 @@ const currentCanonical = canonicalUrl || siteUrl;
 					'@context': 'https://schema.org',
 					'@type': 'WebApplication',
 					name: 'The Free Video Editor',
-					url: 'https://thefreevideoeditor.com',
+					url: 'https://thefreevideoeditor.com/',
 					applicationCategory: 'MultimediaApplication',
 					operatingSystem: 'All modern web browsers (Chrome, Edge, Firefox, Safari)',
 					offers: {

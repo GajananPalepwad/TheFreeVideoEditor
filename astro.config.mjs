@@ -47,6 +47,8 @@ function externalizeOnnxWasmPlugin() {
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://thefreevideoeditor.com',
+	trailingSlash: 'always',
 	integrations: [react()],
 	vite: {
 		plugins: [

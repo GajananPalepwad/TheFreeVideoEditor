@@ -531,9 +531,69 @@ export async function handleYoutubeDownload(request: Request): Promise<Response>
 	}
 }
 
+/**
+ * Computes canonical 301 redirect target URL:
+ * 1. Enforces HTTPS on public domains.
+ * 2. Redirects www.thefreevideoeditor.com to apex domain thefreevideoeditor.com.
+ * 3. Enforces trailing slashes on non-asset page routes (matching sitemap and Cloudflare Assets).
+ * 4. Preserves query parameters.
+ */
+export function getCanonicalRedirect(url: URL): string | null {
+	let changed = false;
+	let protocol = url.protocol;
+	let hostname = url.hostname;
+	let pathname = url.pathname;
+
+	const isLocal =
+		hostname === 'localhost' ||
+		hostname === '127.0.0.1' ||
+		hostname.endsWith('.local');
+
+	// Enforce HTTPS
+	if (protocol === 'http:' && !isLocal) {
+		protocol = 'https:';
+		changed = true;
+	}
+
+	// Strip www. prefix
+	if (hostname.startsWith('www.')) {
+		hostname = hostname.replace(/^www\./, '');
+		changed = true;
+	}
+
+	// Enforce trailing slash on page/directory paths
+	// Do not add trailing slashes to API endpoints, _astro bundles, or files with an extension (.txt, .xml, .png, etc.)
+	const isApi = pathname.startsWith('/api/');
+	const isAstroAsset = pathname.startsWith('/_astro/');
+	const hasFileExtension = /\.[a-zA-Z0-9]+$/.test(pathname);
+
+	if (!isApi && !isAstroAsset && !hasFileExtension && !pathname.endsWith('/')) {
+		pathname = `${pathname}/`;
+		changed = true;
+	}
+
+	if (changed) {
+		return `${protocol}//${hostname}${pathname}${url.search}`;
+	}
+
+	return null;
+}
+
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
+
+		// Handle canonical 301 SEO redirects
+		const canonicalRedirect = getCanonicalRedirect(url);
+		if (canonicalRedirect && (request.method === 'GET' || request.method === 'HEAD')) {
+			return new Response(null, {
+				status: 301,
+				headers: {
+					Location: canonicalRedirect,
+					'Cache-Control': 'public, max-age=86400'
+				}
+			});
+		}
 
 		// Handle CORS preflight
 		if (request.method === 'OPTIONS') {

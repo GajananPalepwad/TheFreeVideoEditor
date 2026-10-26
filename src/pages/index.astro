@@ -68,7 +68,7 @@ const faqJsonLd = {
 };
 ---
 
-<Layout title={seoTitle} description={seoDescription}>
+<Layout title={seoTitle} description={seoDescription} canonicalUrl="https://thefreevideoeditor.com/">
 	<!-- FAQ Structured Data (JSON-LD) for Search Engine Rich Snippets -->
 	<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
 	<div class="home-wrapper" id="home-wrapper">
@@ -101,7 +101,7 @@ const faqJsonLd = {
 				</p>
 
 				<div class="cta-wrapper">
-					<a class="home-cta" href="/editor">
+					<a class="home-cta" href="/editor/">
 						<span>Open the editor</span>
 						<svg
 							class="cta-arrow"

@@ -1335,7 +1335,7 @@ function EditorShell() {
 									}}
 								>
 									<a
-										href="/guides"
+										href="/guides/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1427,7 +1427,7 @@ function EditorShell() {
 									}}
 								>
 									<a
-										href="/guides"
+										href="/guides/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1437,7 +1437,7 @@ function EditorShell() {
 									</a>
 									<hr />
 									<a
-										href="/guides/smart-cut-silence-removal"
+										href="/guides/smart-cut-silence-removal/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1446,7 +1446,7 @@ function EditorShell() {
 										Smart Cut (Silence Removal)… <span>AI</span>
 									</a>
 									<a
-										href="/guides/auto-captions"
+										href="/guides/auto-captions/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1456,7 +1456,7 @@ function EditorShell() {
 									</a>
 									<hr />
 									<a
-										href="/guides/selection-tool"
+										href="/guides/selection-tool/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1465,7 +1465,7 @@ function EditorShell() {
 										Selection Tool… <span>V</span>
 									</a>
 									<a
-										href="/guides/razor-tool"
+										href="/guides/razor-tool/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1474,7 +1474,7 @@ function EditorShell() {
 										Razor Tool… <span>C</span>
 									</a>
 									<a
-										href="/guides/ripple-edit-tool"
+										href="/guides/ripple-edit-tool/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1484,7 +1484,7 @@ function EditorShell() {
 									</a>
 									<hr />
 									<a
-										href="/guides/motion-tracking"
+										href="/guides/motion-tracking/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1493,7 +1493,7 @@ function EditorShell() {
 										Motion Tracking… <span>2D</span>
 									</a>
 									<a
-										href="/guides/keyframes-graph-editor"
+										href="/guides/keyframes-graph-editor/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1503,7 +1503,7 @@ function EditorShell() {
 									</a>
 									<hr />
 									<a
-										href="/guides/color-grading"
+										href="/guides/color-grading/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1512,7 +1512,7 @@ function EditorShell() {
 										Color Grading & LUTs… <span>Color</span>
 									</a>
 									<a
-										href="/guides/audio-mixer-eq"
+										href="/guides/audio-mixer-eq/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"
@@ -1521,7 +1521,7 @@ function EditorShell() {
 										Audio Mixer & EQ… <span>Audio</span>
 									</a>
 									<a
-										href="/guides/export-proxies"
+										href="/guides/export-proxies/"
 										target="_blank"
 										rel="noopener noreferrer"
 										role="menuitem"

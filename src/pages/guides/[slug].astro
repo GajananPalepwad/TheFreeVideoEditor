@@ -28,7 +28,7 @@ const relatedGuides = getRelatedGuides(guide);
 
 const seoTitle = `${guide.title} Tutorial & Complete Workflow Guide — The Free Video Editor`;
 const seoDescription = `${guide.subtitle} Follow step-by-step instructions, keyboard shortcuts, pro tips, and video walkthroughs for ${guide.title} in The Free Video Editor.`;
-const canonical = `https://thefreevideoeditor.com/guides/${guide.id}`;
+const canonical = `https://thefreevideoeditor.com/guides/${guide.id}/`;
 
 const toolKeywords = [
 	guide.title,
@@ -112,17 +112,11 @@ const guideJsonLd: Array<Record<string, unknown>> = [
 				'@type': 'ListItem',
 				position: 2,
 				name: 'Guides',
-				item: 'https://thefreevideoeditor.com/guides'
+				item: 'https://thefreevideoeditor.com/guides/'
 			},
 			{
 				'@type': 'ListItem',
 				position: 3,
-				name: guide.categoryLabel,
-				item: `https://thefreevideoeditor.com/guides?category=${guide.category}`
-			},
-			{
-				'@type': 'ListItem',
-				position: 4,
 				name: guide.title,
 				item: canonical
 			}
@@ -189,18 +183,13 @@ if (guide.youtubeVideoId) {
 					</li>
 					<li class="breadcrumb-sep" aria-hidden="true">/</li>
 					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-						<a href="/guides" class="breadcrumb-link" itemprop="item"><span itemprop="name">Guides</span></a>
+						<a href="/guides/" class="breadcrumb-link" itemprop="item"><span itemprop="name">Guides</span></a>
 						<meta itemprop="position" content="2" />
-					</li>
-					<li class="breadcrumb-sep" aria-hidden="true">/</li>
-					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-						<a href={`/guides?category=${guide.category}`} class="breadcrumb-link" itemprop="item"><span class="breadcrumb-cat" itemprop="name">{guide.categoryLabel}</span></a>
-						<meta itemprop="position" content="3" />
 					</li>
 					<li class="breadcrumb-sep" aria-hidden="true">/</li>
 					<li aria-current="page" class="breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
 						<span itemprop="name">{guide.title}</span>
-						<meta itemprop="position" content="4" />
+						<meta itemprop="position" content="3" />
 					</li>
 				</ol>
 			</div>
@@ -232,7 +221,7 @@ if (guide.youtubeVideoId) {
 				<!-- Hero Meta & Quick Actions -->
 				<div class="hero-actions-bar">
 					<div class="action-buttons-group">
-						<a href="/editor" class="hero-cta-btn">
+						<a href="/editor/" class="hero-cta-btn">
 							<span>Try in Editor</span>
 							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 								<polyline points="9 18 15 12 9 6"></polyline>
@@ -480,11 +469,11 @@ if (guide.youtubeVideoId) {
 
 					<!-- Next / Prev Guide Navigation -->
 					<div class="prev-next-nav">
-						<a href={`/guides/${prevGuide.id}`} class="nav-card prev-card">
+						<a href={`/guides/${prevGuide.id}/`} class="nav-card prev-card">
 							<span class="nav-direction">&larr; Previous Tool Guide</span>
 							<span class="nav-title">{prevGuide.title}</span>
 						</a>
-						<a href={`/guides/${nextGuide.id}`} class="nav-card next-card">
+						<a href={`/guides/${nextGuide.id}/`} class="nav-card next-card">
 							<span class="nav-direction">Next Tool Guide &rarr;</span>
 							<span class="nav-title">{nextGuide.title}</span>
 						</a>
@@ -500,7 +489,7 @@ if (guide.youtubeVideoId) {
 
 							<div class="related-grid">
 								{relatedGuides.map((rel) => (
-									<a href={`/guides/${rel.id}`} class="related-card">
+									<a href={`/guides/${rel.id}/`} class="related-card">
 										<div class="related-icon-box">
 											<ToolIcon name={rel.icon} size={20} />
 										</div>
@@ -552,7 +541,7 @@ if (guide.youtubeVideoId) {
 							</div>
 
 							<div class="sidebar-cta-wrapper">
-								<a href="/editor" class="sidebar-launch-btn">
+								<a href="/editor/" class="sidebar-launch-btn">
 									<span>Open Editor</span>
 									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 										<polyline points="9 18 15 12 9 6"></polyline>
@@ -568,7 +557,7 @@ if (guide.youtubeVideoId) {
 								{TOOL_GUIDES.map((t) => (
 									<li>
 										<a
-											href={`/guides/${t.id}`}
+											href={`/guides/${t.id}/`}
 											class={`sidebar-tool-link ${t.id === guide.id ? 'is-active' : ''}`}
 										>
 											<span class="sidebar-tool-icon">
@@ -581,7 +570,7 @@ if (guide.youtubeVideoId) {
 								))}
 							</ul>
 							<div class="sidebar-back-box">
-								<a href="/guides" class="sidebar-all-guides-link">&larr; View All Guides Directory</a>
+								<a href="/guides/" class="sidebar-all-guides-link">&larr; View All Guides Directory</a>
 							</div>
 						</div>
 					</div>
@@ -597,7 +586,7 @@ if (guide.youtubeVideoId) {
 						<h2>Ready to Try the {guide.title}?</h2>
 						<p>Open The Free Video Editor right in your browser. No downloads, no registration, and zero cloud uploads.</p>
 					</div>
-					<a href="/editor" class="cta-launch-btn">
+					<a href="/editor/" class="cta-launch-btn">
 						<span>Launch Editor Now</span>
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 							<polyline points="9 18 15 12 9 6"></polyline>

@@ -8,7 +8,7 @@ import { TOOL_GUIDES, GUIDE_CATEGORIES } from '../../data/guides';
 const seoTitle = 'Tool Guides & Tutorials — The Free Video Editor';
 const seoDescription =
 	'Master video editing with in-depth tool guides and tutorials. Step-by-step instructions for Smart Cut AI silence removal, Whisper auto captions, 4K timeline cuts, color grading, motion tracking, audio mixing, and export.';
-const canonicalUrl = 'https://thefreevideoeditor.com/guides';
+const canonicalUrl = 'https://thefreevideoeditor.com/guides/';
 const seoKeywords =
 	'video editor guides, video editing tutorials, free video editor tutorial, how to use video editor, smart cut tutorial, auto captions guide, silence removal guide, razor tool tutorial, ripple edit guide, motion tracking tutorial, color grading tutorial, audio mixer eq tutorial, keyframes graph editor guide, browser video editor docs';
 
@@ -28,7 +28,7 @@ const guidesHubJsonLd = [
 		publisher: {
 			'@type': 'Organization',
 			name: 'The Free Video Editor',
-			url: 'https://thefreevideoeditor.com',
+			url: 'https://thefreevideoeditor.com/',
 			logo: {
 				'@type': 'ImageObject',
 				url: 'https://thefreevideoeditor.com/favicon.svg'
@@ -41,7 +41,7 @@ const guidesHubJsonLd = [
 				position: index + 1,
 				name: tool.title,
 				description: tool.subtitle,
-				url: `https://thefreevideoeditor.com/guides/${tool.id}`
+				url: `https://thefreevideoeditor.com/guides/${tool.id}/`
 			}))
 		}
 	},
@@ -170,7 +170,7 @@ const guidesHubJsonLd = [
 
 							<div class="card-body">
 								<h2 class="card-title">
-									<a href={`/guides/${guide.id}`} class="card-link">
+									<a href={`/guides/${guide.id}/`} class="card-link">
 										{guide.title}
 									</a>
 								</h2>
@@ -200,7 +200,7 @@ const guidesHubJsonLd = [
 									</span>
 								</div>
 
-								<a href={`/guides/${guide.id}`} class="read-guide-btn" aria-label={`Read guide for ${guide.title}`}>
+								<a href={`/guides/${guide.id}/`} class="read-guide-btn" aria-label={`Read guide for ${guide.title}`}>
 									<span>Read Guide</span>
 									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 										<polyline points="9 18 15 12 9 6"></polyline>
@@ -235,7 +235,7 @@ const guidesHubJsonLd = [
 							<span class="cheat-badge">SPEED WORKFLOW</span>
 							<h2>Core Editing Keyboard Shortcuts</h2>
 						</div>
-						<a href="/editor" class="launch-editor-btn">
+						<a href="/editor/" class="launch-editor-btn">
 							<span>Launch Video Editor</span>
 							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 								<polyline points="9 18 15 12 9 6"></polyline>
