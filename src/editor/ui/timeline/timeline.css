@@ -1596,6 +1596,20 @@
 	pointer-events: none;
 }
 
+.clip-group-mark {
+	position: absolute;
+	z-index: 2;
+	right: var(--spacing-xxs);
+	bottom: 1px;
+	color: var(--color-primary, #60a5fa);
+	font-size: 0.625rem;
+	pointer-events: none;
+}
+
+.clip-link-mark + .clip-group-mark {
+	right: calc(var(--spacing-xxs) + 12px);
+}
+
 .timeline-playhead,
 .timeline-snap-guide {
 	position: absolute;

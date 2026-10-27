@@ -540,6 +540,24 @@ export function createEditorShortcutRegistry(handlers: ShortcutHandlers): Shortc
 			preventDefault: true
 		},
 		{
+			id: 'group-clips',
+			keys: { mac: 'mod+g', other: 'mod+g' },
+			label: 'Group Clips',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('group-clips'),
+			preventDefault: true
+		},
+		{
+			id: 'ungroup-clips',
+			keys: { mac: 'mod+shift+g', other: 'mod+shift+g' },
+			label: 'Ungroup Clips',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('ungroup-clips'),
+			preventDefault: true
+		},
+		{
 			id: 'zoom-in',
 			keys: { mac: 'mod+=', other: 'mod+=' },
 			label: 'Zoom In',

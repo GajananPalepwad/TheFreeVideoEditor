@@ -1317,4 +1317,38 @@ LUT_3D_SIZE 2
 			expect(store.getState().project?.masterAudio?.loudnessTargetLufs).toBeUndefined();
 		});
 	});
+
+	describe('clip grouping store actions', () => {
+		it('groups and ungroups selected clips and records undo history', async () => {
+			const store = createEditorStore();
+			await store.getState().createProject({ name: 'Group test' });
+			const c1 = store.getState().addShapeClip()!;
+			const c2 = store.getState().addShapeClip()!;
+
+			store.getState().selectClips([c1, c2]);
+			expect(store.getState().groupSelection()).toBe(true);
+			expect(store.getState().history.undoLabel).toBe('Group clips');
+
+			const getClips = () => store.getState().project!.tracks.flatMap((t) => t.clips);
+
+			let clips = getClips();
+			const clip1 = clips.find((c) => c.id === c1)!;
+			const clip2 = clips.find((c) => c.id === c2)!;
+			expect(clip1.groupId).toBeDefined();
+			expect(clip1.groupId).toBe(clip2.groupId);
+
+			expect(store.getState().ungroupSelection()).toBe(true);
+			expect(store.getState().history.undoLabel).toBe('Ungroup clips');
+
+			clips = getClips();
+			expect(clips.find((c) => c.id === c1)!.groupId).toBeUndefined();
+			expect(clips.find((c) => c.id === c2)!.groupId).toBeUndefined();
+
+			// Undo Ungroup clips restores the group
+			expect(store.getState().undo()).toBe(true);
+			clips = getClips();
+			expect(clips.find((c) => c.id === c1)!.groupId).toBeDefined();
+			expect(clips.find((c) => c.id === c1)!.groupId).toBe(clips.find((c) => c.id === c2)!.groupId);
+		});
+	});
 });

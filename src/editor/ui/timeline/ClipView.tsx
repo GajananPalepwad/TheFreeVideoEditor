@@ -646,12 +646,12 @@ export default function ClipView({
 	return (
 		<div
 			ref={clipRef}
-			className={`timeline-clip ${kindClass} ${selected ? 'is-selected' : ''} ${asset?.offline ? 'is-offline' : ''} ${ghost ? 'is-ghost' : ''} ${isLifted ? 'is-drag-lifted' : ''} ${isEffectTarget ? 'is-effect-target' : ''} ${isEffectInvalid ? 'is-effect-invalid' : ''} ${isDropCelebrated ? 'is-drop-celebrated' : ''}`}
+			className={`timeline-clip ${kindClass} ${selected ? 'is-selected' : ''} ${clip.groupId ? 'is-grouped' : ''} ${asset?.offline ? 'is-offline' : ''} ${ghost ? 'is-ghost' : ''} ${isLifted ? 'is-drag-lifted' : ''} ${isEffectTarget ? 'is-effect-target' : ''} ${isEffectInvalid ? 'is-effect-invalid' : ''} ${isDropCelebrated ? 'is-drop-celebrated' : ''}`}
 			data-clip-id={clip.id}
 			data-track-id={track.id}
 			role="group"
 			tabIndex={ghost ? -1 : tabIndex}
-			aria-label={`Clip: ${clipName}, ${track.name}, starts ${startLabel}, duration ${durationLabel}${clip.linkId ? ', linked' : ''}${asset?.offline ? ', offline' : ''}${selected ? ', selected' : ''}`}
+			aria-label={`Clip: ${clipName}, ${track.name}, starts ${startLabel}, duration ${durationLabel}${clip.linkId ? ', linked' : ''}${clip.groupId ? ', grouped' : ''}${asset?.offline ? ', offline' : ''}${selected ? ', selected' : ''}`}
 			draggable={false}
 			style={{ left: start, width }}
 			onDragEnter={handleDragEnter}
@@ -775,6 +775,11 @@ export default function ClipView({
 			{clip.linkId && (
 				<span className="clip-link-mark" aria-label="Linked clip">
 					↔
+				</span>
+			)}
+			{clip.groupId && (
+				<span className="clip-group-mark" aria-label="Grouped clip" title="Grouped clip">
+					⧉
 				</span>
 			)}
 			{clip.speed !== undefined && clip.speed !== 1 && !clip.timeRemap && (

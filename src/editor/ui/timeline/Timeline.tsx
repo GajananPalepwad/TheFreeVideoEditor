@@ -492,6 +492,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 	const setTimelineTrackFlags = useEditorStore((state) => state.setTimelineTrackFlags);
 	const linkSelection = useEditorStore((state) => state.linkSelection);
 	const unlinkSelection = useEditorStore((state) => state.unlinkSelection);
+	const groupSelection = useEditorStore((state) => state.groupSelection);
+	const ungroupSelection = useEditorStore((state) => state.ungroupSelection);
 	const setTimelineMessage = useEditorStore((state) => state.setTimelineMessage);
 	const clipClipboard = useEditorStore((state) => state.clipClipboard);
 	const keyframeClipboard = useEditorStore((state) => state.keyframes.clipboard);
@@ -972,7 +974,10 @@ function ActiveTimeline({ project }: { project: Project }) {
 			return;
 		}
 		event.preventDefault();
-		if (!selection.clipIds.includes(clip.id)) selectClips([clip.id]);
+		if (!selection.clipIds.includes(clip.id)) {
+			const ids = groupOf(activeProject, clip.id).map((c) => c.id);
+			selectClips(ids);
+		}
 		contextTriggerRef.current = event.currentTarget;
 		const mouseEvent = 'clientX' in event;
 		const rawX = mouseEvent ? event.clientX : 220;
@@ -3780,6 +3785,60 @@ function ActiveTimeline({ project }: { project: Project }) {
 												<path d="M9 5.5a3 3 0 0 0-2.83 4h.83c.086 0 .17-.01.25-.031A2 2 0 0 1 9 5.5h3a2 2 0 1 1 0 4h-1.535c-.218.376-.495.714-.82 1H12a3 3 0 1 0 0-6H9z" />
 											</svg>
 											<span>Unlink clips</span>
+										</button>
+									)}
+								</>
+							)}
+							{(selection.clipIds.length >= 2 ||
+								Boolean(context.clip.groupId) ||
+								activeProject.tracks.some((t) =>
+									t.clips.some((c) => selection.clipIds.includes(c.id) && c.groupId)
+								)) && (
+								<>
+									<hr />
+									{selection.clipIds.length >= 2 && (
+										<button
+											type="button"
+											onClick={() => {
+												groupSelection();
+												closeContextMenu();
+											}}
+										>
+											<svg
+												className="menu-icon"
+												viewBox="0 0 16 16"
+												width="14"
+												height="14"
+												fill="currentColor"
+												aria-hidden="true"
+											>
+												<path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z" />
+											</svg>
+											<span>Group selected clips</span>
+										</button>
+									)}
+									{(Boolean(context.clip.groupId) ||
+										activeProject.tracks.some((t) =>
+											t.clips.some((c) => selection.clipIds.includes(c.id) && c.groupId)
+										)) && (
+										<button
+											type="button"
+											onClick={() => {
+												ungroupSelection();
+												closeContextMenu();
+											}}
+										>
+											<svg
+												className="menu-icon"
+												viewBox="0 0 16 16"
+												width="14"
+												height="14"
+												fill="currentColor"
+												aria-hidden="true"
+											>
+												<path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z" />
+											</svg>
+											<span>Ungroup clips</span>
 										</button>
 									)}
 								</>

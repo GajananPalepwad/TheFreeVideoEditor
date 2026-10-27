@@ -315,6 +315,7 @@ export const clipSchema = z.object({
 	speed: z.number().refine((val) => val !== 0, 'Speed must be non-zero'),
 	volume: z.number().nonnegative(),
 	linkId: z.string().min(1).optional(),
+	groupId: z.string().min(1).optional(),
 	effects: z.array(effectSchema).optional(),
 	bypassEffects: z.boolean().optional(),
 	audioEffects: z.array(audioEffectInstanceSchema).optional(),

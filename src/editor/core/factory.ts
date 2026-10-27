@@ -71,6 +71,7 @@ export function duplicateProject(project: Project): Project {
 	const clipIdMap = new Map<string, string>();
 	const markerIdMap = new Map<string, string>();
 	const linkIdMap = new Map<string, string>();
+	const groupIdMap = new Map<string, string>();
 
 	for (const asset of Object.values(project.assets)) assetIdMap.set(asset.id, randomId());
 	const sequenceIdMap = new Map<string, string>();
@@ -90,6 +91,9 @@ export function duplicateProject(project: Project): Project {
 		for (const clip of track.clips) {
 			if (clip.linkId && !linkIdMap.has(clip.linkId)) {
 				linkIdMap.set(clip.linkId, randomId());
+			}
+			if (clip.groupId && !groupIdMap.has(clip.groupId)) {
+				groupIdMap.set(clip.groupId, randomId());
 			}
 		}
 	}
@@ -118,6 +122,7 @@ export function duplicateProject(project: Project): Project {
 			id: clipIdMap.get(clip.id) as ClipId,
 			...(clip.assetId ? { assetId: assetIdMap.get(clip.assetId) as AssetId } : {}),
 			...(clip.linkId ? { linkId: linkIdMap.get(clip.linkId) } : {}),
+			...(clip.groupId ? { groupId: groupIdMap.get(clip.groupId) } : {}),
 			effects: clip.effects?.map((effect) => ({ ...effect, id: randomId() })),
 			...(clip.masks ? { masks: clip.masks.map((mask) => ({ ...mask, id: randomId() })) } : {}),
 			...(clip.markers

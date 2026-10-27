@@ -246,6 +246,7 @@ export function duplicateSequence(
 	const trackIdMap = new Map<string, string>();
 	const clipIdMap = new Map<string, string>();
 	const linkIdMap = new Map<string, string>();
+	const groupIdMap = new Map<string, string>();
 
 	for (const track of source.tracks) {
 		trackIdMap.set(track.id, randomId());
@@ -253,6 +254,9 @@ export function duplicateSequence(
 			clipIdMap.set(clip.id, randomId());
 			if (clip.linkId && !linkIdMap.has(clip.linkId)) {
 				linkIdMap.set(clip.linkId, randomId());
+			}
+			if (clip.groupId && !groupIdMap.has(clip.groupId)) {
+				groupIdMap.set(clip.groupId, randomId());
 			}
 		}
 	}
@@ -264,6 +268,7 @@ export function duplicateSequence(
 			...clip,
 			id: clipIdMap.get(clip.id) as ClipId,
 			...(clip.linkId ? { linkId: linkIdMap.get(clip.linkId) } : {}),
+			...(clip.groupId ? { groupId: groupIdMap.get(clip.groupId) } : {}),
 			effects: clip.effects?.map((eff) => ({ ...eff, id: randomId() })),
 			masks: clip.masks?.map((m) => ({ ...m, id: randomId() }))
 		})),
@@ -762,6 +767,7 @@ export function expandSequenceInstance(
 	const updatedHostTracks = [...hostView.tracks];
 	const clipIdMap = new Map<string, string>();
 	const linkIdMap = new Map<string, string>();
+	const groupIdMap = new Map<string, string>();
 
 	// Every nested track keeps its own host track so no layer is merged into another. The first
 	// nested track of the instance's kind takes the instance's track; the others are inserted right
@@ -813,6 +819,9 @@ export function expandSequenceInstance(
 			if (c.linkId && !linkIdMap.has(c.linkId)) {
 				linkIdMap.set(c.linkId, randomId());
 			}
+			if (c.groupId && !groupIdMap.has(c.groupId)) {
+				groupIdMap.set(c.groupId, randomId());
+			}
 
 			expandedClips.push({
 				...c,
@@ -821,7 +830,8 @@ export function expandSequenceInstance(
 				duration,
 				sourceIn,
 				sourceOut,
-				...(c.linkId ? { linkId: linkIdMap.get(c.linkId) } : {})
+				...(c.linkId ? { linkId: linkIdMap.get(c.linkId) } : {}),
+				...(c.groupId ? { groupId: groupIdMap.get(c.groupId) } : {})
 			});
 		}
 

@@ -375,6 +375,8 @@ function EditorShell() {
 				current.openPasteAttributesDialog();
 			},
 			duplicate: () => state().duplicateSelection(),
+			'group-clips': () => state().groupSelection(),
+			'ungroup-clips': () => state().ungroupSelection(),
 			'speed-duration': () => {
 				const current = state();
 				const clipId = current.timeline.selection.clipIds[0];
@@ -914,6 +916,28 @@ function EditorShell() {
 										}}
 									>
 										Duplicate <span>⌘/Ctrl+D</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={!project || selectedClipIds.length < 2}
+										onClick={() => {
+											editorStore.getState().groupSelection();
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Group <span>⌘/Ctrl+G</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={!project || selectedClipIds.length === 0}
+										onClick={() => {
+											editorStore.getState().ungroupSelection();
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Ungroup <span>⇧⌘/Ctrl+Shift+G</span>
 									</button>
 									{isTransitionsEnabled() && (
 										<button
