@@ -32,7 +32,13 @@ import {
 	snapTime,
 	timelineDuration
 } from './timeline';
-import { intersectsPixelRange, pixelsToTime, snapToFrame, timeToPixels } from './timelineGeometry';
+import {
+	calculateFilmstripFrameTimelineTimes,
+	intersectsPixelRange,
+	pixelsToTime,
+	snapToFrame,
+	timeToPixels
+} from './timelineGeometry';
 import { projectSchema } from './schema';
 import type { Asset, AssetId, ClipId, Project, Track } from './types';
 
@@ -77,6 +83,50 @@ describe('timeline geometry', () => {
 	it('selects a ruler tick step with a readable label gap', () => {
 		expect(rulerTickStep(100, 30)).toBe(1_000_000);
 		expect(rulerTickStep(10, 30)).toBeGreaterThanOrEqual(5_000_000);
+	});
+
+	it('anchors filmstrip frame sample times to clip start so backward trimming from the end does not alter front thumbnails', () => {
+		const zoom = 56; // 56 px/s => 1 second per 56px frame
+		const frameWidth = 56;
+		const fullDuration = 10_000_000; // 10s
+
+		const fullClipTimes = calculateFilmstripFrameTimelineTimes(0, fullDuration, zoom, frameWidth);
+		expect(fullClipTimes).toHaveLength(10);
+		expect(fullClipTimes[0]).toBe(500_000);
+		expect(fullClipTimes[1]).toBe(1_500_000);
+		expect(fullClipTimes[7]).toBe(7_500_000);
+
+		// Trim backward from the end: duration shrinks from 10s to 8s
+		const trimmedEndTimes = calculateFilmstripFrameTimelineTimes(0, 8_000_000, zoom, frameWidth);
+		expect(trimmedEndTimes).toHaveLength(8);
+		// All 8 frames match the exact sample times of the untrimmed clip
+		for (let i = 0; i < 8; i += 1) {
+			expect(trimmedEndTimes[i]).toBe(fullClipTimes[i]);
+		}
+
+		// Non-integer frame duration (e.g. 7.3s): frames 0..6 still match exactly
+		const fractionalTrimTimes = calculateFilmstripFrameTimelineTimes(
+			0,
+			7_300_000,
+			zoom,
+			frameWidth
+		);
+		expect(fractionalTrimTimes).toHaveLength(8);
+		for (let i = 0; i < 7; i += 1) {
+			expect(fractionalTrimTimes[i]).toBe(fullClipTimes[i]);
+		}
+		expect(fractionalTrimTimes[7]).toBe(7_300_000);
+
+		// Trimming from the start: frames shift forward with the new start time
+		const trimmedStartTimes = calculateFilmstripFrameTimelineTimes(
+			2_000_000,
+			8_000_000,
+			zoom,
+			frameWidth
+		);
+		expect(trimmedStartTimes).toHaveLength(8);
+		expect(trimmedStartTimes[0]).toBe(2_500_000);
+		expect(trimmedStartTimes[1]).toBe(3_500_000);
 	});
 });
 
@@ -224,8 +274,12 @@ describe('timeline queries and clip operations', () => {
 			deltaTime: 3_000_000,
 			targetTrackId: initialVideo.id
 		});
-		const moved1 = moved.tracks.find((t) => t.id === initialVideo.id)!.clips.find((c) => c.id === clip1.id)!;
-		const moved2 = moved.tracks.find((t) => t.id === newVideo.id)!.clips.find((c) => c.id === clip2.id)!;
+		const moved1 = moved.tracks
+			.find((t) => t.id === initialVideo.id)!
+			.clips.find((c) => c.id === clip1.id)!;
+		const moved2 = moved.tracks
+			.find((t) => t.id === newVideo.id)!
+			.clips.find((c) => c.id === clip2.id)!;
 		expect(moved1.start).toBe(3_000_000);
 		expect(moved2.start).toBe(3_000_000);
 	});
@@ -501,7 +555,12 @@ describe('timeline queries and clip operations', () => {
 
 		// Move first caption track below video (index 2)
 		const movedBelowVideo = reorderTrack(reordered, firstCap!.id, 2);
-		expect(movedBelowVideo.tracks.map((t) => t.kind)).toEqual(['caption', 'video', 'caption', 'audio']);
+		expect(movedBelowVideo.tracks.map((t) => t.kind)).toEqual([
+			'caption',
+			'video',
+			'caption',
+			'audio'
+		]);
 
 		// Reorder caption track downwards towards bottom (e.g. target index 99)
 		// Should clamp strictly within the visual zone (above audio), NEVER dropping into audio

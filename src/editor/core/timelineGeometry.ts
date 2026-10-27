@@ -57,3 +57,41 @@ export function snapToFrame(time: Time, fps: number): Time {
 		throw new RangeError('Timeline time must be non-negative ticks.');
 	return framesToTicks(ticksToFrames(time, fps), fps);
 }
+
+/**
+ * Computes timeline sample times for filmstrip thumbnail frames based on their
+ * physical pixel position along the clip so backward trimming does not shift earlier frames.
+ */
+export function calculateFilmstripFrameTimelineTimes(
+	clipStart: Time,
+	clipDuration: Time,
+	pixelsPerSecond: number,
+	frameWidth = 56
+): Time[] {
+	if (!Number.isSafeInteger(clipStart) || clipStart < 0) {
+		throw new RangeError('Clip start must be non-negative integer ticks.');
+	}
+	if (!Number.isSafeInteger(clipDuration) || clipDuration <= 0) {
+		return [];
+	}
+	if (!Number.isFinite(pixelsPerSecond) || pixelsPerSecond <= 0) {
+		throw new RangeError('Timeline zoom must be positive.');
+	}
+	if (!Number.isFinite(frameWidth) || frameWidth <= 0) {
+		throw new RangeError('Frame width must be positive.');
+	}
+
+	const clipWidth = Math.max(12, timeToPixels(clipDuration, pixelsPerSecond));
+	const count = Math.max(1, Math.ceil(clipWidth / frameWidth));
+	const times: Time[] = [];
+
+	for (let i = 0; i < count; i += 1) {
+		const offsetUs = Math.min(
+			clipDuration,
+			Math.round((((i + 0.5) * frameWidth) / pixelsPerSecond) * 1_000_000)
+		);
+		times.push(clipStart + offsetUs);
+	}
+
+	return times;
+}

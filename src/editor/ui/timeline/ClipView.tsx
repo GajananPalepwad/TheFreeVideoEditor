@@ -11,6 +11,7 @@ import {
 } from 'react';
 import {
 	ANIMATABLE_PROPERTY_IDS,
+	calculateFilmstripFrameTimelineTimes,
 	descriptorFor,
 	isAnimated,
 	propertyCurve,
@@ -149,9 +150,13 @@ function FilmstripView({
 	clip: Clip;
 	pixelsPerSecond: number;
 }) {
-	const clipWidth = Math.max(12, timeToPixels(clip.duration, pixelsPerSecond));
 	const frameWidth = 56; // ~1-1.5 cm frame width
-	const count = Math.max(1, Math.ceil(clipWidth / frameWidth));
+	const frameTimes = calculateFilmstripFrameTimelineTimes(
+		clip.start,
+		clip.duration,
+		pixelsPerSecond,
+		frameWidth
+	);
 
 	// Pre-create URLs for available thumbs
 	const thumbUrls = useMemo(() => {
@@ -183,8 +188,7 @@ function FilmstripView({
 
 	return (
 		<div className="timeline-filmstrip" aria-hidden="true">
-			{Array.from({ length: count }, (_, i) => {
-				const frameTimelineTime = clip.start + (clip.duration * (i + 0.5)) / count;
+			{frameTimes.map((frameTimelineTime, i) => {
 				const sourceTime = timelineToSource(clip, frameTimelineTime);
 
 				// Find closest thumb
@@ -205,7 +209,7 @@ function FilmstripView({
 						src={closest.url}
 						alt=""
 						style={{ width: `${frameWidth}px` }}
-						loading="lazy"
+						draggable={false}
 					/>
 				);
 			})}
@@ -226,6 +230,7 @@ function ClipArtwork({
 	clip: Clip;
 	pixelsPerSecond: number;
 }) {
+	const derivedStatus = useEditorStore((state) => state.media.derivedStatus[asset.id]);
 	const [derived, setDerived] = useState<DerivedData | null>(null);
 	const [poster, setPoster] = useState('');
 
@@ -249,7 +254,7 @@ function ClipArtwork({
 				setTimeout(() => URL.revokeObjectURL(url), 2000);
 			}
 		};
-	}, [asset.id, asset.name, project.id]);
+	}, [asset.id, asset.name, project.id, derivedStatus]);
 
 	if (track.kind === 'audio') {
 		const peak = derived?.peaks;
