@@ -264,6 +264,46 @@ export function trimClip(
 ): Project {
 	const { clip } = findClip(project, clipId);
 	const group = unlink ? [clip] : groupOf(project, clipId);
+
+	// Calculate trim deltas based on the primary anchor clip
+	let startDelta = 0;
+	let endDelta = 0;
+	if (edge === 'start') {
+		const anchorEnd = clipEnd(clip);
+		const anchorMin = Math.min(frameDuration(project), clip.duration);
+		let anchorNewStart: Time;
+		if (clip.timeRemap) {
+			anchorNewStart = Math.max(0, Math.min(anchorEnd - anchorMin, requestedTime));
+		} else {
+			const isStillLike = !clip.assetId || project.assets[clip.assetId]?.kind === 'image';
+			if (isStillLike) {
+				anchorNewStart = Math.max(0, Math.min(anchorEnd - anchorMin, requestedTime));
+			} else {
+				const minStart = Math.max(0, clip.start - clip.sourceIn / clip.speed);
+				anchorNewStart = Math.max(minStart, Math.min(anchorEnd - anchorMin, requestedTime));
+			}
+		}
+		startDelta = anchorNewStart - clip.start;
+	} else {
+		const asset = clip.assetId ? project.assets[clip.assetId] : null;
+		const isStillLike = !asset || asset.kind === 'image';
+		const requestedEnd = Math.max(clip.start + frameDuration(project), requestedTime);
+		let anchorNewEnd: Time;
+		if (clip.timeRemap) {
+			anchorNewEnd = requestedEnd;
+		} else {
+			const maxDuration = isStillLike
+				? requestedEnd - clip.start
+				: Math.max(0, ((asset?.duration ?? 0) - clip.sourceIn) / clip.speed);
+			const duration = Math.max(
+				Math.min(frameDuration(project), maxDuration),
+				Math.min(requestedEnd - clip.start, maxDuration)
+			);
+			anchorNewEnd = clip.start + duration;
+		}
+		endDelta = anchorNewEnd - clipEnd(clip);
+	}
+
 	const edits = group.map((member) => {
 		const memberTrack = findTrack(
 			project,
@@ -277,17 +317,25 @@ export function trimClip(
 		let duration = member.duration;
 		let sourceIn = member.sourceIn;
 		let sourceOut = member.sourceOut;
+
+		const targetTime =
+			member.id === clip.id
+				? requestedTime
+				: edge === 'start'
+					? member.start + startDelta
+					: clipEnd(member) + endDelta;
+
 		if (edge === 'start') {
 			const end = clipEnd(member);
 			const minimum = Math.min(frameDuration(project), member.duration);
 			if (member.timeRemap) {
-				start = Math.max(0, Math.min(end - minimum, requestedTime));
+				start = Math.max(0, Math.min(end - minimum, targetTime));
 				duration = end - start;
 				sourceIn = timelineToSource(member, start);
 				sourceOut = timelineToSource(member, end);
 			} else {
 				const minStart = Math.max(0, member.start - member.sourceIn / member.speed);
-				start = Math.max(minStart, Math.min(end - minimum, requestedTime));
+				start = Math.max(minStart, Math.min(end - minimum, targetTime));
 				if (isStillLike) {
 					duration = end - start;
 					sourceIn = Math.max(
@@ -306,7 +354,7 @@ export function trimClip(
 				}
 			}
 		} else {
-			const requestedEnd = Math.max(member.start + frameDuration(project), requestedTime);
+			const requestedEnd = Math.max(member.start + frameDuration(project), targetTime);
 			if (member.timeRemap) {
 				duration = requestedEnd - member.start;
 				start = member.start;
@@ -429,12 +477,44 @@ export function splitClipsAt(
 	const splitClipIds: ClipId[] = [];
 	const leftLinkMap = new Map<string, string>();
 	const rightLinkMap = new Map<string, string>();
+	const leftGroupMap = new Map<string, string>();
+	const rightGroupMap = new Map<string, string>();
+
+	for (const id of targets) {
+		const { clip } = findClip(project, id);
+		if (clip.start < time && time < clipEnd(clip)) {
+			if (clip.linkId && !leftLinkMap.has(clip.linkId)) {
+				leftLinkMap.set(clip.linkId, makeId());
+				rightLinkMap.set(clip.linkId, makeId());
+			}
+			if (clip.groupId && !leftGroupMap.has(clip.groupId)) {
+				leftGroupMap.set(clip.groupId, makeId());
+				rightGroupMap.set(clip.groupId, makeId());
+			}
+		}
+	}
+
 	const tracks = project.tracks.map((track) => {
 		const clips: Clip[] = [];
 		for (const clip of track.clips) {
 			if (!targets.has(clip.id) || time <= clip.start || time >= clipEnd(clip)) {
 				if (targets.has(clip.id)) noOpClipIds.push(clip.id);
-				clips.push(clip);
+				let updatedClip = clip;
+				if (clip.groupId && leftGroupMap.has(clip.groupId)) {
+					if (clipEnd(clip) <= time) {
+						updatedClip = { ...updatedClip, groupId: leftGroupMap.get(clip.groupId)! };
+					} else if (clip.start >= time) {
+						updatedClip = { ...updatedClip, groupId: rightGroupMap.get(clip.groupId)! };
+					}
+				}
+				if (clip.linkId && leftLinkMap.has(clip.linkId)) {
+					if (clipEnd(clip) <= time) {
+						updatedClip = { ...updatedClip, linkId: leftLinkMap.get(clip.linkId)! };
+					} else if (clip.start >= time) {
+						updatedClip = { ...updatedClip, linkId: rightLinkMap.get(clip.linkId)! };
+					}
+				}
+				clips.push(updatedClip);
 				continue;
 			}
 			if (track.locked) throw new TrackLockedError(track.id);
@@ -450,12 +530,21 @@ export function splitClipsAt(
 				? (rightLinkMap.get(clip.linkId) ??
 					rightLinkMap.set(clip.linkId, makeId()).get(clip.linkId)!)
 				: undefined;
+			const leftGroup = clip.groupId
+				? (leftGroupMap.get(clip.groupId) ??
+					leftGroupMap.set(clip.groupId, makeId()).get(clip.groupId)!)
+				: undefined;
+			const rightGroup = clip.groupId
+				? (rightGroupMap.get(clip.groupId) ??
+					rightGroupMap.set(clip.groupId, makeId()).get(clip.groupId)!)
+				: undefined;
 			const left: Clip = {
 				...clip,
 				duration: leftDuration,
 				sourceOut: sourceMiddle,
 				...leftAnimation,
-				...(leftLink ? { linkId: leftLink } : {})
+				...(leftLink ? { linkId: leftLink } : {}),
+				...(leftGroup ? { groupId: leftGroup } : {})
 			};
 			const right: Clip = {
 				...clip,
@@ -470,7 +559,8 @@ export function splitClipsAt(
 				...(rightAnimation.masks
 					? { masks: rightAnimation.masks.map((mask) => ({ ...mask, id: makeId() })) }
 					: {}),
-				...(rightLink ? { linkId: rightLink } : {})
+				...(rightLink ? { linkId: rightLink } : {}),
+				...(rightGroup ? { groupId: rightGroup } : {})
 			};
 			clips.push(left, right);
 			splitClipIds.push(left.id, right.id);
@@ -648,6 +738,7 @@ export function duplicateClips(project: Project, clipIds: readonly ClipId[]): Pr
 		);
 	if (delta === undefined) throw new NoSpaceError();
 	const linkMap = new Map<string, string>();
+	const groupMap = new Map<string, string>();
 	const tracks = project.tracks.map((track) => {
 		const source = expanded.get(track.id) ?? [];
 		if (!source.length) return track;
@@ -655,11 +746,15 @@ export function duplicateClips(project: Project, clipIds: readonly ClipId[]): Pr
 			const linkId = clip.linkId
 				? (linkMap.get(clip.linkId) ?? linkMap.set(clip.linkId, makeId()).get(clip.linkId)!)
 				: undefined;
+			const groupId = clip.groupId
+				? (groupMap.get(clip.groupId) ?? groupMap.set(clip.groupId, makeId()).get(clip.groupId)!)
+				: undefined;
 			return {
 				...clip,
 				id: makeId() as ClipId,
 				start: clip.start + delta,
 				...(linkId ? { linkId } : {}),
+				...(groupId ? { groupId } : {}),
 				effects: clip.effects?.map((effect) => ({ ...effect, id: makeId() })),
 				...(clip.masks ? { masks: clip.masks.map((mask) => ({ ...mask, id: makeId() })) } : {})
 			};
@@ -700,6 +795,49 @@ export function unlinkClips(project: Project, clipIds: readonly ClipId[]): Proje
 	}));
 }
 
+export function groupClips(project: Project, clipIds: readonly ClipId[]): Project {
+	const ids = new Set(clipIds);
+	if (ids.size < 2) throw new InvalidClipEditError('Select at least 2 clips to group them.');
+	const found = project.tracks.flatMap((track) => track.clips.filter((clip) => ids.has(clip.id)));
+	const missingId = clipIds.find((id) => !found.some((clip) => clip.id === id));
+	if (missingId) throw new ClipNotFoundError(missingId);
+
+	// Also include linked A/V companions of the selected clips
+	const expandedIds = new Set<ClipId>(ids);
+	for (const id of ids) {
+		const clip = found.find((c) => c.id === id);
+		if (clip?.linkId) {
+			for (const c of project.tracks.flatMap((t) => t.clips)) {
+				if (c.linkId === clip.linkId) expandedIds.add(c.id);
+			}
+		}
+	}
+
+	const groupId = makeId();
+	return tracksWithClips(project, (track) => ({
+		...track,
+		clips: track.clips.map((clip) => (expandedIds.has(clip.id) ? { ...clip, groupId } : clip))
+	}));
+}
+
+export function ungroupClips(project: Project, clipIds: readonly ClipId[]): Project {
+	const ids = new Set<ClipId>();
+	for (const id of clipIds) {
+		findClip(project, id);
+		for (const member of groupOf(project, id)) ids.add(member.id);
+		ids.add(id);
+	}
+	return tracksWithClips(project, (track) => ({
+		...track,
+		clips: track.clips.map((clip) => {
+			if (!ids.has(clip.id) || !clip.groupId) return clip;
+			const next = { ...clip };
+			delete next.groupId;
+			return next;
+		})
+	}));
+}
+
 export interface CopiedClipItem {
 	clip: Clip;
 	trackId: TrackId;
@@ -731,6 +869,7 @@ export function pasteClips(
 	let currentProject = project;
 	const pastedClipIds: ClipId[] = [];
 	const linkMap = new Map<string, string>();
+	const groupMap = new Map<string, string>();
 	const minStart = clipboard.minStart;
 
 	const preferredTrack = preferredTrackId
@@ -801,12 +940,17 @@ export function pasteClips(
 			? (linkMap.get(item.clip.linkId) ??
 				linkMap.set(item.clip.linkId, makeId()).get(item.clip.linkId)!)
 			: undefined;
+		const groupId = item.clip.groupId
+			? (groupMap.get(item.clip.groupId) ??
+				groupMap.set(item.clip.groupId, makeId()).get(item.clip.groupId)!)
+			: undefined;
 
 		const clonedClip: Clip = {
 			...structuredClone(item.clip),
 			id: newClipId,
 			start: desiredStart,
 			...(linkId ? { linkId } : { linkId: undefined }),
+			...(groupId ? { groupId } : { groupId: undefined }),
 			effects: item.clip.effects?.map((e) => ({ ...structuredClone(e), id: makeId() })),
 			audioEffects: item.clip.audioEffects?.map((ae) => ({ ...structuredClone(ae), id: makeId() })),
 			masks: item.clip.masks?.map((m) => ({ ...structuredClone(m), id: makeId() }))

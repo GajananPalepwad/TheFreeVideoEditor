@@ -20,6 +20,8 @@ import {
 	duplicateClips as duplicateClipsOperation,
 	moveClips as moveClipsOperation,
 	linkClips as linkClipsOperation,
+	groupClips as groupClipsOperation,
+	ungroupClips as ungroupClipsOperation,
 	reorderTrack as reorderTrackOperation,
 	removeTrack as removeTrackOperation,
 	renameTrack as renameTrackOperation,
@@ -748,6 +750,8 @@ export interface EditorState {
 	setTimelineTrackHeight: (id: TrackId, height: number) => boolean;
 	linkSelection: () => boolean;
 	unlinkSelection: () => boolean;
+	groupSelection: () => boolean;
+	ungroupSelection: () => boolean;
 	setTimelineMessage: (message: string) => void;
 	setInspectorExpanded: (sectionId: string, expanded: boolean) => void;
 	revealInspectorSection: (sectionId: string) => void;
@@ -4237,6 +4241,44 @@ export function createEditorStore() {
 							'Unlink clips',
 							(project) =>
 								applyToSequence(project, activeSeqId, (view) => unlinkClipsOperation(view, ids)),
+							{ history: 'record' }
+						);
+						return true;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
+				},
+				groupSelection() {
+					const ids = get().timeline.selection.clipIds;
+					if (ids.length < 2) return false;
+					try {
+						const activeSeqId = get().activeSequenceId;
+						mutateProject(
+							'Group clips',
+							(project) =>
+								applyToSequence(project, activeSeqId, (view) => groupClipsOperation(view, ids)),
+							{ history: 'record' }
+						);
+						return true;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
+				},
+				ungroupSelection() {
+					const ids = get().timeline.selection.clipIds;
+					if (!ids.length) return false;
+					try {
+						const activeSeqId = get().activeSequenceId;
+						mutateProject(
+							'Ungroup clips',
+							(project) =>
+								applyToSequence(project, activeSeqId, (view) => ungroupClipsOperation(view, ids)),
 							{ history: 'record' }
 						);
 						return true;

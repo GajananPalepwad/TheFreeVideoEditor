@@ -427,6 +427,7 @@ export interface Clip {
 	speed: number;
 	volume: number;
 	linkId?: string;
+	groupId?: string;
 	effects?: EffectInstance[];
 	bypassEffects?: boolean;
 	audioEffects?: AudioEffectInstance[];

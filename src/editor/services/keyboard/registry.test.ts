@@ -268,4 +268,28 @@ describe('keyboard shortcut registry', () => {
 
 		cleanup();
 	});
+
+	it('dispatches group-clips on Cmd/Ctrl+G and ungroup-clips on Cmd/Ctrl+Shift+G', () => {
+		const groupHandler = vi.fn();
+		const ungroupHandler = vi.fn();
+		const entries = createEditorShortcutRegistry({
+			'group-clips': groupHandler,
+			'ungroup-clips': ungroupHandler
+		});
+
+		const mockWindow = new EventTarget() as unknown as Window;
+		const cleanup = registerShortcutListener(entries, { target: mockWindow, platform: 'mac' });
+
+		const groupEvent = keyEvent('g', { metaKey: true });
+		mockWindow.dispatchEvent(groupEvent);
+		expect(groupHandler).toHaveBeenCalledTimes(1);
+		expect(groupEvent.defaultPrevented).toBe(true);
+
+		const ungroupEvent = keyEvent('g', { metaKey: true, shiftKey: true });
+		mockWindow.dispatchEvent(ungroupEvent);
+		expect(ungroupHandler).toHaveBeenCalledTimes(1);
+		expect(ungroupEvent.defaultPrevented).toBe(true);
+
+		cleanup();
+	});
 });

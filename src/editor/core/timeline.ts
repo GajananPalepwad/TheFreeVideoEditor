@@ -146,12 +146,29 @@ export function snapTime(time: Time, points: readonly Time[], toleranceTicks: Ti
 }
 
 export function groupOf(project: Project, clipId: ClipId): Clip[] {
-	const clip = project.tracks.flatMap((track) => track.clips).find((item) => item.id === clipId);
-	if (!clip) return [];
-	if (!clip.linkId) return [clip];
-	return project.tracks.flatMap((track) =>
-		track.clips.filter((item) => item.linkId === clip.linkId)
-	);
+	const allClips = project.tracks.flatMap((track) => track.clips);
+	const startClip = allClips.find((item) => item.id === clipId);
+	if (!startClip) return [];
+	if (!startClip.linkId && !startClip.groupId) return [startClip];
+
+	const visited = new Set<ClipId>([startClip.id]);
+	const result: Clip[] = [startClip];
+	const queue: Clip[] = [startClip];
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+		for (const other of allClips) {
+			if (visited.has(other.id)) continue;
+			const sharesGroup = Boolean(current.groupId && other.groupId === current.groupId);
+			const sharesLink = Boolean(current.linkId && other.linkId === current.linkId);
+			if (sharesGroup || sharesLink) {
+				visited.add(other.id);
+				result.push(other);
+				queue.push(other);
+			}
+		}
+	}
+	return result;
 }
 
 export function rulerTickStep(pixelsPerSecond: number, fps: number): Time {
