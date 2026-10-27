@@ -52,7 +52,8 @@ function makeCanvas(width: number, height: number): HTMLCanvasElement {
 	return canvas;
 }
 
-function waitForLoadedMetadata(video: HTMLVideoElement, signal?: AbortSignal): Promise<void> {
+function waitForLoadedData(video: HTMLVideoElement, signal?: AbortSignal): Promise<void> {
+	if (video.readyState >= 2) return Promise.resolve();
 	return new Promise((resolve, reject) => {
 		const timeout = window.setTimeout(
 			() => finish(new Error('Timed out while preparing a preview.')),
@@ -63,13 +64,13 @@ function waitForLoadedMetadata(video: HTMLVideoElement, signal?: AbortSignal): P
 		const abort = () => finish(new DOMException('The operation was aborted.', 'AbortError'));
 		function finish(error?: Error): void {
 			window.clearTimeout(timeout);
-			video.removeEventListener('loadedmetadata', loaded);
+			video.removeEventListener('loadeddata', loaded);
 			video.removeEventListener('error', failed);
 			signal?.removeEventListener('abort', abort);
 			if (error) reject(error);
 			else resolve();
 		}
-		video.addEventListener('loadedmetadata', loaded, { once: true });
+		video.addEventListener('loadeddata', loaded, { once: true });
 		video.addEventListener('error', failed, { once: true });
 		signal?.addEventListener('abort', abort, { once: true });
 	});
@@ -79,7 +80,7 @@ function seekVideo(video: HTMLVideoElement, time: number, signal?: AbortSignal):
 	return new Promise((resolve, reject) => {
 		const timeout = window.setTimeout(
 			() => finish(new Error('Timed out while extracting a video frame.')),
-			3_000
+			5_000
 		);
 		const finish = (error?: Error) => {
 			window.clearTimeout(timeout);
@@ -90,19 +91,15 @@ function seekVideo(video: HTMLVideoElement, time: number, signal?: AbortSignal):
 		};
 		const onSeeked = () => finish();
 		const onAbort = () => finish(new DOMException('The operation was aborted.', 'AbortError'));
-		if (Math.abs(video.currentTime - time) < 0.01) {
+		if (Math.abs(video.currentTime - time) < 0.01 && video.readyState >= 2) {
 			window.clearTimeout(timeout);
 			resolve();
 			return;
 		}
-		if (!video.requestVideoFrameCallback)
-			video.addEventListener('seeked', onSeeked, { once: true });
+		video.addEventListener('seeked', onSeeked, { once: true });
 		signal?.addEventListener('abort', onAbort, { once: true });
 		try {
 			video.currentTime = time;
-			if (video.requestVideoFrameCallback) {
-				video.requestVideoFrameCallback(() => finish());
-			}
 		} catch (error) {
 			finish(error instanceof Error ? error : new Error('Could not seek to the requested frame.'));
 		}
@@ -127,15 +124,17 @@ async function extractVideoDerived(
 	video.style.pointerEvents = 'none';
 	document.body.append(video);
 	try {
-		const loaded = waitForLoadedMetadata(video, signal);
+		const loaded = waitForLoadedData(video, signal);
 		video.src = url;
 		await loaded;
 		const duration = ticksToSeconds(asset.duration);
 		const posterTime = Math.min(Math.max(0.05, duration * 0.1), Math.max(0.05, duration - 0.01));
-		const count = Math.min(60, Math.max(1, Math.ceil(duration / 2)));
-		const times = Array.from({ length: count }, (_, index) =>
-			Math.min(duration - 0.01, ((index + 1) * duration) / (count + 1))
-		);
+		const count = Math.min(60, Math.max(1, Math.ceil(duration)));
+		const maxTime = Math.max(0, duration - 0.02);
+		const times =
+			count === 1
+				? [0]
+				: Array.from({ length: count }, (_, index) => (index / (count - 1)) * maxTime);
 		const capture = async (time: number): Promise<Blob> => {
 			abortIfNeeded(signal);
 			await seekVideo(video, Math.max(0, time), signal);
@@ -248,8 +247,16 @@ export async function generateDerived(
 		try {
 			const cached = await getDerived(projectId, asset.id);
 			if (cached) {
-				options.onStatus?.('ready');
-				return cached;
+				const isBogusVideoCache =
+					asset.kind === 'video' &&
+					(cached.thumbs.length === 0 ||
+						cached.thumbs[0]?.time !== 0 ||
+						(cached.thumbs.length > 2 &&
+							cached.thumbs.every((t) => t.blob.size === cached.thumbs[0]?.blob.size)));
+				if (!isBogusVideoCache) {
+					options.onStatus?.('ready');
+					return cached;
+				}
 			}
 			const file = await getMediaFile(projectId, asset);
 			let imageVideo: { poster: Blob; thumbs: DerivedData['thumbs'] };
@@ -261,9 +268,9 @@ export async function generateDerived(
 				imageVideo = { poster: placeholder, thumbs: [] };
 			}
 
-			let peaks: AudioPeaks | undefined;
-			let waveformStatus: DerivedData['waveformStatus'] = 'none';
-			if (asset.kind === 'audio' || asset.hasAudio) {
+			let peaks: AudioPeaks | undefined = cached?.peaks;
+			let waveformStatus: DerivedData['waveformStatus'] = cached?.waveformStatus ?? 'none';
+			if ((asset.kind === 'audio' || asset.hasAudio) && !peaks) {
 				if (file.size > MAX_WAVEFORM_FILE_BYTES) {
 					waveformStatus = 'unavailable';
 				} else {
