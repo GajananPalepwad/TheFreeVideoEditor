@@ -7,7 +7,7 @@ import { deserializeTemplate, getCustomTemplates } from './templateService';
  * authors and is not part of the library.
  */
 const TEMPLATE_FILES = import.meta.glob(
-	['/public/templates/*.grafree', '!/public/templates/example.grafree'],
+	['../../../../public/templates/*.grafree', '!../../../../public/templates/example.grafree'],
 	{ query: '?raw', import: 'default', eager: true }
 ) as Record<string, string>;
 
