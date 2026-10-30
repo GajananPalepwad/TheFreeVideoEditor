@@ -61,6 +61,79 @@ and arbitrary non-linear time remapping curves:
 - **Interchange Export**: EDL, FCPXML, OTIO, and XMEML exporters evaluate `sourceExtent(clip)` to accurately
   compute source time boundaries under speed adjustments and reversal.
 
+### Export speed
+
+Export time is dominated by reading source frames, so that is where the effort went.
+
+**Progress.** While exporting, the dialog shows frames done, speed, elapsed time and, once at
+least 30 frames have been timed, the time left (`150 / 600 frames · 30.0 fps · 0:05 elapsed ·
+about 0:15 left`). When it finishes it shows `finished in m:ss`. The estimate is the average
+speed so far, so it settles as the export goes on.
+
+**What was slow.** Profiling an export (stage timer in the frame loop, `scripts/bench-export.mjs`)
+showed that about 94% of the time went to decoding source frames. The loop asked mediabunny for
+the frame at each timestamp with `getSample(t)`, which builds a new decoder and decodes from the
+previous key frame every time. Resolving the timeline, drawing, encoding the video and yielding to
+the event loop each took a few percent or less.
+
+**What changed.** A `SequentialSampleReader` keeps one decoder per layer that is on screen and
+steps it forward (`samples()`), so each packet is decoded once and decoding runs ahead of the
+export. Output is the same frames as before:
+
+- Time going backwards (reversed clips) falls back to `getSample`, as before.
+- A forward jump of more than 2 seconds starts a new iterator instead of decoding through the gap.
+- At most 4 readers run at once. A layer past the limit seeks for each frame as before, so a project
+  with many layers, or a device with few hardware decoders, is no worse off than it was.
+- A layer's reader is released when the layer leaves the screen, and all readers are closed when the
+  export ends, fails or is cancelled.
+
+**Results.** 720p, 9 s (270 frames), median of 3 runs, this machine (12-thread i5-12450H, 15 GB,
+Intel UHD and NVIDIA GTX 1650, Linux). "Before" is the code before this change.
+
+| Browser                 | Output | Scene                  | Before   | After    | Speed-up |
+| ----------------------- | ------ | ---------------------- | -------- | -------- | -------- |
+| Chromium (headless)     | WebM   | one clip               | 5.75 s   | 2.02 s   | 2.8x     |
+| Chromium (headless)     | WebM   | clip and title         | 6.03 s   | 2.17 s   | 2.8x     |
+| Chromium (headless)     | WebM   | two layers and title   | 6.22 s   | 2.31 s   | 2.7x     |
+| Chrome 156              | WebM   | one clip               | 10.56 s  | 3.34 s   | 3.2x     |
+| Chrome 156              | MP4    | one clip               | 10.28 s  | 2.80 s   | 3.7x     |
+| Chrome 156              | MP4    | clip and title         | 10.62 s  | 3.07 s   | 3.5x     |
+| Firefox 155             | WebM   | one clip               | 26.09 s  | 21.03 s  | 1.2x     |
+
+After the change the video encoder is the slowest stage in every browser (about 60% to 70% of the
+time), so further gains depend on the encoder, which differs per browser and machine. Firefox's
+software encoder is slow enough that decoding was a smaller share of its time. Reversed clips use
+the seek fallback, so they are unchanged (Firefox: 20.5 s before, 21.4 s after, within noise).
+
+**Output is unchanged.** For 12 scenarios (plain, title, two layers, reversed, slow motion, 2x speed,
+trimmed, split, freeze frame, speed ramp, a 2x layer over a 1x layer, a reversed layer over a forward
+one) the exported WebM files have identical SHA-256 hashes before and after in Chromium. Decoded
+frames, hashed per layer for every export frame, are identical before and after in Chromium and in
+Chrome 156, which also agree with each other. Chrome's H.264 encoder is not deterministic (two runs
+of the same code give different MP4 bytes), so MP4 was checked through the decoded frames.
+
+In Firefox the new code also fixes a defect: with `getSample`, Firefox 155 showed the same frame for
+up to 13 export frames in a row (28 distinct images over 270 frames). With the sequential reader it
+shows the same pattern as Chromium (60 distinct images, each held for 1 or 2 frames). Only the
+frame pattern was compared across browsers, not pixels, because the decoders differ.
+
+**Run it yourself.** Start the dev server (`npx astro dev --background`), then:
+
+```sh
+node scripts/bench-export.mjs                              # speed and per-stage time
+node scripts/bench-export.mjs --check --scenarios reverse  # output hash of one scenario
+node scripts/bench-export.mjs --frames                     # hash of every decoded frame
+node scripts/bench-export.mjs --channel chrome             # real Chrome instead of Chromium
+node scripts/bench-export.mjs --browser firefox            # Playwright's Firefox
+```
+
+Compare the same command on two versions of the code on one machine. Numbers depend on the
+machine, the browser and its codecs.
+
+**Not measured.** Safari, mobile browsers, Windows and macOS, and machines with a hardware video
+encoder were not tested. The reader uses only mediabunny's documented `samples()` API, and the limit
+of 4 readers is there for devices with few hardware decoders, but treat those platforms as unverified.
+
 ## Project interchange
 
 - **Premiere Pro XML (xmeml)** and **CMX3600 EDL** are the Premiere-oriented
