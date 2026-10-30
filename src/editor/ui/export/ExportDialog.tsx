@@ -39,6 +39,8 @@ import {
 	trackExportComplete,
 	trackExportFailed
 } from '../../../services/activityTracking';
+import { describeProgress } from './exportProgress';
+import { useElapsedTime } from './useElapsedTime';
 import './export-dialog.css';
 
 type ExportTab = 'video' | 'project';
@@ -160,6 +162,7 @@ export default function ExportDialog() {
 	const [progress, setProgress] = useState<ExportProgress | null>(null);
 	const [packageProgress, setPackageProgress] = useState<PackageProgress | null>(null);
 	const [isRunning, setIsRunning] = useState(false);
+	const elapsedMs = useElapsedTime(isRunning);
 	const [cancelConfirmation, setCancelConfirmation] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [notice, setNotice] = useState('');
@@ -1469,12 +1472,7 @@ export default function ExportDialog() {
 								<span>{progressValue.label}</span>
 							</div>
 							<progress max={100} value={progressValue.value} aria-label="Export progress" />
-							{progress && (
-								<p>
-									{progress.framesDone} / {progress.totalFrames} frames
-									{progress.phase === 'rendering' ? ` · ${progress.fps.toFixed(1)} fps` : ''}
-								</p>
-							)}
+							{progress && <p>{describeProgress(progress, elapsedMs)}</p>}
 						</div>
 					)}
 					{!isRunning && progressValue && progressValue.value >= 100 && (
