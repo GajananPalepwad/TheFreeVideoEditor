@@ -1,10 +1,11 @@
-import { ALL_FORMATS, BlobSource, Input, VideoSampleSink } from 'mediabunny';
+import { ALL_FORMATS, BlobSource, Input, VideoSampleSink, type VideoSample } from 'mediabunny';
 import type { ActiveLayer, Project } from '../../core';
 import type { AssetId } from '../../core';
 import { getMediaFile } from '../storage/opfs';
 import { rasterizeText } from '../render/text/rasterizer';
 import { ensureFontLoaded } from '../render/text/fontLoader';
 import { rasterizeShape } from '../render/shapes/shapeRasterizer';
+import { SampleReaderPool } from './sequentialSampleReader';
 import type { StageLap } from './stageProfile';
 
 interface VideoDecoderEntry {
@@ -32,6 +33,8 @@ export class ExportFrameProvider {
 	private readonly images = new Map<AssetId, ImageBitmap>();
 	private readonly canvases = new Map<string, OffscreenCanvas>();
 	private readonly prepared = new Map<string, CanvasImageSource>();
+	/** One sequential reader per layer, so two layers on one asset do not make each other seek. */
+	private readonly readers = new SampleReaderPool<VideoSample>();
 	private readonly frameCache = new Map<string, ImageBitmap>();
 	private readonly cacheKeys: string[] = [];
 	private clock = 0;
@@ -64,8 +67,10 @@ export class ExportFrameProvider {
 		};
 		collect(layers);
 
+		const activeKeys = new Set<string>();
 		for (const layer of allLayers) {
 			const layerKey = layer.instanceKey ?? layer.clipId;
+			activeKeys.add(layerKey);
 			if (signal?.aborted) throw new DOMException('Export cancelled.', 'AbortError');
 			if (layer.kind === 'shape' && layer.shapeData) {
 				const shapeCanvas = rasterizeShape(layer.shapeData);
@@ -137,7 +142,7 @@ export class ExportFrameProvider {
 				}
 
 				const decoder = await this.getDecoder(asset.id, asset.name);
-				let sample = await decoder.sink.getSample(timeSec);
+				let sample = await this.readers.sampleAt(layerKey, decoder.sink, timeSec);
 				if (!sample && layer.sourceTime > 0 && asset.duration > 0) {
 					sample = await decoder.sink.getSample(
 						Math.max(0, asset.duration - Math.max(1, Math.round(1_000_000 / (asset.fps ?? 30)))) /
@@ -181,6 +186,7 @@ export class ExportFrameProvider {
 				throw new FrameProviderError(layer.assetId, asset.name, error);
 			}
 		}
+		await this.readers.release(activeKeys);
 	}
 
 	getFrame(layer: ActiveLayer): CanvasImageSource | null {
@@ -192,6 +198,7 @@ export class ExportFrameProvider {
 		this.disposed = true;
 		for (const bitmap of this.frameCache.values()) bitmap.close();
 		this.frameCache.clear();
+		await this.readers.dispose();
 		for (const decoder of this.decoders.values()) decoder.input.dispose();
 		this.decoders.clear();
 		for (const image of this.images.values()) image.close();
@@ -223,6 +230,7 @@ export class ExportFrameProvider {
 					(first, second) => first[1].lastUsed - second[1].lastUsed
 				)[0];
 				if (oldest) {
+					await this.readers.disposeSource(oldest[1].sink);
 					oldest[1].input.dispose();
 					this.decoders.delete(oldest[0]);
 				}
