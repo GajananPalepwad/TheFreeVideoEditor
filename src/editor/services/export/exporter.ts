@@ -44,6 +44,7 @@ import {
 	recordWorkerTermination
 } from './testHooks';
 import type { ExportPath } from './testHooks';
+import { createStageLap, type ExportStageProfile } from './stageProfile';
 import { workerExportFallbackReason, yieldToEventLoop } from './workerSupport';
 export { recordExportPath } from './testHooks';
 
@@ -92,6 +93,8 @@ export interface ExportRunOptions {
 	onFallback?: (reason: string) => void;
 	/** Overrides the automatic renderer choice (WebGL2 only for projects that need it). */
 	renderer?: RendererKind;
+	/** When set, the per-frame loop adds the time it spends in each stage to this profile. */
+	profile?: ExportStageProfile;
 }
 
 export interface ExportResult {
@@ -560,11 +563,14 @@ async function exportTimelineMain(
 		});
 		await output.start();
 		outputStarted = true;
+		const lap = createStageLap(options.profile);
 		for (let frame = 0; frame < plan.totalFrames; frame += 1) {
 			cancelled(options.signal);
 			const timestamp = plan.timestamp(frame);
 			const resolved = resolveFrame(snapshot, timestamp);
-			await frameProvider.prepare(resolved.videoLayers, options.signal);
+			lap('resolve');
+			await frameProvider.prepare(resolved.videoLayers, options.signal, lap);
+			lap('prepare');
 			if (
 				canUsePlanar10Bit &&
 				renderer instanceof GlCompositor &&
@@ -585,6 +591,7 @@ async function exportTimelineMain(
 						timestampUs: Number(timestamp)
 					}
 				);
+				lap('render');
 				if (!videoFrame) {
 					throw new ExportError('ENCODE_FAILED', 'Failed to render 10-bit VideoFrame.');
 				}
@@ -598,6 +605,7 @@ async function exportTimelineMain(
 				} finally {
 					sample.close();
 				}
+				lap('encode');
 			} else {
 				renderer.render(
 					{ width: plan.width, height: plan.height },
@@ -611,11 +619,13 @@ async function exportTimelineMain(
 						frameIndex: frame
 					}
 				);
+				lap('render');
 				if (videoSource instanceof CanvasSource) {
 					await videoSource.add(timestamp / 1_000_000, plan.frameDuration / 1_000_000, {
 						keyFrame: frame % (plan.fps * 2) === 0
 					});
 				}
+				lap('encode');
 			}
 
 			if (audioSource && frame === 0) {
@@ -628,6 +638,7 @@ async function exportTimelineMain(
 					audioBuffers,
 					signal: options.signal
 				});
+				lap('audio');
 			}
 			if (frame === 0 || frame % Math.max(1, Math.floor(plan.fps / 2)) === 0) {
 				const elapsed = Math.max(1, performance.now() - startedAt);
@@ -641,6 +652,8 @@ async function exportTimelineMain(
 				});
 			}
 			await yieldToEventLoop();
+			lap('yield');
+			if (options.profile) options.profile.frames = frame + 1;
 		}
 		cancelled(options.signal);
 		emitProgress(options.onProgress, {

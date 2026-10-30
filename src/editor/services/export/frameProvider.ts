@@ -5,6 +5,7 @@ import { getMediaFile } from '../storage/opfs';
 import { rasterizeText } from '../render/text/rasterizer';
 import { ensureFontLoaded } from '../render/text/fontLoader';
 import { rasterizeShape } from '../render/shapes/shapeRasterizer';
+import type { StageLap } from './stageProfile';
 
 interface VideoDecoderEntry {
 	input: Input;
@@ -41,7 +42,11 @@ export class ExportFrameProvider {
 		private readonly getFile: typeof getMediaFile = getMediaFile
 	) {}
 
-	async prepare(layers: readonly ActiveLayer[], signal?: AbortSignal): Promise<void> {
+	async prepare(
+		layers: readonly ActiveLayer[],
+		signal?: AbortSignal,
+		lap: StageLap = () => {}
+	): Promise<void> {
 		this.prepared.clear();
 		const allLayers: ActiveLayer[] = [];
 		const collect = (layerList: readonly ActiveLayer[]) => {
@@ -65,6 +70,7 @@ export class ExportFrameProvider {
 			if (layer.kind === 'shape' && layer.shapeData) {
 				const shapeCanvas = rasterizeShape(layer.shapeData);
 				this.prepared.set(layerKey, shapeCanvas.canvas as unknown as CanvasImageSource);
+				lap('raster');
 				continue;
 			}
 			if (layer.kind === 'text' && layer.textData) {
@@ -106,6 +112,7 @@ export class ExportFrameProvider {
 					scale
 				});
 				this.prepared.set(layerKey, textCanvas);
+				lap('raster');
 				continue;
 			}
 			if (!layer.assetId) continue;
@@ -137,6 +144,7 @@ export class ExportFrameProvider {
 							1_000_000
 					);
 				}
+				lap('decode');
 				if (!sample) continue;
 				let canvas = this.canvases.get(layerKey);
 				if (
@@ -151,7 +159,9 @@ export class ExportFrameProvider {
 				if (!context) throw new Error('Offscreen canvas 2D rendering is unavailable.');
 				try {
 					sample.draw(context, 0, 0, canvas.width, canvas.height);
+					lap('copy');
 					const bitmap = await createImageBitmap(canvas);
+					lap('bitmap');
 					this.frameCache.set(cacheKey, bitmap);
 					this.cacheKeys.push(cacheKey);
 					if (this.cacheKeys.length > 64) {
