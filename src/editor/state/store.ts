@@ -439,6 +439,14 @@ export interface PreviewGuidesState {
 	socialGuide: boolean;
 }
 
+export interface VoiceoverState {
+	phase: 'idle' | 'requesting' | 'countdown' | 'recording' | 'saving';
+	countdownValue: number | null;
+	recordingTrackId: TrackId | null;
+	recordingStartTime: Time | null;
+	elapsedDuration: Time;
+}
+
 const INSPECTOR_STORAGE_KEY = 'tfve:inspector-prefs';
 
 function loadInspectorPrefs(): InspectorState {
@@ -581,6 +589,7 @@ export interface EditorState {
 	scopes: ScopesUiState;
 	colorUi: ColorUiState;
 	previewGuides: PreviewGuidesState;
+	voiceover: VoiceoverState;
 	effectsClipboard: EffectInstance[] | null;
 	clipClipboard: ClipClipboard | null;
 	attributesClipboard: ClipAttributesPayload | null;
@@ -836,6 +845,8 @@ export interface EditorState {
 	togglePreviewGuide: (guide: keyof PreviewGuidesState) => void;
 	setPreviewGuide: (guide: keyof PreviewGuidesState, enabled: boolean) => void;
 	resetPreviewGuides: () => void;
+	setVoiceoverState: (partial: Partial<VoiceoverState>) => void;
+	resetVoiceoverState: () => void;
 	addEffect: (
 		clipId: ClipId,
 		effectType: EffectType,
@@ -1643,6 +1654,13 @@ export function createEditorStore() {
 					safeMargins: false,
 					ruleOfThirds: false,
 					socialGuide: false
+				},
+				voiceover: {
+					phase: 'idle',
+					countdownValue: null,
+					recordingTrackId: null,
+					recordingStartTime: null,
+					elapsedDuration: 0
 				},
 				maskTool: {
 					activeTool: 'select',
@@ -4983,6 +5001,22 @@ export function createEditorStore() {
 						state.previewGuides.safeMargins = false;
 						state.previewGuides.ruleOfThirds = false;
 						state.previewGuides.socialGuide = false;
+					});
+				},
+				setVoiceoverState(partial) {
+					set((state) => {
+						Object.assign(state.voiceover, partial);
+					});
+				},
+				resetVoiceoverState() {
+					set((state) => {
+						state.voiceover = {
+							phase: 'idle',
+							countdownValue: null,
+							recordingTrackId: null,
+							recordingStartTime: null,
+							elapsedDuration: 0
+						};
 					});
 				},
 				addEffect(clipId, effectType, initialParams, options) {

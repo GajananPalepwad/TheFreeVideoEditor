@@ -2553,3 +2553,78 @@
 	background: #dc2626;
 	box-shadow: 0 0 2px rgba(220, 38, 38, 0.4);
 }
+
+/* Voiceover recording controls */
+.track-record-btn {
+	color: #94a3b8;
+}
+
+.track-record-btn:hover:not(:disabled) {
+	color: #ef4444;
+	background: rgba(239, 68, 68, 0.15);
+}
+
+.track-record-btn.is-recording {
+	color: #ffffff;
+	background: #ef4444;
+	animation: pulse-rec 1.2s ease-in-out infinite;
+}
+
+.track-record-btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+/* Live expanding recording block in timeline lane */
+.timeline-recording-block {
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	background: rgba(239, 68, 68, 0.3);
+	border: 1.5px solid #ef4444;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 8px;
+	color: #ffffff;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	pointer-events: none;
+	z-index: 10;
+	box-sizing: border-box;
+	overflow: hidden;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.timeline-recording-block-indicator {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	color: #ef4444;
+}
+
+.timeline-recording-block-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #ef4444;
+	animation: pulse-rec 1s ease-in-out infinite;
+}
+
+.timeline-recording-block-label {
+	color: #fca5a5;
+	font-size: 0.6875rem;
+	letter-spacing: 0.02em;
+}
+
+@keyframes pulse-rec {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.35;
+	}
+}
