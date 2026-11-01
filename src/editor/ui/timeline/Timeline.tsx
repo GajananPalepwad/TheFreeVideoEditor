@@ -38,6 +38,8 @@ import type {
 import { useEditorStore, useEditorStoreApi } from '../../state/EditorProvider';
 import ClipView from './ClipView';
 import { CaptionSegmentView } from './CaptionSegmentView';
+import RecordingBlock from './RecordingBlock';
+import { useVoiceoverRecorder } from './useVoiceoverRecorder';
 import { TransitionBlock } from './TransitionBlock';
 import type { TransitionType } from '../../core/transitionsRegistry';
 import { createTemplateInstanceClip } from '../../core/templates/templateService';
@@ -192,7 +194,10 @@ function TrackHeader({
 	onRename,
 	onRemove,
 	onFlag,
-	onReorder
+	onReorder,
+	isRecording,
+	isRecordingOther,
+	onToggleRecord
 }: {
 	track: Track;
 	index: number;
@@ -202,6 +207,9 @@ function TrackHeader({
 	onRemove: (track: Track) => void;
 	onFlag: (trackId: TrackId, flags: Partial<Pick<Track, 'muted' | 'locked' | 'hidden'>>) => void;
 	onReorder: (trackId: TrackId, targetIndex: number) => void;
+	isRecording?: boolean;
+	isRecordingOther?: boolean;
+	onToggleRecord?: (trackId: TrackId) => void;
 }) {
 	const [editing, setEditing] = useState(false);
 	const [name, setName] = useState(track.name);
@@ -345,16 +353,68 @@ function TrackHeader({
 					)}
 				</button>
 				{track.kind === 'audio' && (
-					<button
-						type="button"
-						className={`timeline-track-control-btn track-mute-btn ${track.muted ? 'is-active' : ''}`}
-						aria-label={`${track.muted ? 'Unmute' : 'Mute'} ${track.name}`}
-						aria-pressed={track.muted}
-						title={track.muted ? 'Unmute track (M)' : 'Mute track (M)'}
-						onClick={() => onFlag(track.id, { muted: !track.muted })}
-					>
-						M
-					</button>
+					<>
+						<button
+							type="button"
+							className={`timeline-track-control-btn track-mute-btn ${track.muted ? 'is-active' : ''}`}
+							aria-label={`${track.muted ? 'Unmute' : 'Mute'} ${track.name}`}
+							aria-pressed={track.muted}
+							title={track.muted ? 'Unmute track (M)' : 'Mute track (M)'}
+							onClick={() => onFlag(track.id, { muted: !track.muted })}
+						>
+							M
+						</button>
+						<button
+							type="button"
+							className={`timeline-track-control-btn track-record-btn ${isRecording ? 'is-recording' : ''}`}
+							aria-label={
+								isRecording
+									? `Stop recording voiceover on ${track.name}`
+									: `Record voiceover on ${track.name}`
+							}
+							aria-pressed={isRecording}
+							title={
+								track.locked
+									? 'Unlock track to record voiceover'
+									: isRecording
+										? 'Stop voiceover recording'
+										: isRecordingOther
+											? 'Another track is currently recording'
+											: 'Record voiceover'
+							}
+							disabled={track.locked || isRecordingOther}
+							data-testid={`track-record-btn-${track.id}`}
+							onClick={() => onToggleRecord?.(track.id)}
+						>
+							{isRecording ? (
+								<svg
+									width="9"
+									height="9"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<rect x="4" y="4" width="16" height="16" rx="2" />
+								</svg>
+							) : (
+								<svg
+									width="11"
+									height="11"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2.2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									aria-hidden="true"
+								>
+									<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+									<path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+									<line x1="12" y1="19" x2="12" y2="22" />
+								</svg>
+							)}
+						</button>
+					</>
 				)}
 				{(track.kind === 'video' || track.kind === 'caption') && (
 					<button
@@ -498,6 +558,8 @@ function ActiveTimeline({ project }: { project: Project }) {
 	const clipClipboard = useEditorStore((state) => state.clipClipboard);
 	const keyframeClipboard = useEditorStore((state) => state.keyframes.clipboard);
 	const attributesClipboard = useEditorStore((state) => state.attributesClipboard);
+	const voiceover = useEditorStore((state) => state.voiceover);
+	const voiceoverRecorder = useVoiceoverRecorder(store);
 	const graphOpen = useEditorStore((state) => state.keyframes.graph.open);
 	const activeTool = useEditorStore((state) => state.timeline.activeTool);
 	const scrollerRef = useRef<HTMLDivElement>(null);
@@ -3014,6 +3076,27 @@ function ActiveTimeline({ project }: { project: Project }) {
 													onRemove={handleTrackRemoval}
 													onFlag={setTimelineTrackFlags}
 													onReorder={reorderTimelineTrack}
+													isRecording={
+														voiceover.recordingTrackId === track.id &&
+														(voiceover.phase === 'recording' ||
+															voiceover.phase === 'countdown' ||
+															voiceover.phase === 'saving')
+													}
+													isRecordingOther={
+														voiceover.recordingTrackId !== null &&
+														voiceover.recordingTrackId !== track.id &&
+														voiceover.phase !== 'idle'
+													}
+													onToggleRecord={(trackId) => {
+														if (
+															voiceover.recordingTrackId === trackId &&
+															(voiceover.phase === 'recording' || voiceover.phase === 'countdown')
+														) {
+															void voiceoverRecorder.stopRecording();
+														} else {
+															void voiceoverRecorder.startRecording(trackId);
+														}
+													}}
 												/>
 												<div
 													className={`timeline-track-lane ${drag?.targetTrackId === track.id && !drag.allowed ? 'is-invalid-drop' : ''}`}
@@ -3219,6 +3302,15 @@ function ActiveTimeline({ project }: { project: Project }) {
 																	/>
 																);
 															})}
+															{voiceover.recordingTrackId === track.id &&
+																(voiceover.phase === 'recording' ||
+																	voiceover.phase === 'saving') && (
+																	<RecordingBlock
+																		startTime={voiceover.recordingStartTime ?? 0}
+																		duration={voiceover.elapsedDuration}
+																		pixelsPerSecond={pixelsPerSecond}
+																	/>
+																)}
 														</>
 													)}
 													{isTransitionsEnabled() &&

@@ -12,6 +12,7 @@ import TextInlineEditor from './TextInlineEditor';
 import { TrackingOverlay } from './TrackingOverlay';
 import CaptionOverlay from './CaptionOverlay';
 import GuidesOverlay from './GuidesOverlay';
+import VoiceoverOverlay from './VoiceoverOverlay';
 
 interface PreviewPlayerProps {
 	project: Project | null;
@@ -104,6 +105,7 @@ export default function PreviewPlayer({
 							renderedHeight={renderedHeight}
 						/>
 						<GuidesOverlay renderedWidth={renderedWidth} renderedHeight={renderedHeight} />
+						<VoiceoverOverlay />
 						<PreviewNotice project={project} engine={engine} renderer={renderer} />
 					</div>
 				) : (

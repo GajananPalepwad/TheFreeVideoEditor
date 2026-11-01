@@ -833,3 +833,123 @@
 :root[data-theme='light'] .preview-dropdown-menu .dropdown-menu-item .menu-check {
 	color: #0284c7;
 }
+
+/* Voiceover Overlay */
+.voiceover-overlay-root {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 25;
+}
+
+.voiceover-countdown-box {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+	backdrop-filter: blur(2px);
+	pointer-events: none;
+}
+
+.voiceover-countdown-label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	color: rgba(255, 255, 255, 0.85);
+	margin-bottom: 4px;
+}
+
+.voiceover-countdown-digit {
+	font-size: min(20vw, 120px);
+	font-weight: 800;
+	line-height: 1;
+	color: #ef4444;
+	text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
+	animation: countdown-pop 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes countdown-pop {
+	0% {
+		transform: scale(0.6);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.08);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.voiceover-rec-badge {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: rgba(18, 18, 22, 0.88);
+	border: 1px solid rgba(239, 68, 68, 0.6);
+	color: #ffffff;
+	padding: 4px 10px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+	letter-spacing: 0.04em;
+}
+
+.voiceover-rec-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #ef4444;
+	animation: pulse-rec 1s ease-in-out infinite;
+}
+
+.voiceover-rec-text {
+	color: #ef4444;
+	font-weight: 700;
+}
+
+.voiceover-rec-time {
+	font-family: var(--font-mono, monospace);
+	color: #f1f5f9;
+}
+
+.voiceover-saving-badge {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: rgba(18, 18, 22, 0.88);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	color: #ffffff;
+	padding: 4px 10px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.voiceover-spinner {
+	animation: spin 1s linear infinite;
+	color: #ef4444;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
