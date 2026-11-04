@@ -925,643 +925,651 @@ export default function ExportDialog() {
 					<AdSenseBanner position="left" />
 					<div className="dialog-surface-card export-dialog">
 						<div className="dialog-content">
-					<div className="dialog-heading">
-						<div>
-							<p className="dialog-eyebrow">DELIVER</p>
-							<h2 id="export-dialog-title">Export</h2>
-						</div>
-						<button
-							className="icon-button dialog-close"
-							type="button"
-							aria-label={isRunning ? 'Request export cancellation' : 'Close export dialog'}
-							onClick={requestCancel}
-						>
-							×
-						</button>
-					</div>
-					<div className="export-tabs" role="tablist" aria-label="Export type">
-						<button
-							type="button"
-							role="tab"
-							aria-selected={tab === 'video'}
-							tabIndex={tab === 'video' ? 0 : -1}
-							aria-controls="video-export-panel"
-							onKeyDown={(event) => {
-								if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-								event.preventDefault();
-								const nextTab = event.key === 'ArrowRight' ? 'project' : 'video';
-								setTab(nextTab);
-								event.currentTarget.parentElement
-									?.querySelector<HTMLButtonElement>(`[data-export-tab="${nextTab}"]`)
-									?.focus();
-							}}
-							data-export-tab="video"
-							onClick={() => setTab('video')}
-						>
-							Video
-						</button>
-						<button
-							type="button"
-							role="tab"
-							aria-selected={tab === 'project'}
-							tabIndex={tab === 'project' ? 0 : -1}
-							aria-controls="project-export-panel"
-							onKeyDown={(event) => {
-								if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-								event.preventDefault();
-								const nextTab = event.key === 'ArrowRight' ? 'video' : 'project';
-								setTab(nextTab);
-								event.currentTarget.parentElement
-									?.querySelector<HTMLButtonElement>(`[data-export-tab="${nextTab}"]`)
-									?.focus();
-							}}
-							data-export-tab="project"
-							onClick={() => setTab('project')}
-						>
-							Project file
-						</button>
-					</div>
-					{!runtime && !errorMessage && (
-						<p className="export-capability" role="status" aria-live="polite">
-							Loading export tools…
-						</p>
-					)}
-					{tab === 'video' ? (
-						<div id="video-export-panel" role="tabpanel" className="export-form">
-							{project && project.sequences && Object.keys(project.sequences).length > 0 && (
-								<label className="dialog-field">
-									<span>Sequence</span>
-									<select
-										value={selectedSequenceId}
-										disabled={isRunning}
-										onChange={(event) =>
-											setSelectedSequenceId(event.currentTarget.value as SequenceId)
-										}
-									>
-										<option value={ROOT_SEQUENCE_ID}>Main Timeline (Root)</option>
-										{Object.values(project.sequences).map((seq) => (
-											<option key={seq.id} value={seq.id}>
-												{seq.name}
-											</option>
-										))}
-									</select>
-								</label>
-							)}
-							<label className="dialog-field">
-								<span>Destination Preset</span>
-								<select
-									value={destinationPreset}
-									disabled={isRunning}
-									onChange={(event) =>
-										handleDestinationPresetChange(event.currentTarget.value as DestinationPresetId)
-									}
-									data-testid="export-destination-preset-select"
+							<div className="dialog-heading">
+								<div>
+									<p className="dialog-eyebrow">DELIVER</p>
+									<h2 id="export-dialog-title">Export</h2>
+								</div>
+								<button
+									className="icon-button dialog-close"
+									type="button"
+									aria-label={isRunning ? 'Request export cancellation' : 'Close export dialog'}
+									onClick={requestCancel}
 								>
-									<option value="custom">Custom / Project Settings</option>
-									{DESTINATION_PRESETS.map((dest) => (
-										<option key={dest.id} value={dest.id}>
-											{dest.label} ({dest.description})
-										</option>
-									))}
-								</select>
-							</label>
-
-							<label className="dialog-field">
-								<span>Format</span>
-								<select
-									value={videoFormat}
-									disabled={isRunning}
-									onChange={(event) =>
-										updateFormat(event.currentTarget.value as ExportSettings['format'])
-									}
+									×
+								</button>
+							</div>
+							<div className="export-tabs" role="tablist" aria-label="Export type">
+								<button
+									type="button"
+									role="tab"
+									aria-selected={tab === 'video'}
+									tabIndex={tab === 'video' ? 0 : -1}
+									aria-controls="video-export-panel"
+									onKeyDown={(event) => {
+										if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+										event.preventDefault();
+										const nextTab = event.key === 'ArrowRight' ? 'project' : 'video';
+										setTab(nextTab);
+										event.currentTarget.parentElement
+											?.querySelector<HTMLButtonElement>(`[data-export-tab="${nextTab}"]`)
+											?.focus();
+									}}
+									data-export-tab="video"
+									onClick={() => setTab('video')}
 								>
-									<option value="mp4">MP4 (H.264 / HEVC / AV1)</option>
-									<option value="mov">QuickTime MOV (H.264 / HEVC / ProRes / PCM)</option>
-									<option value="webm">WebM (VP9 / AV1 / Opus)</option>
-									<option value="wav">WAV Audio (Uncompressed PCM)</option>
-								</select>
-							</label>
-
-							{videoFormat !== 'wav' && (
-								<label className="dialog-field">
-									<span>Video Codec</span>
-									<select
-										value={selectedCodecId}
-										disabled={isRunning}
-										onChange={(event) => updateCodec(event.currentTarget.value)}
-									>
-										{VIDEO_CODEC_REGISTRY.filter((c) => c.container === videoFormat).map((c) => {
-											const supported = isCodecSupportedSync(c.id);
-											return (
-												<option key={c.id} value={c.id} disabled={c.tier === 2}>
-													{c.label}{' '}
-													{c.tier === 2
-														? '· Pack Required (Deferred)'
-														: supported === false
-															? '· Unsupported'
-															: '· Hardware/WebCodecs'}
-												</option>
-											);
-										})}
-									</select>
-								</label>
+									Video
+								</button>
+								<button
+									type="button"
+									role="tab"
+									aria-selected={tab === 'project'}
+									tabIndex={tab === 'project' ? 0 : -1}
+									aria-controls="project-export-panel"
+									onKeyDown={(event) => {
+										if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+										event.preventDefault();
+										const nextTab = event.key === 'ArrowRight' ? 'video' : 'project';
+										setTab(nextTab);
+										event.currentTarget.parentElement
+											?.querySelector<HTMLButtonElement>(`[data-export-tab="${nextTab}"]`)
+											?.focus();
+									}}
+									data-export-tab="project"
+									onClick={() => setTab('project')}
+								>
+									Project file
+								</button>
+							</div>
+							{!runtime && !errorMessage && (
+								<p className="export-capability" role="status" aria-live="polite">
+									Loading export tools…
+								</p>
 							)}
-
-							{videoFormat !== 'wav' && (
-								<label className="dialog-field">
-									<span>Resolution</span>
-									<select
-										value={preset}
-										disabled={isRunning}
-										onChange={(event) => {
-											setDestinationPreset('custom');
-											setPreset(event.currentTarget.value as ResolutionPreset);
-										}}
-									>
-										<option value="project">
-											Project · {project?.settings.width} × {project?.settings.height}
-										</option>
-										<optgroup label="Standard Landscape (16:9)">
-											<option value="4k">4K Ultra HD (3840 × 2160)</option>
-											<option value="1440p">1440p Quad HD (2560 × 1440)</option>
-											<option value="1080p">1080p Full HD (1920 × 1080)</option>
-											<option value="720p">720p HD (1280 × 720)</option>
-											<option value="480p">480p SD (854 × 480)</option>
-										</optgroup>
-										<optgroup label="Social & Aspect Ratios">
-											<option value="9:16">
-												9:16 Vertical · TikTok/Reels/Shorts (1080 × 1920)
-											</option>
-											<option value="1:1">1:1 Square · Instagram Post (1080 × 1080)</option>
-											<option value="4:5">4:5 Social Portrait · Instagram (1080 × 1350)</option>
-											<option value="21:9">21:9 Ultrawide Cinema (2560 × 1080)</option>
-										</optgroup>
-									</select>
-								</label>
-							)}
-
-							{videoFormat !== 'wav' && (
-								<label className="dialog-field">
-									<span>Quality</span>
-									<select
-										value={quality}
-										disabled={isRunning}
-										onChange={(event) => {
-											setDestinationPreset('custom');
-											setQuality(event.currentTarget.value as ExportQuality);
-										}}
-									>
-										<option value="high">High (Recommended)</option>
-										<option value="medium">Standard</option>
-										<option value="low">Smaller file</option>
-										<option value="pro">Pro Bitrate</option>
-										<option value="custom">Custom Bitrate…</option>
-									</select>
-								</label>
-							)}
-
-							{videoFormat !== 'wav' && quality === 'custom' && (
-								<label className="dialog-field">
-									<span>Bitrate (Mbps)</span>
-									<input
-										type="number"
-										min="1"
-										max="100"
-										step="1"
-										value={customBitrateMbps}
-										disabled={isRunning}
-										onChange={(event) => {
-											setDestinationPreset('custom');
-											setCustomBitrateMbps(Math.max(1, Number(event.currentTarget.value)));
-										}}
-									/>
-								</label>
-							)}
-
-							{videoFormat !== 'wav' && (
-								<label className="dialog-field">
-									<span>Color Space Tag</span>
-									<select
-										value={selectedColorSpace}
-										disabled={isRunning}
-										onChange={(event) => setSelectedColorSpace(event.currentTarget.value)}
-									>
-										<option value="rec709">Rec. 709 · Standard Dynamic Range (SDR)</option>
-										<option value="rec2020">Rec. 2020 · Wide Gamut / 10-bit HDR</option>
-										<option value="srgb">sRGB · Computer & Web Graphics</option>
-										<option value="display-p3">Display P3 · Apple Wide Color</option>
-									</select>
-								</label>
-							)}
-
-							{(videoFormat === 'webm' || videoFormat === 'mov') && (
-								<label className="export-checkbox">
-									<input
-										type="checkbox"
-										checked={exportAlpha}
-										disabled={isRunning}
-										onChange={(event) => setExportAlpha(event.currentTarget.checked)}
-									/>
-									<span>Export with alpha transparency (transparent canvas)</span>
-								</label>
-							)}
-
-							{videoFormat !== 'wav' && (
-								<label className="export-checkbox">
-									<input
-										type="checkbox"
-										checked={includeAudio}
-										disabled={isRunning}
-										onChange={(event) => setIncludeAudio(event.currentTarget.checked)}
-									/>
-									<span>Include audio</span>
-								</label>
-							)}
-
-							{(includeAudio || videoFormat === 'wav') && (
-								<label className="export-checkbox">
-									<input
-										type="checkbox"
-										checked={normalizeAudio}
-										disabled={isRunning}
-										onChange={(event) => {
-											setDestinationPreset('custom');
-											setNormalizeAudio(event.currentTarget.checked);
-										}}
-										data-testid="export-normalize-audio-checkbox"
-									/>
-									<span>Normalize audio to -14 LUFS (YouTube, TikTok, Instagram standard)</span>
-								</label>
-							)}
-
-							{(includeAudio || videoFormat === 'wav') &&
-								(videoFormat === 'mov' || videoFormat === 'wav') && (
-									<label className="dialog-field">
-										<span>
-											{videoFormat === 'wav' ? 'Audio Bit Depth / Quality' : 'Audio Codec'}
-										</span>
-										<select
-											value={selectedAudioCodec}
-											disabled={isRunning}
-											onChange={(event) => setSelectedAudioCodec(event.currentTarget.value)}
-										>
-											{videoFormat === 'mov' && (
-												<option value="aac">AAC-LC · Compressed (192 kbps)</option>
-											)}
-											<option value="pcm16">PCM 16-bit · Linear Uncompressed</option>
-											<option value="pcm24">PCM 24-bit · High-Resolution Master</option>
-											<option value="pcm32f">PCM 32-bit Float · 32-bit Floating Point</option>
-										</select>
-									</label>
-								)}
-
-							<label className="dialog-field">
-								<span>File name</span>
-								<input
-									name="export-filename"
-									value={filename}
-									disabled={isRunning}
-									maxLength={120}
-									autoComplete="off"
-									onChange={(event) => setFilename(event.currentTarget.value)}
-								/>
-							</label>
-							{capabilities &&
-								mode === 'webcodecs' &&
-								includeAudio &&
-								!capabilities.audio &&
-								videoFormat !== 'wav' && (
-									<p className="export-warning" role="status">
-										Audio encoding is unavailable for this format here. Turn off “Include audio” or
-										choose another format.
-									</p>
-								)}
-							{includeAudio &&
-								undecodableAudioAssets.map((asset) => (
-									<p className="export-warning" role="status" key={asset.id}>
-										Audio from “{asset.name}” will be skipped because this browser cannot decode its
-										codec.
-									</p>
-								))}
-							{captionTracks.length > 0 && videoFormat !== 'wav' && (
-								<div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-									<label className="export-checkbox">
-										<input
-											type="checkbox"
-											checked={exportSidecar}
-											disabled={isRunning}
-											onChange={(event) => setExportSidecar(event.currentTarget.checked)}
-										/>
-										<span>Export sidecar subtitle file</span>
-									</label>
-									{exportSidecar && (
-										<label className="dialog-field" style={{ marginLeft: '24px' }}>
-											<span>Subtitle format</span>
+							{tab === 'video' ? (
+								<div id="video-export-panel" role="tabpanel" className="export-form">
+									{project && project.sequences && Object.keys(project.sequences).length > 0 && (
+										<label className="dialog-field">
+											<span>Sequence</span>
 											<select
-												value={sidecarFormat}
+												value={selectedSequenceId}
 												disabled={isRunning}
-												onChange={(e) => setSidecarFormat(e.currentTarget.value as 'srt' | 'vtt')}
+												onChange={(event) =>
+													setSelectedSequenceId(event.currentTarget.value as SequenceId)
+												}
 											>
-												<option value="srt">SubRip (.srt)</option>
-												<option value="vtt">WebVTT (.vtt)</option>
+												<option value={ROOT_SEQUENCE_ID}>Main Timeline (Root)</option>
+												{Object.values(project.sequences).map((seq) => (
+													<option key={seq.id} value={seq.id}>
+														{seq.name}
+													</option>
+												))}
 											</select>
 										</label>
 									)}
-								</div>
-							)}
-							<div className="export-capability" role="status" aria-live="polite">
-								{videoFormat === 'wav' ? (
-									'Uncompressed PCM audio muxing via container engine.'
-								) : capabilities === null ? (
-									'Checking browser export support…'
-								) : capabilities.video ? (
-									<>
-										WebCodecs available
-										{includeAudio && !capabilities.audio ? ' · audio encoding unavailable' : ''}
-										{capabilities.codec ? ` · ${capabilities.codec}` : ''}
-									</>
-								) : (
-									<>
-										{capabilities.reason || 'WebCodecs is unavailable.'}
-										{capabilities.compatibility
-											? ' Use compatibility mode for real-time WebM recording.'
-											: ' This browser cannot export video.'}
-									</>
-								)}
-							</div>
-							{capabilities && videoFormat !== 'wav' && (
-								<label className="dialog-field">
-									<span>Export method</span>
-									<select
-										value={mode}
-										disabled={isRunning}
-										onChange={(event) => setMode(event.currentTarget.value as ExportMode)}
-									>
-										<option value="webcodecs" disabled={!capabilities.video}>
-											WebCodecs · frame-accurate
-										</option>
-										<option
-											value="compatibility"
-											disabled={!capabilities.compatibility || videoFormat !== 'webm'}
+									<label className="dialog-field">
+										<span>Destination Preset</span>
+										<select
+											value={destinationPreset}
+											disabled={isRunning}
+											onChange={(event) =>
+												handleDestinationPresetChange(
+													event.currentTarget.value as DestinationPresetId
+												)
+											}
+											data-testid="export-destination-preset-select"
 										>
-											Compatibility · real-time WebM
-										</option>
-									</select>
-								</label>
-							)}
-							<p className="export-estimate">
-								{durationSeconds > 0
-									? `${Math.floor(durationSeconds / 60)}:${String(Math.floor(durationSeconds % 60)).padStart(2, '0')} · approximately ${formatBytes(estimatedSize)}`
-									: 'Add clips to the timeline before exporting.'}
-							</p>
-							<div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '2px' }}>
-								<button
-									type="button"
-									className="media-action-link"
-									onClick={() => setIsCodecSupportOpen(true)}
-								>
-									Hardware & Codec Support Diagnostics…
-								</button>
-								<button
-									type="button"
-									className="media-action-link"
-									onClick={() => setIsCodecPackOpen(true)}
-								>
-									Advanced Codec Pack (ProRes / DNxHR)…
-								</button>
-							</div>
-							{timelineMediaWarnings.map((warn, i) => (
-								<p key={i} className="export-warning" role="status">
-									{warn}
-								</p>
-							))}
-							{warnAboutMemoryFallback && (
-								<p className="export-warning" role="status">
-									This browser cannot stream the estimated {Math.ceil(estimatedSize / 1_000_000)} MB
-									export to disk. The output will be buffered in memory and may exceed available
-									memory.
-								</p>
-							)}
-							{offlineAssets.length > 0 && (
-								<div className="export-warning" role="group" aria-label="Offline media warning">
-									<p>
-										{offlineAssets.length} media asset(s) are offline. Those portions of the
-										exported video will be blank or silent.
+											<option value="custom">Custom / Project Settings</option>
+											{DESTINATION_PRESETS.map((dest) => (
+												<option key={dest.id} value={dest.id}>
+													{dest.label} ({dest.description})
+												</option>
+											))}
+										</select>
+									</label>
+
+									<label className="dialog-field">
+										<span>Format</span>
+										<select
+											value={videoFormat}
+											disabled={isRunning}
+											onChange={(event) =>
+												updateFormat(event.currentTarget.value as ExportSettings['format'])
+											}
+										>
+											<option value="mp4">MP4 (H.264 / HEVC / AV1)</option>
+											<option value="mov">QuickTime MOV (H.264 / HEVC / ProRes / PCM)</option>
+											<option value="webm">WebM (VP9 / AV1 / Opus)</option>
+											<option value="wav">WAV Audio (Uncompressed PCM)</option>
+										</select>
+									</label>
+
+									{videoFormat !== 'wav' && (
+										<label className="dialog-field">
+											<span>Video Codec</span>
+											<select
+												value={selectedCodecId}
+												disabled={isRunning}
+												onChange={(event) => updateCodec(event.currentTarget.value)}
+											>
+												{VIDEO_CODEC_REGISTRY.filter((c) => c.container === videoFormat).map(
+													(c) => {
+														const supported = isCodecSupportedSync(c.id);
+														return (
+															<option key={c.id} value={c.id} disabled={c.tier === 2}>
+																{c.label}{' '}
+																{c.tier === 2
+																	? '· Pack Required (Deferred)'
+																	: supported === false
+																		? '· Unsupported'
+																		: '· Hardware/WebCodecs'}
+															</option>
+														);
+													}
+												)}
+											</select>
+										</label>
+									)}
+
+									{videoFormat !== 'wav' && (
+										<label className="dialog-field">
+											<span>Resolution</span>
+											<select
+												value={preset}
+												disabled={isRunning}
+												onChange={(event) => {
+													setDestinationPreset('custom');
+													setPreset(event.currentTarget.value as ResolutionPreset);
+												}}
+											>
+												<option value="project">
+													Project · {project?.settings.width} × {project?.settings.height}
+												</option>
+												<optgroup label="Standard Landscape (16:9)">
+													<option value="4k">4K Ultra HD (3840 × 2160)</option>
+													<option value="1440p">1440p Quad HD (2560 × 1440)</option>
+													<option value="1080p">1080p Full HD (1920 × 1080)</option>
+													<option value="720p">720p HD (1280 × 720)</option>
+													<option value="480p">480p SD (854 × 480)</option>
+												</optgroup>
+												<optgroup label="Social & Aspect Ratios">
+													<option value="9:16">
+														9:16 Vertical · TikTok/Reels/Shorts (1080 × 1920)
+													</option>
+													<option value="1:1">1:1 Square · Instagram Post (1080 × 1080)</option>
+													<option value="4:5">4:5 Social Portrait · Instagram (1080 × 1350)</option>
+													<option value="21:9">21:9 Ultrawide Cinema (2560 × 1080)</option>
+												</optgroup>
+											</select>
+										</label>
+									)}
+
+									{videoFormat !== 'wav' && (
+										<label className="dialog-field">
+											<span>Quality</span>
+											<select
+												value={quality}
+												disabled={isRunning}
+												onChange={(event) => {
+													setDestinationPreset('custom');
+													setQuality(event.currentTarget.value as ExportQuality);
+												}}
+											>
+												<option value="high">High (Recommended)</option>
+												<option value="medium">Standard</option>
+												<option value="low">Smaller file</option>
+												<option value="pro">Pro Bitrate</option>
+												<option value="custom">Custom Bitrate…</option>
+											</select>
+										</label>
+									)}
+
+									{videoFormat !== 'wav' && quality === 'custom' && (
+										<label className="dialog-field">
+											<span>Bitrate (Mbps)</span>
+											<input
+												type="number"
+												min="1"
+												max="100"
+												step="1"
+												value={customBitrateMbps}
+												disabled={isRunning}
+												onChange={(event) => {
+													setDestinationPreset('custom');
+													setCustomBitrateMbps(Math.max(1, Number(event.currentTarget.value)));
+												}}
+											/>
+										</label>
+									)}
+
+									{videoFormat !== 'wav' && (
+										<label className="dialog-field">
+											<span>Color Space Tag</span>
+											<select
+												value={selectedColorSpace}
+												disabled={isRunning}
+												onChange={(event) => setSelectedColorSpace(event.currentTarget.value)}
+											>
+												<option value="rec709">Rec. 709 · Standard Dynamic Range (SDR)</option>
+												<option value="rec2020">Rec. 2020 · Wide Gamut / 10-bit HDR</option>
+												<option value="srgb">sRGB · Computer & Web Graphics</option>
+												<option value="display-p3">Display P3 · Apple Wide Color</option>
+											</select>
+										</label>
+									)}
+
+									{(videoFormat === 'webm' || videoFormat === 'mov') && (
+										<label className="export-checkbox">
+											<input
+												type="checkbox"
+												checked={exportAlpha}
+												disabled={isRunning}
+												onChange={(event) => setExportAlpha(event.currentTarget.checked)}
+											/>
+											<span>Export with alpha transparency (transparent canvas)</span>
+										</label>
+									)}
+
+									{videoFormat !== 'wav' && (
+										<label className="export-checkbox">
+											<input
+												type="checkbox"
+												checked={includeAudio}
+												disabled={isRunning}
+												onChange={(event) => setIncludeAudio(event.currentTarget.checked)}
+											/>
+											<span>Include audio</span>
+										</label>
+									)}
+
+									{(includeAudio || videoFormat === 'wav') && (
+										<label className="export-checkbox">
+											<input
+												type="checkbox"
+												checked={normalizeAudio}
+												disabled={isRunning}
+												onChange={(event) => {
+													setDestinationPreset('custom');
+													setNormalizeAudio(event.currentTarget.checked);
+												}}
+												data-testid="export-normalize-audio-checkbox"
+											/>
+											<span>Normalize audio to -14 LUFS (YouTube, TikTok, Instagram standard)</span>
+										</label>
+									)}
+
+									{(includeAudio || videoFormat === 'wav') &&
+										(videoFormat === 'mov' || videoFormat === 'wav') && (
+											<label className="dialog-field">
+												<span>
+													{videoFormat === 'wav' ? 'Audio Bit Depth / Quality' : 'Audio Codec'}
+												</span>
+												<select
+													value={selectedAudioCodec}
+													disabled={isRunning}
+													onChange={(event) => setSelectedAudioCodec(event.currentTarget.value)}
+												>
+													{videoFormat === 'mov' && (
+														<option value="aac">AAC-LC · Compressed (192 kbps)</option>
+													)}
+													<option value="pcm16">PCM 16-bit · Linear Uncompressed</option>
+													<option value="pcm24">PCM 24-bit · High-Resolution Master</option>
+													<option value="pcm32f">PCM 32-bit Float · 32-bit Floating Point</option>
+												</select>
+											</label>
+										)}
+
+									<label className="dialog-field">
+										<span>File name</span>
+										<input
+											name="export-filename"
+											value={filename}
+											disabled={isRunning}
+											maxLength={120}
+											autoComplete="off"
+											onChange={(event) => setFilename(event.currentTarget.value)}
+										/>
+									</label>
+									{capabilities &&
+										mode === 'webcodecs' &&
+										includeAudio &&
+										!capabilities.audio &&
+										videoFormat !== 'wav' && (
+											<p className="export-warning" role="status">
+												Audio encoding is unavailable for this format here. Turn off “Include audio”
+												or choose another format.
+											</p>
+										)}
+									{includeAudio &&
+										undecodableAudioAssets.map((asset) => (
+											<p className="export-warning" role="status" key={asset.id}>
+												Audio from “{asset.name}” will be skipped because this browser cannot decode
+												its codec.
+											</p>
+										))}
+									{captionTracks.length > 0 && videoFormat !== 'wav' && (
+										<div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+											<label className="export-checkbox">
+												<input
+													type="checkbox"
+													checked={exportSidecar}
+													disabled={isRunning}
+													onChange={(event) => setExportSidecar(event.currentTarget.checked)}
+												/>
+												<span>Export sidecar subtitle file</span>
+											</label>
+											{exportSidecar && (
+												<label className="dialog-field" style={{ marginLeft: '24px' }}>
+													<span>Subtitle format</span>
+													<select
+														value={sidecarFormat}
+														disabled={isRunning}
+														onChange={(e) =>
+															setSidecarFormat(e.currentTarget.value as 'srt' | 'vtt')
+														}
+													>
+														<option value="srt">SubRip (.srt)</option>
+														<option value="vtt">WebVTT (.vtt)</option>
+													</select>
+												</label>
+											)}
+										</div>
+									)}
+									<div className="export-capability" role="status" aria-live="polite">
+										{videoFormat === 'wav' ? (
+											'Uncompressed PCM audio muxing via container engine.'
+										) : capabilities === null ? (
+											'Checking browser export support…'
+										) : capabilities.video ? (
+											<>
+												WebCodecs available
+												{includeAudio && !capabilities.audio ? ' · audio encoding unavailable' : ''}
+												{capabilities.codec ? ` · ${capabilities.codec}` : ''}
+											</>
+										) : (
+											<>
+												{capabilities.reason || 'WebCodecs is unavailable.'}
+												{capabilities.compatibility
+													? ' Use compatibility mode for real-time WebM recording.'
+													: ' This browser cannot export video.'}
+											</>
+										)}
+									</div>
+									{capabilities && videoFormat !== 'wav' && (
+										<label className="dialog-field">
+											<span>Export method</span>
+											<select
+												value={mode}
+												disabled={isRunning}
+												onChange={(event) => setMode(event.currentTarget.value as ExportMode)}
+											>
+												<option value="webcodecs" disabled={!capabilities.video}>
+													WebCodecs · frame-accurate
+												</option>
+												<option
+													value="compatibility"
+													disabled={!capabilities.compatibility || videoFormat !== 'webm'}
+												>
+													Compatibility · real-time WebM
+												</option>
+											</select>
+										</label>
+									)}
+									<p className="export-estimate">
+										{durationSeconds > 0
+											? `${Math.floor(durationSeconds / 60)}:${String(Math.floor(durationSeconds % 60)).padStart(2, '0')} · approximately ${formatBytes(estimatedSize)}`
+											: 'Add clips to the timeline before exporting.'}
 									</p>
+									<div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '2px' }}>
+										<button
+											type="button"
+											className="media-action-link"
+											onClick={() => setIsCodecSupportOpen(true)}
+										>
+											Hardware & Codec Support Diagnostics…
+										</button>
+										<button
+											type="button"
+											className="media-action-link"
+											onClick={() => setIsCodecPackOpen(true)}
+										>
+											Advanced Codec Pack (ProRes / DNxHR)…
+										</button>
+									</div>
+									{timelineMediaWarnings.map((warn, i) => (
+										<p key={i} className="export-warning" role="status">
+											{warn}
+										</p>
+									))}
+									{warnAboutMemoryFallback && (
+										<p className="export-warning" role="status">
+											This browser cannot stream the estimated{' '}
+											{Math.ceil(estimatedSize / 1_000_000)} MB export to disk. The output will be
+											buffered in memory and may exceed available memory.
+										</p>
+									)}
+									{offlineAssets.length > 0 && (
+										<div className="export-warning" role="group" aria-label="Offline media warning">
+											<p>
+												{offlineAssets.length} media asset(s) are offline. Those portions of the
+												exported video will be blank or silent.
+											</p>
+											<label className="export-checkbox">
+												<input
+													type="checkbox"
+													checked={offlineConfirmed}
+													disabled={isRunning}
+													onChange={(event) => setOfflineConfirmed(event.currentTarget.checked)}
+												/>
+												<span>Continue without offline media</span>
+											</label>
+										</div>
+									)}
+								</div>
+							) : (
+								<div id="project-export-panel" role="tabpanel" className="export-form">
+									{project && project.sequences && Object.keys(project.sequences).length > 0 && (
+										<label className="dialog-field">
+											<span>Sequence</span>
+											<select
+												value={selectedSequenceId}
+												disabled={isRunning}
+												onChange={(event) =>
+													setSelectedSequenceId(event.currentTarget.value as SequenceId)
+												}
+											>
+												<option value={ROOT_SEQUENCE_ID}>Main Timeline (Root)</option>
+												{Object.values(project.sequences).map((seq) => (
+													<option key={seq.id} value={seq.id}>
+														{seq.name}
+													</option>
+												))}
+											</select>
+										</label>
+									)}
+									<label className="dialog-field">
+										<span>Format</span>
+										<select
+											value={interchangeFormat}
+											disabled={isRunning}
+											onChange={(event) =>
+												setInterchangeFormat(event.currentTarget.value as InterchangeFormat)
+											}
+										>
+											{INTERCHANGE_FORMATS.map((format) => (
+												<option key={format.value} value={format.value}>
+													{format.label}
+												</option>
+											))}
+										</select>
+									</label>
 									<label className="export-checkbox">
 										<input
 											type="checkbox"
-											checked={offlineConfirmed}
+											checked={includeMedia}
 											disabled={isRunning}
-											onChange={(event) => setOfflineConfirmed(event.currentTarget.checked)}
+											onChange={(event) => setIncludeMedia(event.currentTarget.checked)}
 										/>
-										<span>Continue without offline media</span>
+										<span>Package project with media files (.zip)</span>
 									</label>
+									<p className="dialog-description">
+										Premiere Pro imports xmeml and EDL. Final Cut Pro XML targets Final Cut Pro and
+										Resolve. OTIO is an open interchange format. Media is referenced by
+										package-relative paths when included; relink it if you move files.
+									</p>
+									{interchangeFormat === 'edl' && (
+										<p className="export-warning" role="note">
+											CMX3600 EDL contains cuts for video tracks only. The package contains one EDL
+											per video track; audio is not included.
+										</p>
+									)}
+									{includeMedia && offlineAssets.length > 0 && (
+										<p className="export-warning" role="alert">
+											Cannot package {offlineAssets.length} offline media asset(s). Relink them or
+											turn off media packaging.
+										</p>
+									)}
+									{interchangeOmissionWarning && (
+										<p className="export-warning" role="note">
+											{interchangeOmissionWarning}
+										</p>
+									)}
+									{interchangeTimeline && (
+										<details className="interchange-matrix" open>
+											<summary>
+												What’s transferred to{' '}
+												{INTERCHANGE_FORMATS.find((f) => f.value === interchangeFormat)?.label ??
+													'this format'}
+											</summary>
+											<table className="interchange-table">
+												<thead>
+													<tr>
+														<th>Feature</th>
+														<th>Transfer Status</th>
+														<th>Mapping Notes</th>
+													</tr>
+												</thead>
+												<tbody>
+													{interchangeTimeline.featureAudits.map((item) => {
+														const audit = item[interchangeFormat];
+														return (
+															<tr key={item.feature}>
+																<td>{item.feature}</td>
+																<td>
+																	<span className={`status-badge ${audit.status}`}>
+																		{audit.status}
+																	</span>
+																</td>
+																<td>{audit.note}</td>
+															</tr>
+														);
+													})}
+												</tbody>
+											</table>
+											{interchangeTimeline.omissions.length > 0 && (
+												<div
+													className="interchange-omissions"
+													style={{ marginTop: '8px', color: '#f59e0b' }}
+												>
+													<strong>Sequence omissions:</strong>
+													<ul>
+														{interchangeTimeline.omissions.map((om, idx) => (
+															<li key={idx}>{om}</li>
+														))}
+													</ul>
+												</div>
+											)}
+										</details>
+									)}
 								</div>
 							)}
-						</div>
-					) : (
-						<div id="project-export-panel" role="tabpanel" className="export-form">
-							{project && project.sequences && Object.keys(project.sequences).length > 0 && (
-								<label className="dialog-field">
-									<span>Sequence</span>
-									<select
-										value={selectedSequenceId}
-										disabled={isRunning}
-										onChange={(event) =>
-											setSelectedSequenceId(event.currentTarget.value as SequenceId)
-										}
-									>
-										<option value={ROOT_SEQUENCE_ID}>Main Timeline (Root)</option>
-										{Object.values(project.sequences).map((seq) => (
-											<option key={seq.id} value={seq.id}>
-												{seq.name}
-											</option>
-										))}
-									</select>
-								</label>
+							{progressValue && (
+								<div className="export-progress" role="status" aria-live="polite">
+									<div className="export-progress-label">
+										<span>{isRunning ? 'Exporting…' : 'Export complete'}</span>
+										<span>{progressValue.label}</span>
+									</div>
+									<progress max={100} value={progressValue.value} aria-label="Export progress" />
+									{progress && <p>{describeProgress(progress, elapsedMs)}</p>}
+								</div>
 							)}
-							<label className="dialog-field">
-								<span>Format</span>
-								<select
-									value={interchangeFormat}
-									disabled={isRunning}
-									onChange={(event) =>
-										setInterchangeFormat(event.currentTarget.value as InterchangeFormat)
-									}
+							{!isRunning && progressValue && progressValue.value >= 100 && (
+								<div
+									className="export-bmc-callout"
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'space-between',
+										gap: '12px',
+										padding: '10px 14px',
+										background: 'rgba(255, 221, 0, 0.08)',
+										border: '1px solid rgba(255, 221, 0, 0.25)',
+										borderRadius: '8px',
+										marginTop: '12px',
+										fontSize: '12px',
+										color: '#e2e8f0'
+									}}
 								>
-									{INTERCHANGE_FORMATS.map((format) => (
-										<option key={format.value} value={format.value}>
-											{format.label}
-										</option>
-									))}
-								</select>
-							</label>
-							<label className="export-checkbox">
-								<input
-									type="checkbox"
-									checked={includeMedia}
-									disabled={isRunning}
-									onChange={(event) => setIncludeMedia(event.currentTarget.checked)}
-								/>
-								<span>Package project with media files (.zip)</span>
-							</label>
-							<p className="dialog-description">
-								Premiere Pro imports xmeml and EDL. Final Cut Pro XML targets Final Cut Pro and
-								Resolve. OTIO is an open interchange format. Media is referenced by package-relative
-								paths when included; relink it if you move files.
-							</p>
-							{interchangeFormat === 'edl' && (
-								<p className="export-warning" role="note">
-									CMX3600 EDL contains cuts for video tracks only. The package contains one EDL per
-									video track; audio is not included.
+									<span>Enjoying your free watermark-free export?</span>
+									<a
+										href="https://buymeacoffee.com/beestack"
+										target="_blank"
+										rel="noopener noreferrer"
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: '6px',
+											background: '#ffdd00',
+											color: '#000000',
+											fontWeight: 700,
+											padding: '4px 10px',
+											borderRadius: '6px',
+											textDecoration: 'none',
+											whiteSpace: 'nowrap'
+										}}
+									>
+										<span>Buy me a coffee ☕</span>
+									</a>
+								</div>
+							)}
+							{errorMessage && (
+								<p ref={errorRef} className="dialog-message" role="alert" tabIndex={-1}>
+									{errorMessage}
 								</p>
 							)}
-							{includeMedia && offlineAssets.length > 0 && (
-								<p className="export-warning" role="alert">
-									Cannot package {offlineAssets.length} offline media asset(s). Relink them or turn
-									off media packaging.
+							{notice && (
+								<p className="export-notice" role="status" aria-live="polite">
+									{notice}
 								</p>
 							)}
-							{interchangeOmissionWarning && (
-								<p className="export-warning" role="note">
-									{interchangeOmissionWarning}
-								</p>
-							)}
-							{interchangeTimeline && (
-								<details className="interchange-matrix" open>
-									<summary>
-										What’s transferred to{' '}
-										{INTERCHANGE_FORMATS.find((f) => f.value === interchangeFormat)?.label ??
-											'this format'}
-									</summary>
-									<table className="interchange-table">
-										<thead>
-											<tr>
-												<th>Feature</th>
-												<th>Transfer Status</th>
-												<th>Mapping Notes</th>
-											</tr>
-										</thead>
-										<tbody>
-											{interchangeTimeline.featureAudits.map((item) => {
-												const audit = item[interchangeFormat];
-												return (
-													<tr key={item.feature}>
-														<td>{item.feature}</td>
-														<td>
-															<span className={`status-badge ${audit.status}`}>{audit.status}</span>
-														</td>
-														<td>{audit.note}</td>
-													</tr>
-												);
-											})}
-										</tbody>
-									</table>
-									{interchangeTimeline.omissions.length > 0 && (
-										<div
-											className="interchange-omissions"
-											style={{ marginTop: '8px', color: '#f59e0b' }}
-										>
-											<strong>Sequence omissions:</strong>
-											<ul>
-												{interchangeTimeline.omissions.map((om, idx) => (
-													<li key={idx}>{om}</li>
-												))}
-											</ul>
-										</div>
-									)}
-								</details>
-							)}
-						</div>
-					)}
-					{progressValue && (
-						<div className="export-progress" role="status" aria-live="polite">
-							<div className="export-progress-label">
-								<span>{isRunning ? 'Exporting…' : 'Export complete'}</span>
-								<span>{progressValue.label}</span>
+							<div className="dialog-actions">
+								<button
+									ref={cancelConfirmRef}
+									className="secondary-button"
+									type="button"
+									onClick={requestCancel}
+								>
+									{isRunning ? 'Cancel…' : 'Close'}
+								</button>
+								<button
+									className="primary-button"
+									type="button"
+									disabled={
+										isRunning ||
+										(tab === 'video'
+											? !canExport
+											: !runtime || !project || (includeMedia && offlineAssets.length > 0))
+									}
+									onClick={() => void (tab === 'video' ? runVideoExport() : runInterchangeExport())}
+								>
+									{isRunning ? 'Exporting…' : tab === 'video' ? 'Export video' : 'Export project'}
+								</button>
 							</div>
-							<progress max={100} value={progressValue.value} aria-label="Export progress" />
-							{progress && <p>{describeProgress(progress, elapsedMs)}</p>}
 						</div>
-					)}
-					{!isRunning && progressValue && progressValue.value >= 100 && (
-						<div
-							className="export-bmc-callout"
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'space-between',
-								gap: '12px',
-								padding: '10px 14px',
-								background: 'rgba(255, 221, 0, 0.08)',
-								border: '1px solid rgba(255, 221, 0, 0.25)',
-								borderRadius: '8px',
-								marginTop: '12px',
-								fontSize: '12px',
-								color: '#e2e8f0'
-							}}
-						>
-							<span>Enjoying your free watermark-free export?</span>
-							<a
-								href="https://buymeacoffee.com/beestack"
-								target="_blank"
-								rel="noopener noreferrer"
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: '6px',
-									background: '#ffdd00',
-									color: '#000000',
-									fontWeight: 700,
-									padding: '4px 10px',
-									borderRadius: '6px',
-									textDecoration: 'none',
-									whiteSpace: 'nowrap'
-								}}
-							>
-								<span>Buy me a coffee ☕</span>
-							</a>
-						</div>
-					)}
-					{errorMessage && (
-						<p ref={errorRef} className="dialog-message" role="alert" tabIndex={-1}>
-							{errorMessage}
-						</p>
-					)}
-					{notice && (
-						<p className="export-notice" role="status" aria-live="polite">
-							{notice}
-						</p>
-					)}
-					<div className="dialog-actions">
-						<button
-							ref={cancelConfirmRef}
-							className="secondary-button"
-							type="button"
-							onClick={requestCancel}
-						>
-							{isRunning ? 'Cancel…' : 'Close'}
-						</button>
-						<button
-							className="primary-button"
-							type="button"
-							disabled={
-								isRunning ||
-								(tab === 'video'
-									? !canExport
-									: !runtime || !project || (includeMedia && offlineAssets.length > 0))
-							}
-							onClick={() => void (tab === 'video' ? runVideoExport() : runInterchangeExport())}
-						>
-							{isRunning ? 'Exporting…' : tab === 'video' ? 'Export video' : 'Export project'}
-						</button>
 					</div>
+					<AdSenseBanner position="right" />
 				</div>
-			</div>
-			<AdSenseBanner position="right" />
-		</div>
-	</dialog>
+			</dialog>
 			<dialog
 				ref={cancelDialogRef}
 				className="editor-dialog export-confirm-dialog"
