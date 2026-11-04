@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } fro
 import { ACCEPTED_MEDIA_INPUT } from '../../core';
 import { useEditorStore } from '../../state/EditorProvider';
 import { openFiles } from '../../services/storage/fileAccess';
+import { AdSenseBanner } from '../ads/AdSenseBanner';
 import './import-dialog.css';
 
 type ImportSource = 'computer' | 'youtube' | 'instagram';
@@ -228,7 +229,11 @@ export default function ImportDialog() {
 	}, [instaUrl]);
 
 	const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
-		if (e.target === dialogRef.current && !isDownloading) {
+		const target = e.target as HTMLElement;
+		if (
+			!isDownloading &&
+			(target === dialogRef.current || target.classList.contains('dialog-modal-layout'))
+		) {
 			close();
 		}
 	};
@@ -542,7 +547,7 @@ export default function ImportDialog() {
 	return (
 		<dialog
 			ref={dialogRef}
-			className="editor-dialog import-dialog"
+			className="dialog-modal-frame import-dialog-frame"
 			role="dialog"
 			aria-labelledby="import-dialog-title"
 			aria-modal="true"
@@ -552,741 +557,747 @@ export default function ImportDialog() {
 				if (!isDownloading) close();
 			}}
 		>
-			<div className="dialog-content">
-				{/* Dialog Header */}
-				<div className="dialog-heading">
-					<div>
-						<p className="dialog-eyebrow">MEDIA LIBRARY</p>
-						<h2 id="import-dialog-title">Import Media</h2>
-						<p className="dialog-description">
-							Add local files from your device or download media directly from web links.
-						</p>
-					</div>
-					<button
-						type="button"
-						className="icon-button dialog-close"
-						onClick={close}
-						disabled={isDownloading}
-						aria-label="Close dialog"
-					>
-						✕
-					</button>
-				</div>
-
-				{/* Dialog Body */}
-				<div className="import-dialog-body">
-					{/* 3 Source Options Selector */}
-					<div className="import-source-tabs" role="tablist" aria-label="Media import source">
-						{/* Option 1: Import from Computer */}
-						<button
-							type="button"
-							role="tab"
-							aria-selected={source === 'computer'}
-							className={`import-source-tab ${source === 'computer' ? 'is-active' : ''}`}
-							onClick={() => {
-								setSource('computer');
-								setErrorMessage('');
-							}}
-							disabled={isDownloading}
-						>
-							<div className="import-tab-icon" aria-hidden="true">
-								<svg
-									width="18"
-									height="18"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<rect width="20" height="14" x="2" y="3" rx="2" />
-									<line x1="8" x2="16" y1="21" y2="21" />
-									<line x1="12" x2="12" y1="17" y2="21" />
-								</svg>
-							</div>
-							<span>Computer</span>
-						</button>
-
-						{/* Option 2: Download using YouTube Link */}
-						<button
-							type="button"
-							role="tab"
-							aria-selected={source === 'youtube'}
-							className={`import-source-tab ${source === 'youtube' ? 'is-active' : ''}`}
-							onClick={() => {
-								setSource('youtube');
-								setErrorMessage('');
-							}}
-							disabled={isDownloading}
-						>
-							<div className="import-tab-icon youtube-icon" aria-hidden="true">
-								<svg
-									width="18"
-									height="18"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
-									<polygon points="10 15 15 12 10 9 10 15" />
-								</svg>
-							</div>
-							<span>YouTube</span>
-						</button>
-
-						{/* Option 3: Download using Instagram Link */}
-						<button
-							type="button"
-							role="tab"
-							aria-selected={source === 'instagram'}
-							className={`import-source-tab ${source === 'instagram' ? 'is-active' : ''}`}
-							onClick={() => {
-								setSource('instagram');
-								setErrorMessage('');
-							}}
-							disabled={isDownloading}
-						>
-							<div className="import-tab-icon insta-icon" aria-hidden="true">
-								<svg
-									width="18"
-									height="18"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-									<path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-									<line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-								</svg>
-							</div>
-							<span>Instagram</span>
-						</button>
-					</div>
-
-					{/* Panel 1: Computer Import */}
-					{source === 'computer' && (
-						<div className="import-panel" role="tabpanel">
+			<div className="dialog-modal-layout">
+				<AdSenseBanner position="left" />
+				<div className="dialog-surface-card import-dialog">
+					<div className="dialog-content">
+						{/* Dialog Header */}
+						<div className="dialog-heading">
 							<div>
-								<h3 className="import-panel-title">Import from Computer</h3>
-								<p className="import-panel-desc">
-									Select local video, audio, image, LUT, or font files stored on this device.
+								<p className="dialog-eyebrow">MEDIA LIBRARY</p>
+								<h2 id="import-dialog-title">Import Media</h2>
+								<p className="dialog-description">
+									Add local files from your device or download media directly from web links.
 								</p>
 							</div>
-
-							<div
-								className="import-computer-dropzone"
-								onClick={() => void handleComputerImport()}
-								role="button"
-								tabIndex={0}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter' || e.key === ' ') {
-										e.preventDefault();
-										void handleComputerImport();
-									}
-								}}
+							<button
+								type="button"
+								className="icon-button dialog-close"
+								onClick={close}
+								disabled={isDownloading}
+								aria-label="Close dialog"
 							>
-								<div className="import-dropzone-icon" aria-hidden="true">
-									<svg
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth="1.75"
-										strokeLinecap="round"
-										strokeLinejoin="round"
-									>
-										<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-										<polyline points="17 8 12 3 7 8" />
-										<line x1="12" x2="12" y1="3" y2="15" />
-									</svg>
-								</div>
-								<div>
-									<button
-										type="button"
-										className="primary-button"
-										style={{ pointerEvents: 'none' }}
-									>
-										Choose Files from Device
-									</button>
-								</div>
-								<div className="import-formats-list">
-									<span className="import-format-chip">MP4 / MOV / WebM</span>
-									<span className="import-format-chip">WAV / MP3 / AAC</span>
-									<span className="import-format-chip">PNG / JPG / WebP</span>
-									<span className="import-format-chip">CUBE / TTF / WOFF2</span>
-								</div>
-							</div>
+								✕
+							</button>
+						</div>
 
-							{errorMessage && (
-								<div className="import-error-banner" role="alert">
-									<span aria-hidden="true">⚠️</span>
-									<span>{errorMessage}</span>
-								</div>
-							)}
+						{/* Dialog Body */}
+						<div className="import-dialog-body">
+							{/* 3 Source Options Selector */}
+							<div className="import-source-tabs" role="tablist" aria-label="Media import source">
+								{/* Option 1: Import from Computer */}
+								<button
+									type="button"
+									role="tab"
+									aria-selected={source === 'computer'}
+									className={`import-source-tab ${source === 'computer' ? 'is-active' : ''}`}
+									onClick={() => {
+										setSource('computer');
+										setErrorMessage('');
+									}}
+									disabled={isDownloading}
+								>
+									<div className="import-tab-icon" aria-hidden="true">
+										<svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<rect width="20" height="14" x="2" y="3" rx="2" />
+											<line x1="8" x2="16" y1="21" y2="21" />
+											<line x1="12" x2="12" y1="17" y2="21" />
+										</svg>
+									</div>
+									<span>Computer</span>
+								</button>
 
-							<div className="import-dialog-actions">
-								<button type="button" className="secondary-button" onClick={close}>
-									Cancel
+								{/* Option 2: Download using YouTube Link */}
+								<button
+									type="button"
+									role="tab"
+									aria-selected={source === 'youtube'}
+									className={`import-source-tab ${source === 'youtube' ? 'is-active' : ''}`}
+									onClick={() => {
+										setSource('youtube');
+										setErrorMessage('');
+									}}
+									disabled={isDownloading}
+								>
+									<div className="import-tab-icon youtube-icon" aria-hidden="true">
+										<svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+											<polygon points="10 15 15 12 10 9 10 15" />
+										</svg>
+									</div>
+									<span>YouTube</span>
+								</button>
+
+								{/* Option 3: Download using Instagram Link */}
+								<button
+									type="button"
+									role="tab"
+									aria-selected={source === 'instagram'}
+									className={`import-source-tab ${source === 'instagram' ? 'is-active' : ''}`}
+									onClick={() => {
+										setSource('instagram');
+										setErrorMessage('');
+									}}
+									disabled={isDownloading}
+								>
+									<div className="import-tab-icon insta-icon" aria-hidden="true">
+										<svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+											<path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+											<line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+										</svg>
+									</div>
+									<span>Instagram</span>
 								</button>
 							</div>
-						</div>
-					)}
 
-					{/* Panel 2: YouTube Download */}
-					{source === 'youtube' && (
-						<form
-							className="import-panel"
-							role="tabpanel"
-							onSubmit={(e) => void handleYoutubeDownload(e)}
-						>
-							<div>
-								<h3 className="import-panel-title">Download using YouTube Link</h3>
-								<p className="import-panel-desc">
-									Download videos or audio directly from YouTube, save a copy to your computer, and
-									import into your timeline.
-								</p>
-							</div>
+							{/* Panel 1: Computer Import */}
+							{source === 'computer' && (
+								<div className="import-panel" role="tabpanel">
+									<div>
+										<h3 className="import-panel-title">Import from Computer</h3>
+										<p className="import-panel-desc">
+											Select local video, audio, image, LUT, or font files stored on this device.
+										</p>
+									</div>
 
-							<div className="import-url-group">
-								<div className="import-input-wrapper">
-									<input
-										ref={urlInputRef}
-										type="url"
-										className="import-url-input"
-										placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-										value={youtubeUrl}
-										onChange={(e) => setYoutubeUrl(e.target.value)}
-										disabled={isDownloading}
-										aria-label="YouTube video URL"
-									/>
-									{youtubeUrl && !isDownloading && (
-										<button
-											type="button"
-											className="import-input-clear"
-											onClick={() => {
-												setYoutubeUrl('');
-												setVideoInfo(null);
-												setErrorMessage('');
-												urlInputRef.current?.focus();
-											}}
-											aria-label="Clear URL input"
-										>
-											✕
-										</button>
+									<div
+										className="import-computer-dropzone"
+										onClick={() => void handleComputerImport()}
+										role="button"
+										tabIndex={0}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter' || e.key === ' ') {
+												e.preventDefault();
+												void handleComputerImport();
+											}
+										}}
+									>
+										<div className="import-dropzone-icon" aria-hidden="true">
+											<svg
+												width="32"
+												height="32"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.75"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+												<polyline points="17 8 12 3 7 8" />
+												<line x1="12" x2="12" y1="3" y2="15" />
+											</svg>
+										</div>
+										<div>
+											<button
+												type="button"
+												className="primary-button"
+												style={{ pointerEvents: 'none' }}
+											>
+												Choose Files from Device
+											</button>
+										</div>
+										<div className="import-formats-list">
+											<span className="import-format-chip">MP4 / MOV / WebM</span>
+											<span className="import-format-chip">WAV / MP3 / AAC</span>
+											<span className="import-format-chip">PNG / JPG / WebP</span>
+											<span className="import-format-chip">CUBE / TTF / WOFF2</span>
+										</div>
+									</div>
+
+									{errorMessage && (
+										<div className="import-error-banner" role="alert">
+											<span aria-hidden="true">⚠️</span>
+											<span>{errorMessage}</span>
+										</div>
 									)}
-								</div>
-							</div>
 
-							{/* Video Metadata Preview */}
-							{isFetchingInfo && (
-								<div
-									className="import-progress-status"
-									style={{ fontSize: '11px', color: '#94a3b8' }}
-								>
-									<div className="import-spinner" style={{ width: 12, height: 12 }} />
-									<span>Fetching video details…</span>
+									<div className="import-dialog-actions">
+										<button type="button" className="secondary-button" onClick={close}>
+											Cancel
+										</button>
+									</div>
 								</div>
 							)}
 
-							{videoInfo && !isDownloading && (
-								<div className="import-video-preview">
-									{videoInfo.thumbnail && (
-										<div className="import-preview-thumb-wrapper">
-											<img
-												src={videoInfo.thumbnail}
-												alt=""
-												className="import-preview-thumb"
-												loading="lazy"
+							{/* Panel 2: YouTube Download */}
+							{source === 'youtube' && (
+								<form
+									className="import-panel"
+									role="tabpanel"
+									onSubmit={(e) => void handleYoutubeDownload(e)}
+								>
+									<div>
+										<h3 className="import-panel-title">Download using YouTube Link</h3>
+										<p className="import-panel-desc">
+											Download videos or audio directly from YouTube, save a copy to your computer,
+											and import into your timeline.
+										</p>
+									</div>
+
+									<div className="import-url-group">
+										<div className="import-input-wrapper">
+											<input
+												ref={urlInputRef}
+												type="url"
+												className="import-url-input"
+												placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+												value={youtubeUrl}
+												onChange={(e) => setYoutubeUrl(e.target.value)}
+												disabled={isDownloading}
+												aria-label="YouTube video URL"
 											/>
-											{videoInfo.duration > 0 && (
-												<span className="import-preview-duration">
-													{formatDuration(videoInfo.duration)}
-												</span>
+											{youtubeUrl && !isDownloading && (
+												<button
+													type="button"
+													className="import-input-clear"
+													onClick={() => {
+														setYoutubeUrl('');
+														setVideoInfo(null);
+														setErrorMessage('');
+														urlInputRef.current?.focus();
+													}}
+													aria-label="Clear URL input"
+												>
+													✕
+												</button>
 											)}
 										</div>
-									)}
-									<div className="import-preview-details">
-										<p className="import-preview-title" title={videoInfo.title}>
-											{videoInfo.title}
-										</p>
-										{videoInfo.uploader && (
-											<p className="import-preview-author">{videoInfo.uploader}</p>
-										)}
 									</div>
-								</div>
-							)}
 
-							{/* Download Options: Audio / Video & Quality */}
-							<div className="import-options-grid">
-								{/* Option: Format Mode (Video + Audio / Audio Only / Video Only) */}
-								<div className="import-option-field">
-									<span className="import-field-label">Media Type</span>
-									<div
-										className="import-format-segmented"
-										role="radiogroup"
-										aria-label="Media format"
-									>
-										<button
-											type="button"
-											role="radio"
-											aria-checked={formatType === 'video'}
-											className={`import-format-btn ${formatType === 'video' ? 'is-active' : ''}`}
-											onClick={() => setFormatType('video')}
-											disabled={isDownloading}
-										>
-											Video + Audio
-										</button>
-										<button
-											type="button"
-											role="radio"
-											aria-checked={formatType === 'audio'}
-											className={`import-format-btn ${formatType === 'audio' ? 'is-active' : ''}`}
-											onClick={() => setFormatType('audio')}
-											disabled={isDownloading}
-										>
-											Audio Only
-										</button>
-										<button
-											type="button"
-											role="radio"
-											aria-checked={formatType === 'video_only'}
-											className={`import-format-btn ${formatType === 'video_only' ? 'is-active' : ''}`}
-											onClick={() => setFormatType('video_only')}
-											disabled={isDownloading}
-										>
-											Video Only
-										</button>
-									</div>
-								</div>
-
-								{/* Option: Quality Selection */}
-								<div className="import-option-field">
-									<span className="import-field-label">Quality</span>
-									{formatType === 'audio' ? (
-										<select
-											className="import-select"
-											disabled={isDownloading}
-											aria-label="Audio quality"
-											value="320"
-											onChange={() => {}}
-										>
-											<option value="320">MP3 · 320 kbps (Best Quality)</option>
-										</select>
-									) : (
-										<select
-											className="import-select"
-											value={quality}
-											onChange={(e) => setQuality(e.target.value as VideoQuality)}
-											disabled={isDownloading}
-											aria-label="Video quality"
-										>
-											<option value="best">Best Available (Highest)</option>
-											<option value="1080">1080p (Full HD)</option>
-											<option value="720">720p (HD)</option>
-											<option value="480">480p (Standard)</option>
-											<option value="360">360p</option>
-										</select>
-									)}
-								</div>
-							</div>
-
-							{/* 1-Click Download & Device Backup Toggle */}
-							<label className="import-device-backup-card">
-								<input
-									type="checkbox"
-									className="import-device-backup-checkbox"
-									checked={saveToComputer}
-									onChange={(e) => setSaveToComputer(e.target.checked)}
-									disabled={isDownloading}
-								/>
-								<div className="import-device-backup-text">
-									<span className="import-device-backup-title">
-										1-Click Download: Also save copy to Computer (Downloads)
-									</span>
-									<span className="import-device-backup-sub">
-										Keeps the video file safely on your hard drive so it won't be lost when opening
-										this project on other devices.
-									</span>
-								</div>
-							</label>
-
-							{/* Active Download Progress */}
-							{isDownloading && (
-								<div
-									className="import-progress-box"
-									role="progressbar"
-									aria-valuenow={downloadProgress ?? undefined}
-									aria-valuemin={0}
-									aria-valuemax={100}
-								>
-									<div className="import-progress-header">
-										<div className="import-progress-status">
-											<div className="import-spinner" />
-											<span>{downloadProgressText}</span>
-										</div>
-										{downloadProgress !== null && (
-											<span className="import-progress-percent">{downloadProgress}%</span>
-										)}
-									</div>
-									<div className="import-progress-bar">
-										{downloadProgress !== null ? (
-											<div
-												className="import-progress-bar-fill"
-												style={{ width: `${downloadProgress}%` }}
-											/>
-										) : (
-											<div className="import-progress-bar-inner" />
-										)}
-									</div>
-								</div>
-							)}
-
-							{/* Error Banner */}
-							{errorMessage && (
-								<div className="import-error-banner" role="alert">
-									<span aria-hidden="true">⚠️</span>
-									<span>{errorMessage}</span>
-								</div>
-							)}
-
-							{/* Success Banner */}
-							{successMessage && (
-								<div className="import-success-banner" role="status">
-									<span aria-hidden="true">✓</span>
-									<span>{successMessage}</span>
-								</div>
-							)}
-
-							<div className="import-dialog-actions">
-								{isDownloading ? (
-									<button type="button" className="secondary-button" onClick={cancelDownload}>
-										Cancel Download
-									</button>
-								) : (
-									<>
-										<button type="button" className="secondary-button" onClick={close}>
-											Cancel
-										</button>
-										<button
-											type="button"
-											className="secondary-button"
-											disabled={!youtubeUrl.trim()}
-											onClick={(e) => void handleYoutubeDownload(e, true)}
-											title="Download file to computer only"
-										>
-											Save to Computer Only
-										</button>
-										<button
-											type="submit"
-											className="primary-button"
-											disabled={!youtubeUrl.trim() || !project}
-											title="1-Click download and import into project"
-										>
-											Download & Import (1-Click)
-										</button>
-									</>
-								)}
-							</div>
-						</form>
-					)}
-
-					{/* Panel 3: Instagram Download (Reels & Posts) */}
-					{source === 'instagram' && (
-						<form
-							className="import-panel"
-							role="tabpanel"
-							onSubmit={(e) => void handleInstagramDownload(e)}
-						>
-							<div>
-								<h3 className="import-panel-title">Download using Insta Link</h3>
-								<p className="import-panel-desc">
-									Download Instagram Reels or Posts directly, save a copy to your computer, and
-									import into your timeline.
-								</p>
-							</div>
-
-							<div className="import-url-group">
-								<div className="import-input-wrapper">
-									<input
-										ref={instaUrlInputRef}
-										type="url"
-										className="import-url-input"
-										placeholder="https://www.instagram.com/reel/... or https://www.instagram.com/p/..."
-										value={instaUrl}
-										onChange={(e) => setInstaUrl(e.target.value)}
-										disabled={isDownloading}
-										aria-label="Instagram Reel or Post URL"
-									/>
-									{instaUrl && !isDownloading && (
-										<button
-											type="button"
-											className="import-input-clear"
-											onClick={() => {
-												setInstaUrl('');
-												setInstaInfo(null);
-												setErrorMessage('');
-												instaUrlInputRef.current?.focus();
-											}}
-											aria-label="Clear URL input"
-										>
-											✕
-										</button>
-									)}
-								</div>
-							</div>
-
-							{/* Video / Post Metadata Preview */}
-							{isFetchingInstaInfo && (
-								<div
-									className="import-progress-status"
-									style={{ fontSize: '11px', color: '#94a3b8' }}
-								>
-									<div className="import-spinner" style={{ width: 12, height: 12 }} />
-									<span>Fetching Instagram details…</span>
-								</div>
-							)}
-
-							{instaInfo && !isDownloading && (
-								<div className="import-video-preview">
-									{instaInfo.thumbnail && (
-										<div className="import-preview-thumb-wrapper">
-											<img
-												src={instaInfo.thumbnail}
-												alt=""
-												className="import-preview-thumb"
-												loading="lazy"
-											/>
-											{instaInfo.duration > 0 ? (
-												<span className="import-preview-duration">
-													{formatDuration(instaInfo.duration)}
-												</span>
-											) : instaInfo.mediaType === 'image' ? (
-												<span className="import-photo-badge">PHOTO</span>
-											) : null}
-										</div>
-									)}
-									<div className="import-preview-details">
-										<p className="import-preview-title" title={instaInfo.title}>
-											{instaInfo.title}
-										</p>
-										{instaInfo.uploader && (
-											<p className="import-preview-author">@{instaInfo.uploader}</p>
-										)}
-									</div>
-								</div>
-							)}
-
-							{/* Download Options: Audio / Video & Quality */}
-							{instaInfo?.mediaType === 'image' ? (
-								<div className="import-options-grid">
-									<div className="import-option-field">
-										<span className="import-field-label">Media Type</span>
-										<div className="import-format-segmented">
-											<button
-												type="button"
-												className="import-format-btn is-active"
-												disabled
-												style={{ cursor: 'default' }}
-											>
-												Photo / Image (High Resolution)
-											</button>
-										</div>
-									</div>
-									<div className="import-option-field">
-										<span className="import-field-label">Format</span>
-										<select
-											className="import-select"
-											disabled
-											aria-label="Image format"
-											value="jpeg"
-										>
-											<option value="jpeg">Original High Quality JPEG</option>
-										</select>
-									</div>
-								</div>
-							) : (
-								<div className="import-options-grid">
-									{/* Option: Format Mode */}
-									<div className="import-option-field">
-										<span className="import-field-label">Media Type</span>
+									{/* Video Metadata Preview */}
+									{isFetchingInfo && (
 										<div
-											className="import-format-segmented"
-											role="radiogroup"
-											aria-label="Instagram media format"
+											className="import-progress-status"
+											style={{ fontSize: '11px', color: '#94a3b8' }}
 										>
-											<button
-												type="button"
-												role="radio"
-												aria-checked={instaFormatType === 'video'}
-												className={`import-format-btn ${instaFormatType === 'video' ? 'is-active' : ''}`}
-												onClick={() => setInstaFormatType('video')}
-												disabled={isDownloading}
-											>
-												Video + Audio
-											</button>
-											<button
-												type="button"
-												role="radio"
-												aria-checked={instaFormatType === 'audio'}
-												className={`import-format-btn ${instaFormatType === 'audio' ? 'is-active' : ''}`}
-												onClick={() => setInstaFormatType('audio')}
-												disabled={isDownloading}
-											>
-												Audio Only
-											</button>
-											<button
-												type="button"
-												role="radio"
-												aria-checked={instaFormatType === 'video_only'}
-												className={`import-format-btn ${instaFormatType === 'video_only' ? 'is-active' : ''}`}
-												onClick={() => setInstaFormatType('video_only')}
-												disabled={isDownloading}
-											>
-												Video Only
-											</button>
+											<div className="import-spinner" style={{ width: 12, height: 12 }} />
+											<span>Fetching video details…</span>
 										</div>
-									</div>
+									)}
 
-									{/* Option: Quality Selection */}
-									<div className="import-option-field">
-										<span className="import-field-label">Quality</span>
-										{instaFormatType === 'audio' ? (
-											<select
-												className="import-select"
-												disabled={isDownloading}
-												aria-label="Audio quality"
-												value="320"
-												onChange={() => {}}
-											>
-												<option value="320">MP3 · 320 kbps (Best Quality)</option>
-											</select>
-										) : (
-											<select
-												className="import-select"
-												value={instaQuality}
-												onChange={(e) => setInstaQuality(e.target.value as VideoQuality)}
-												disabled={isDownloading}
-												aria-label="Video quality"
-											>
-												<option value="best">Best Available (Highest)</option>
-												<option value="1080">1080p (Full HD)</option>
-												<option value="720">720p (HD)</option>
-												<option value="480">480p (Standard)</option>
-												<option value="360">360p</option>
-											</select>
-										)}
-									</div>
-								</div>
-							)}
-
-							{/* 1-Click Download & Device Backup Toggle */}
-							<label className="import-device-backup-card">
-								<input
-									type="checkbox"
-									className="import-device-backup-checkbox"
-									checked={saveInstaToComputer}
-									onChange={(e) => setSaveInstaToComputer(e.target.checked)}
-									disabled={isDownloading}
-								/>
-								<div className="import-device-backup-text">
-									<span className="import-device-backup-title">
-										1-Click Download: Also save copy to Computer (Downloads)
-									</span>
-									<span className="import-device-backup-sub">
-										Keeps the video or photo safely on your hard drive so it won't be lost when
-										opening this project on other devices.
-									</span>
-								</div>
-							</label>
-
-							{/* Active Download Progress */}
-							{isDownloading && (
-								<div
-									className="import-progress-box"
-									role="progressbar"
-									aria-valuenow={downloadProgress ?? undefined}
-									aria-valuemin={0}
-									aria-valuemax={100}
-								>
-									<div className="import-progress-header">
-										<div className="import-progress-status">
-											<div className="import-spinner" />
-											<span>{downloadProgressText}</span>
+									{videoInfo && !isDownloading && (
+										<div className="import-video-preview">
+											{videoInfo.thumbnail && (
+												<div className="import-preview-thumb-wrapper">
+													<img
+														src={videoInfo.thumbnail}
+														alt=""
+														className="import-preview-thumb"
+														loading="lazy"
+													/>
+													{videoInfo.duration > 0 && (
+														<span className="import-preview-duration">
+															{formatDuration(videoInfo.duration)}
+														</span>
+													)}
+												</div>
+											)}
+											<div className="import-preview-details">
+												<p className="import-preview-title" title={videoInfo.title}>
+													{videoInfo.title}
+												</p>
+												{videoInfo.uploader && (
+													<p className="import-preview-author">{videoInfo.uploader}</p>
+												)}
+											</div>
 										</div>
-										{downloadProgress !== null && (
-											<span className="import-progress-percent">{downloadProgress}%</span>
-										)}
-									</div>
-									<div className="import-progress-bar">
-										{downloadProgress !== null ? (
+									)}
+
+									{/* Download Options: Audio / Video & Quality */}
+									<div className="import-options-grid">
+										{/* Option: Format Mode (Video + Audio / Audio Only / Video Only) */}
+										<div className="import-option-field">
+											<span className="import-field-label">Media Type</span>
 											<div
-												className="import-progress-bar-fill"
-												style={{ width: `${downloadProgress}%` }}
-											/>
+												className="import-format-segmented"
+												role="radiogroup"
+												aria-label="Media format"
+											>
+												<button
+													type="button"
+													role="radio"
+													aria-checked={formatType === 'video'}
+													className={`import-format-btn ${formatType === 'video' ? 'is-active' : ''}`}
+													onClick={() => setFormatType('video')}
+													disabled={isDownloading}
+												>
+													Video + Audio
+												</button>
+												<button
+													type="button"
+													role="radio"
+													aria-checked={formatType === 'audio'}
+													className={`import-format-btn ${formatType === 'audio' ? 'is-active' : ''}`}
+													onClick={() => setFormatType('audio')}
+													disabled={isDownloading}
+												>
+													Audio Only
+												</button>
+												<button
+													type="button"
+													role="radio"
+													aria-checked={formatType === 'video_only'}
+													className={`import-format-btn ${formatType === 'video_only' ? 'is-active' : ''}`}
+													onClick={() => setFormatType('video_only')}
+													disabled={isDownloading}
+												>
+													Video Only
+												</button>
+											</div>
+										</div>
+
+										{/* Option: Quality Selection */}
+										<div className="import-option-field">
+											<span className="import-field-label">Quality</span>
+											{formatType === 'audio' ? (
+												<select
+													className="import-select"
+													disabled={isDownloading}
+													aria-label="Audio quality"
+													value="320"
+													onChange={() => {}}
+												>
+													<option value="320">MP3 · 320 kbps (Best Quality)</option>
+												</select>
+											) : (
+												<select
+													className="import-select"
+													value={quality}
+													onChange={(e) => setQuality(e.target.value as VideoQuality)}
+													disabled={isDownloading}
+													aria-label="Video quality"
+												>
+													<option value="best">Best Available (Highest)</option>
+													<option value="1080">1080p (Full HD)</option>
+													<option value="720">720p (HD)</option>
+													<option value="480">480p (Standard)</option>
+													<option value="360">360p</option>
+												</select>
+											)}
+										</div>
+									</div>
+
+									{/* 1-Click Download & Device Backup Toggle */}
+									<label className="import-device-backup-card">
+										<input
+											type="checkbox"
+											className="import-device-backup-checkbox"
+											checked={saveToComputer}
+											onChange={(e) => setSaveToComputer(e.target.checked)}
+											disabled={isDownloading}
+										/>
+										<div className="import-device-backup-text">
+											<span className="import-device-backup-title">
+												1-Click Download: Also save copy to Computer (Downloads)
+											</span>
+											<span className="import-device-backup-sub">
+												Keeps the video file safely on your hard drive so it won't be lost when
+												opening this project on other devices.
+											</span>
+										</div>
+									</label>
+
+									{/* Active Download Progress */}
+									{isDownloading && (
+										<div
+											className="import-progress-box"
+											role="progressbar"
+											aria-valuenow={downloadProgress ?? undefined}
+											aria-valuemin={0}
+											aria-valuemax={100}
+										>
+											<div className="import-progress-header">
+												<div className="import-progress-status">
+													<div className="import-spinner" />
+													<span>{downloadProgressText}</span>
+												</div>
+												{downloadProgress !== null && (
+													<span className="import-progress-percent">{downloadProgress}%</span>
+												)}
+											</div>
+											<div className="import-progress-bar">
+												{downloadProgress !== null ? (
+													<div
+														className="import-progress-bar-fill"
+														style={{ width: `${downloadProgress}%` }}
+													/>
+												) : (
+													<div className="import-progress-bar-inner" />
+												)}
+											</div>
+										</div>
+									)}
+
+									{/* Error Banner */}
+									{errorMessage && (
+										<div className="import-error-banner" role="alert">
+											<span aria-hidden="true">⚠️</span>
+											<span>{errorMessage}</span>
+										</div>
+									)}
+
+									{/* Success Banner */}
+									{successMessage && (
+										<div className="import-success-banner" role="status">
+											<span aria-hidden="true">✓</span>
+											<span>{successMessage}</span>
+										</div>
+									)}
+
+									<div className="import-dialog-actions">
+										{isDownloading ? (
+											<button type="button" className="secondary-button" onClick={cancelDownload}>
+												Cancel Download
+											</button>
 										) : (
-											<div className="import-progress-bar-inner" />
+											<>
+												<button type="button" className="secondary-button" onClick={close}>
+													Cancel
+												</button>
+												<button
+													type="button"
+													className="secondary-button"
+													disabled={!youtubeUrl.trim()}
+													onClick={(e) => void handleYoutubeDownload(e, true)}
+													title="Download file to computer only"
+												>
+													Save to Computer Only
+												</button>
+												<button
+													type="submit"
+													className="primary-button"
+													disabled={!youtubeUrl.trim() || !project}
+													title="1-Click download and import into project"
+												>
+													Download & Import (1-Click)
+												</button>
+											</>
 										)}
 									</div>
-								</div>
+								</form>
 							)}
 
-							{/* Error Banner */}
-							{errorMessage && (
-								<div className="import-error-banner" role="alert">
-									<span aria-hidden="true">⚠️</span>
-									<span>{errorMessage}</span>
-								</div>
-							)}
+							{/* Panel 3: Instagram Download (Reels & Posts) */}
+							{source === 'instagram' && (
+								<form
+									className="import-panel"
+									role="tabpanel"
+									onSubmit={(e) => void handleInstagramDownload(e)}
+								>
+									<div>
+										<h3 className="import-panel-title">Download using Insta Link</h3>
+										<p className="import-panel-desc">
+											Download Instagram Reels or Posts directly, save a copy to your computer, and
+											import into your timeline.
+										</p>
+									</div>
 
-							{/* Success Banner */}
-							{successMessage && (
-								<div className="import-success-banner" role="status">
-									<span aria-hidden="true">✓</span>
-									<span>{successMessage}</span>
-								</div>
-							)}
+									<div className="import-url-group">
+										<div className="import-input-wrapper">
+											<input
+												ref={instaUrlInputRef}
+												type="url"
+												className="import-url-input"
+												placeholder="https://www.instagram.com/reel/... or https://www.instagram.com/p/..."
+												value={instaUrl}
+												onChange={(e) => setInstaUrl(e.target.value)}
+												disabled={isDownloading}
+												aria-label="Instagram Reel or Post URL"
+											/>
+											{instaUrl && !isDownloading && (
+												<button
+													type="button"
+													className="import-input-clear"
+													onClick={() => {
+														setInstaUrl('');
+														setInstaInfo(null);
+														setErrorMessage('');
+														instaUrlInputRef.current?.focus();
+													}}
+													aria-label="Clear URL input"
+												>
+													✕
+												</button>
+											)}
+										</div>
+									</div>
 
-							<div className="import-dialog-actions">
-								{isDownloading ? (
-									<button type="button" className="secondary-button" onClick={cancelDownload}>
-										Cancel Download
-									</button>
-								) : (
-									<>
-										<button type="button" className="secondary-button" onClick={close}>
-											Cancel
-										</button>
-										<button
-											type="button"
-											className="secondary-button"
-											disabled={!instaUrl.trim()}
-											onClick={(e) => void handleInstagramDownload(e, true)}
-											title="Download file to computer only"
+									{/* Video / Post Metadata Preview */}
+									{isFetchingInstaInfo && (
+										<div
+											className="import-progress-status"
+											style={{ fontSize: '11px', color: '#94a3b8' }}
 										>
-											Save to Computer Only
-										</button>
-										<button
-											type="submit"
-											className="primary-button"
-											disabled={!instaUrl.trim() || !project}
-											title="1-Click download and import into project"
+											<div className="import-spinner" style={{ width: 12, height: 12 }} />
+											<span>Fetching Instagram details…</span>
+										</div>
+									)}
+
+									{instaInfo && !isDownloading && (
+										<div className="import-video-preview">
+											{instaInfo.thumbnail && (
+												<div className="import-preview-thumb-wrapper">
+													<img
+														src={instaInfo.thumbnail}
+														alt=""
+														className="import-preview-thumb"
+														loading="lazy"
+													/>
+													{instaInfo.duration > 0 ? (
+														<span className="import-preview-duration">
+															{formatDuration(instaInfo.duration)}
+														</span>
+													) : instaInfo.mediaType === 'image' ? (
+														<span className="import-photo-badge">PHOTO</span>
+													) : null}
+												</div>
+											)}
+											<div className="import-preview-details">
+												<p className="import-preview-title" title={instaInfo.title}>
+													{instaInfo.title}
+												</p>
+												{instaInfo.uploader && (
+													<p className="import-preview-author">@{instaInfo.uploader}</p>
+												)}
+											</div>
+										</div>
+									)}
+
+									{/* Download Options: Audio / Video & Quality */}
+									{instaInfo?.mediaType === 'image' ? (
+										<div className="import-options-grid">
+											<div className="import-option-field">
+												<span className="import-field-label">Media Type</span>
+												<div className="import-format-segmented">
+													<button
+														type="button"
+														className="import-format-btn is-active"
+														disabled
+														style={{ cursor: 'default' }}
+													>
+														Photo / Image (High Resolution)
+													</button>
+												</div>
+											</div>
+											<div className="import-option-field">
+												<span className="import-field-label">Format</span>
+												<select
+													className="import-select"
+													disabled
+													aria-label="Image format"
+													value="jpeg"
+												>
+													<option value="jpeg">Original High Quality JPEG</option>
+												</select>
+											</div>
+										</div>
+									) : (
+										<div className="import-options-grid">
+											{/* Option: Format Mode */}
+											<div className="import-option-field">
+												<span className="import-field-label">Media Type</span>
+												<div
+													className="import-format-segmented"
+													role="radiogroup"
+													aria-label="Instagram media format"
+												>
+													<button
+														type="button"
+														role="radio"
+														aria-checked={instaFormatType === 'video'}
+														className={`import-format-btn ${instaFormatType === 'video' ? 'is-active' : ''}`}
+														onClick={() => setInstaFormatType('video')}
+														disabled={isDownloading}
+													>
+														Video + Audio
+													</button>
+													<button
+														type="button"
+														role="radio"
+														aria-checked={instaFormatType === 'audio'}
+														className={`import-format-btn ${instaFormatType === 'audio' ? 'is-active' : ''}`}
+														onClick={() => setInstaFormatType('audio')}
+														disabled={isDownloading}
+													>
+														Audio Only
+													</button>
+													<button
+														type="button"
+														role="radio"
+														aria-checked={instaFormatType === 'video_only'}
+														className={`import-format-btn ${instaFormatType === 'video_only' ? 'is-active' : ''}`}
+														onClick={() => setInstaFormatType('video_only')}
+														disabled={isDownloading}
+													>
+														Video Only
+													</button>
+												</div>
+											</div>
+
+											{/* Option: Quality Selection */}
+											<div className="import-option-field">
+												<span className="import-field-label">Quality</span>
+												{instaFormatType === 'audio' ? (
+													<select
+														className="import-select"
+														disabled={isDownloading}
+														aria-label="Audio quality"
+														value="320"
+														onChange={() => {}}
+													>
+														<option value="320">MP3 · 320 kbps (Best Quality)</option>
+													</select>
+												) : (
+													<select
+														className="import-select"
+														value={instaQuality}
+														onChange={(e) => setInstaQuality(e.target.value as VideoQuality)}
+														disabled={isDownloading}
+														aria-label="Video quality"
+													>
+														<option value="best">Best Available (Highest)</option>
+														<option value="1080">1080p (Full HD)</option>
+														<option value="720">720p (HD)</option>
+														<option value="480">480p (Standard)</option>
+														<option value="360">360p</option>
+													</select>
+												)}
+											</div>
+										</div>
+									)}
+
+									{/* 1-Click Download & Device Backup Toggle */}
+									<label className="import-device-backup-card">
+										<input
+											type="checkbox"
+											className="import-device-backup-checkbox"
+											checked={saveInstaToComputer}
+											onChange={(e) => setSaveInstaToComputer(e.target.checked)}
+											disabled={isDownloading}
+										/>
+										<div className="import-device-backup-text">
+											<span className="import-device-backup-title">
+												1-Click Download: Also save copy to Computer (Downloads)
+											</span>
+											<span className="import-device-backup-sub">
+												Keeps the video or photo safely on your hard drive so it won't be lost when
+												opening this project on other devices.
+											</span>
+										</div>
+									</label>
+
+									{/* Active Download Progress */}
+									{isDownloading && (
+										<div
+											className="import-progress-box"
+											role="progressbar"
+											aria-valuenow={downloadProgress ?? undefined}
+											aria-valuemin={0}
+											aria-valuemax={100}
 										>
-											Download & Import (1-Click)
-										</button>
-									</>
-								)}
-							</div>
-						</form>
-					)}
+											<div className="import-progress-header">
+												<div className="import-progress-status">
+													<div className="import-spinner" />
+													<span>{downloadProgressText}</span>
+												</div>
+												{downloadProgress !== null && (
+													<span className="import-progress-percent">{downloadProgress}%</span>
+												)}
+											</div>
+											<div className="import-progress-bar">
+												{downloadProgress !== null ? (
+													<div
+														className="import-progress-bar-fill"
+														style={{ width: `${downloadProgress}%` }}
+													/>
+												) : (
+													<div className="import-progress-bar-inner" />
+												)}
+											</div>
+										</div>
+									)}
+
+									{/* Error Banner */}
+									{errorMessage && (
+										<div className="import-error-banner" role="alert">
+											<span aria-hidden="true">⚠️</span>
+											<span>{errorMessage}</span>
+										</div>
+									)}
+
+									{/* Success Banner */}
+									{successMessage && (
+										<div className="import-success-banner" role="status">
+											<span aria-hidden="true">✓</span>
+											<span>{successMessage}</span>
+										</div>
+									)}
+
+									<div className="import-dialog-actions">
+										{isDownloading ? (
+											<button type="button" className="secondary-button" onClick={cancelDownload}>
+												Cancel Download
+											</button>
+										) : (
+											<>
+												<button type="button" className="secondary-button" onClick={close}>
+													Cancel
+												</button>
+												<button
+													type="button"
+													className="secondary-button"
+													disabled={!instaUrl.trim()}
+													onClick={(e) => void handleInstagramDownload(e, true)}
+													title="Download file to computer only"
+												>
+													Save to Computer Only
+												</button>
+												<button
+													type="submit"
+													className="primary-button"
+													disabled={!instaUrl.trim() || !project}
+													title="1-Click download and import into project"
+												>
+													Download & Import (1-Click)
+												</button>
+											</>
+										)}
+									</div>
+								</form>
+							)}
+						</div>
+					</div>
 				</div>
+				<AdSenseBanner position="right" />
 			</div>
 		</dialog>
 	);
