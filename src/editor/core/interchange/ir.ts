@@ -89,6 +89,7 @@ export interface InterchangeAsset {
 	hasAudio: boolean;
 	sampleRate?: number;
 	mimeType?: string;
+	size?: number;
 }
 
 export interface InterchangeTimeline {
@@ -296,7 +297,8 @@ export function projectToInterchange(
 			height: asset.height,
 			hasAudio: asset.hasAudio ?? false,
 			sampleRate: 48000,
-			mimeType: asset.mimeType
+			mimeType: asset.mimeType,
+			size: asset.size
 		});
 	}
 

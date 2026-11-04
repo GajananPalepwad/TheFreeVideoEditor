@@ -22,6 +22,7 @@ export interface MissingAssetInfo {
 	hasAudio: boolean;
 	width?: number;
 	height?: number;
+	size?: number;
 }
 
 export interface RelinkMatchCandidate {
@@ -63,7 +64,8 @@ export function identifyMissingAssets(
 				durationFrames: asset.durationFrames,
 				hasAudio: asset.hasAudio,
 				width: asset.width,
-				height: asset.height
+				height: asset.height,
+				size: asset.size
 			});
 		}
 	}
@@ -73,6 +75,7 @@ export function identifyMissingAssets(
 
 /**
  * Finds best matching file for a missing asset from a list of candidate user files.
+ * Matches by exact filename and size, stem and size, container format variation, or partial name.
  */
 export function matchCandidateFile(
 	missing: MissingAssetInfo,
@@ -80,34 +83,149 @@ export function matchCandidateFile(
 ): RelinkMatchCandidate | null {
 	const targetBase = missing.name.toLowerCase();
 	const targetStem = targetBase.replace(/\.[^.]+$/, '');
+	const expectedSize = missing.size && missing.size > 0 ? missing.size : null;
 
 	let bestMatch: RelinkMatchCandidate | null = null;
 
 	for (const file of candidates) {
 		const fileName = file.name.toLowerCase();
 		const fileStem = fileName.replace(/\.[^.]+$/, '');
+		const sizeMatches = expectedSize !== null && file.size === expectedSize;
 
-		// 1. Exact match
+		let score = 0;
+		let reason = '';
+
+		// 1. Exact filename match
 		if (fileName === targetBase) {
-			return { file, score: 1.0, reason: 'Exact filename match' };
-		}
-
-		// 2. Stem match with different extension
-		if (fileStem === targetStem) {
-			if (!bestMatch || bestMatch.score < 0.9) {
-				bestMatch = { file, score: 0.9, reason: 'Name match (different container format)' };
+			if (sizeMatches) {
+				return { file, score: 1.0, reason: 'Exact filename and size match' };
+			}
+			score = expectedSize !== null ? 0.95 : 1.0;
+			reason = 'Exact filename match';
+		} else if (fileStem === targetStem) {
+			// 2. Stem match with different container format / extension
+			if (sizeMatches) {
+				score = 0.92;
+				reason = 'Name and file size match (different container)';
+			} else {
+				score = 0.9;
+				reason = 'Name match (different container format)';
+			}
+		} else if (fileName.includes(targetStem) || targetStem.includes(fileStem)) {
+			// 3. Fuzzy substring match
+			if (sizeMatches) {
+				score = 0.85;
+				reason = 'Partial name and file size match';
+			} else {
+				score = 0.7;
+				reason = 'Partial filename match';
 			}
 		}
 
-		// 3. Fuzzy substring match
-		if (fileName.includes(targetStem) || targetStem.includes(fileStem)) {
-			if (!bestMatch || bestMatch.score < 0.7) {
-				bestMatch = { file, score: 0.7, reason: 'Partial filename match' };
+		if (score > 0 && (!bestMatch || score > bestMatch.score)) {
+			bestMatch = { file, score, reason };
+			// If we got a perfect score (1.0), we can exit early
+			if (score >= 1.0) {
+				return bestMatch;
 			}
 		}
 	}
 
 	return bestMatch;
+}
+
+/**
+ * Recursively crawls a FileSystemDirectoryHandle and collects all File objects.
+ */
+export async function crawlDirectory(dirHandle: FileSystemDirectoryHandle): Promise<File[]> {
+	const files: File[] = [];
+
+	async function scan(handle: FileSystemDirectoryHandle): Promise<void> {
+		const iterator = (handle as unknown as { values(): AsyncIterable<FileSystemHandle> }).values();
+		for await (const entry of iterator) {
+			if (entry.kind === 'file') {
+				try {
+					const file = await (entry as FileSystemFileHandle).getFile();
+					files.push(file);
+				} catch {
+					// Ignore unreadable or locked files
+				}
+			} else if (entry.kind === 'directory') {
+				try {
+					await scan(entry as FileSystemDirectoryHandle);
+				} catch {
+					// Ignore inaccessible subdirectories
+				}
+			}
+		}
+	}
+
+	await scan(dirHandle);
+	return files;
+}
+
+/**
+ * Recursively extracts File objects from a DataTransfer object,
+ * supporting dropped directories via WebKit FileSystemEntry API.
+ */
+export async function crawlDataTransferEntries(dataTransfer: DataTransfer): Promise<File[]> {
+	const files: File[] = [];
+	const items = dataTransfer.items;
+
+	if (items && items.length > 0) {
+		const entries: FileSystemEntry[] = [];
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			if (item?.webkitGetAsEntry) {
+				const entry = item.webkitGetAsEntry();
+				if (entry) entries.push(entry);
+			}
+		}
+
+		if (entries.length > 0) {
+			async function scanEntry(entry: FileSystemEntry): Promise<void> {
+				if (entry.isFile) {
+					await new Promise<void>((resolve) => {
+						(entry as FileSystemFileEntry).file(
+							(file) => {
+								files.push(file);
+								resolve();
+							},
+							() => resolve()
+						);
+					});
+				} else if (entry.isDirectory) {
+					const reader = (entry as FileSystemDirectoryEntry).createReader();
+					const readBatch = (): Promise<FileSystemEntry[]> =>
+						new Promise((resolve) => {
+							reader.readEntries(
+								(res) => resolve(res),
+								() => resolve([])
+							);
+						});
+
+					let batch: FileSystemEntry[];
+					do {
+						batch = await readBatch();
+						for (const child of batch) {
+							await scanEntry(child);
+						}
+					} while (batch.length > 0);
+				}
+			}
+
+			for (const entry of entries) {
+				await scanEntry(entry);
+			}
+			return files;
+		}
+	}
+
+	if (dataTransfer.files && dataTransfer.files.length > 0) {
+		return Array.from(dataTransfer.files);
+	}
+
+	return files;
 }
 
 /**

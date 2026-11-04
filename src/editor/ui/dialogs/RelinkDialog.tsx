@@ -5,7 +5,11 @@ import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { InterchangeTimeline } from '../../core/interchange/ir';
 import type { MissingAssetInfo } from '../../services/interop/import/relink';
-import { matchCandidateFile } from '../../services/interop/import/relink';
+import {
+	matchCandidateFile,
+	crawlDirectory,
+	crawlDataTransferEntries
+} from '../../services/interop/import/relink';
 import type { AssetId } from '../../core/types';
 
 interface RelinkDialogProps {
@@ -25,36 +29,100 @@ export default function RelinkDialog({
 	onImportOffline,
 	onClose
 }: RelinkDialogProps) {
-	const [matches, setMatches] = useState<Map<AssetId, { file: File; reason: string }>>(new Map());
+	const [matches, setMatches] = useState<
+		Map<AssetId, { file: File; reason: string; score?: number }>
+	>(new Map());
 	const [isDragging, setIsDragging] = useState(false);
+	const [isSearching, setIsSearching] = useState(false);
+	const [searchStatus, setSearchStatus] = useState('');
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const folderInputRef = useRef<HTMLInputElement>(null);
 
 	if (!isOpen) return null;
 
 	const handleFilesScanned = (candidateFiles: File[]) => {
+		if (candidateFiles.length === 0) return;
 		const newMatches = new Map(matches);
+		let newlyMatchedCount = 0;
+
 		for (const missing of missingAssets) {
-			if (!newMatches.has(missing.id)) {
-				const best = matchCandidateFile(missing, candidateFiles);
-				if (best) {
-					newMatches.set(missing.id, { file: best.file, reason: best.reason });
+			const existing = newMatches.get(missing.id);
+			const best = matchCandidateFile(missing, candidateFiles);
+			if (best) {
+				if (!existing || best.score > (existing.score ?? 0)) {
+					newMatches.set(missing.id, {
+						file: best.file,
+						reason: best.reason,
+						score: best.score
+					});
+					if (!existing) newlyMatchedCount += 1;
 				}
 			}
 		}
+
 		setMatches(newMatches);
+		if (newlyMatchedCount > 0) {
+			setSearchStatus(
+				`Matched ${newlyMatchedCount} media file${newlyMatchedCount === 1 ? '' : 's'}.`
+			);
+		} else {
+			setSearchStatus('Scanned folder; no new matching media found.');
+		}
 	};
 
-	const handleDrop = (e: React.DragEvent) => {
+	const handleDrop = async (e: React.DragEvent) => {
 		e.preventDefault();
 		setIsDragging(false);
-		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-			handleFilesScanned(Array.from(e.dataTransfer.files));
+		setIsSearching(true);
+		setSearchStatus('Scanning dropped files…');
+		try {
+			const files = await crawlDataTransferEntries(e.dataTransfer);
+			handleFilesScanned(files);
+		} catch (err) {
+			console.warn('Drop scan error:', err);
+		} finally {
+			setIsSearching(false);
 		}
 	};
 
 	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files.length > 0) {
 			handleFilesScanned(Array.from(e.target.files));
+		}
+		e.target.value = '';
+	};
+
+	const handleFolderInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files.length > 0) {
+			handleFilesScanned(Array.from(e.target.files));
+		}
+		e.target.value = '';
+	};
+
+	const handleSearchFolder = async () => {
+		type DirectoryPickerWindow = Window & {
+			showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
+		};
+
+		const win = window as DirectoryPickerWindow;
+		if (typeof win.showDirectoryPicker === 'function') {
+			try {
+				const dirHandle = await win.showDirectoryPicker();
+				setIsSearching(true);
+				setSearchStatus('Scanning folder…');
+				const files = await crawlDirectory(dirHandle);
+				handleFilesScanned(files);
+			} catch (err: unknown) {
+				if (err instanceof DOMException && err.name === 'AbortError') {
+					return;
+				}
+				console.warn('showDirectoryPicker failed, falling back to input:', err);
+				folderInputRef.current?.click();
+			} finally {
+				setIsSearching(false);
+			}
+		} else {
+			folderInputRef.current?.click();
 		}
 	};
 
@@ -65,7 +133,7 @@ export default function RelinkDialog({
 			const file = picker.files?.[0];
 			if (file) {
 				const newMatches = new Map(matches);
-				newMatches.set(missingId, { file, reason: 'Manually selected' });
+				newMatches.set(missingId, { file, reason: 'Manually selected', score: 1.0 });
 				setMatches(newMatches);
 			}
 		};
@@ -139,19 +207,48 @@ export default function RelinkDialog({
 						<p className="mt-1 text-xs text-[var(--color-text-muted)]">
 							Matches by exact filename, stem, or format variation
 						</p>
-						<button
-							type="button"
-							onClick={() => fileInputRef.current?.click()}
-							className="mt-3 rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] shadow-xs hover:bg-[var(--color-surface-hover)]"
-						>
-							Browse Files…
-						</button>
+						<div className="mt-3 flex items-center justify-center gap-2">
+							<button
+								type="button"
+								onClick={handleSearchFolder}
+								disabled={isSearching}
+								className="rounded-md border border-blue-500/40 bg-blue-600/20 px-3 py-1.5 text-xs font-semibold text-blue-300 shadow-xs hover:bg-blue-600/30 hover:text-blue-200 disabled:opacity-50"
+							>
+								{isSearching ? 'Scanning…' : 'Search Folder…'}
+							</button>
+							<button
+								type="button"
+								onClick={() => fileInputRef.current?.click()}
+								disabled={isSearching}
+								className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] shadow-xs hover:bg-[var(--color-surface-hover)] disabled:opacity-50"
+							>
+								Browse Files…
+							</button>
+						</div>
+						{searchStatus && (
+							<p
+								className="mt-2 text-[11px] text-[var(--color-text-muted)]"
+								data-testid="search-status"
+							>
+								{searchStatus}
+							</p>
+						)}
 						<input
 							ref={fileInputRef}
 							type="file"
 							multiple
 							className="hidden"
 							onChange={handleFileInputChange}
+						/>
+						<input
+							ref={folderInputRef}
+							type="file"
+							multiple
+							className="hidden"
+							onChange={handleFolderInputChange}
+							// @ts-expect-error webkitdirectory is a non-standard browser attribute
+							webkitdirectory=""
+							directory=""
 						/>
 					</div>
 
@@ -253,5 +350,8 @@ export default function RelinkDialog({
 		</div>
 	);
 
+	if (typeof document === 'undefined') {
+		return content;
+	}
 	return createPortal(content, document.body);
 }
