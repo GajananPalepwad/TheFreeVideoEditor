@@ -41,6 +41,7 @@ import {
 } from '../../../services/activityTracking';
 import { describeProgress } from './exportProgress';
 import { useElapsedTime } from './useElapsedTime';
+import { AdSenseBanner } from '../ads/AdSenseBanner';
 import './export-dialog.css';
 
 type ExportTab = 'video' | 'project';
@@ -904,17 +905,26 @@ export default function ExportDialog() {
 		<>
 			<dialog
 				ref={dialogRef}
-				className="editor-dialog export-dialog"
+				className="dialog-modal-frame export-dialog-frame"
 				aria-labelledby="export-dialog-title"
 				onCancel={(event) => {
 					event.preventDefault();
 					requestCancel();
 				}}
 				onClick={(event: MouseEvent<HTMLDialogElement>) => {
-					if (event.target === event.currentTarget && !isRunning) close();
+					const target = event.target as HTMLElement;
+					if (
+						!isRunning &&
+						(target === event.currentTarget || target.classList.contains('dialog-modal-layout'))
+					) {
+						close();
+					}
 				}}
 			>
-				<div className="dialog-content">
+				<div className="dialog-modal-layout">
+					<AdSenseBanner position="left" />
+					<div className="dialog-surface-card export-dialog">
+						<div className="dialog-content">
 					<div className="dialog-heading">
 						<div>
 							<p className="dialog-eyebrow">DELIVER</p>
@@ -1548,7 +1558,10 @@ export default function ExportDialog() {
 						</button>
 					</div>
 				</div>
-			</dialog>
+			</div>
+			<AdSenseBanner position="right" />
+		</div>
+	</dialog>
 			<dialog
 				ref={cancelDialogRef}
 				className="editor-dialog export-confirm-dialog"

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } fro
 import { ACCEPTED_MEDIA_INPUT } from '../../core';
 import { useEditorStore } from '../../state/EditorProvider';
 import { openFiles } from '../../services/storage/fileAccess';
+import { AdSenseBanner } from '../ads/AdSenseBanner';
 import './import-dialog.css';
 
 type ImportSource = 'computer' | 'youtube' | 'instagram';
@@ -228,7 +229,11 @@ export default function ImportDialog() {
 	}, [instaUrl]);
 
 	const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
-		if (e.target === dialogRef.current && !isDownloading) {
+		const target = e.target as HTMLElement;
+		if (
+			!isDownloading &&
+			(target === dialogRef.current || target.classList.contains('dialog-modal-layout'))
+		) {
 			close();
 		}
 	};
@@ -542,7 +547,7 @@ export default function ImportDialog() {
 	return (
 		<dialog
 			ref={dialogRef}
-			className="editor-dialog import-dialog"
+			className="dialog-modal-frame import-dialog-frame"
 			role="dialog"
 			aria-labelledby="import-dialog-title"
 			aria-modal="true"
@@ -552,7 +557,10 @@ export default function ImportDialog() {
 				if (!isDownloading) close();
 			}}
 		>
-			<div className="dialog-content">
+			<div className="dialog-modal-layout">
+				<AdSenseBanner position="left" />
+				<div className="dialog-surface-card import-dialog">
+					<div className="dialog-content">
 				{/* Dialog Header */}
 				<div className="dialog-heading">
 					<div>
@@ -1288,6 +1296,9 @@ export default function ImportDialog() {
 					)}
 				</div>
 			</div>
-		</dialog>
+		</div>
+		<AdSenseBanner position="right" />
+	</div>
+</dialog>
 	);
 }
