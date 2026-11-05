@@ -31,9 +31,11 @@ export const AutoCaptionAiView: React.FC = () => {
 	const [showModelManager, setShowModelManager] = useState(false);
 
 	const [consentGranted, setConsentGranted] = useState(() => {
-		if (typeof localStorage !== 'undefined') {
-			return localStorage.getItem('tfve_stt_consent') === 'true';
-		}
+		try {
+			if (typeof localStorage !== 'undefined') {
+				return localStorage.getItem('tfve_stt_consent') === 'true';
+			}
+		} catch {}
 		return false;
 	});
 
@@ -57,9 +59,11 @@ export const AutoCaptionAiView: React.FC = () => {
 
 	const handleGrantConsent = () => {
 		setConsentGranted(true);
-		if (typeof localStorage !== 'undefined') {
-			localStorage.setItem('tfve_stt_consent', 'true');
-		}
+		try {
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem('tfve_stt_consent', 'true');
+			}
+		} catch {}
 	};
 
 	const handleDeleteModel = async (modelId: string) => {

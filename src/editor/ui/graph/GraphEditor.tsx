@@ -149,13 +149,15 @@ export default function GraphEditor() {
 
 	// Panel Resizing State
 	const [panelHeight, setPanelHeight] = useState<number>(() => {
-		if (typeof localStorage !== 'undefined') {
-			const saved = localStorage.getItem('tfve:graph-editor-height');
-			if (saved) {
-				const n = parseInt(saved, 10);
-				if (!isNaN(n) && n >= 160 && n <= 600) return n;
+		try {
+			if (typeof localStorage !== 'undefined') {
+				const saved = localStorage.getItem('tfve:graph-editor-height');
+				if (saved) {
+					const n = parseInt(saved, 10);
+					if (!isNaN(n) && n >= 160 && n <= 600) return n;
+				}
 			}
-		}
+		} catch {}
 		return 240;
 	});
 
