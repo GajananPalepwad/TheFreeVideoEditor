@@ -1,3 +1,4 @@
+import '../polyfills';
 import { useEffect } from 'react';
 import EditorShell from './ui/shell/EditorShell';
 import { EditorProvider } from './state/EditorProvider';

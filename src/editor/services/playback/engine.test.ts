@@ -84,4 +84,27 @@ describe('PlaybackEngine', () => {
 		expect(engine.snapshot.playing).toBe(true);
 		engine.dispose();
 	});
+
+	it('safely ignores attach() calls when disposed without throwing', () => {
+		const project = createEmptyProject({ name: 'Disposed Engine Test' });
+		const store = {
+			getState: () => ({
+				project,
+				activeSequenceId: null,
+				timeline: { playhead: 0 },
+				isExporting: false,
+				scopes: { open: false },
+				setPlayhead: () => {},
+				setTimelineFollowing: () => {}
+			}),
+			subscribe: () => () => {}
+		} as unknown as EditorStore;
+
+		const engine = createPlaybackEngine(store, project);
+		engine.dispose();
+		expect(engine.disposed).toBe(true);
+
+		const fakeCanvas = {} as HTMLCanvasElement;
+		expect(() => engine.attach(fakeCanvas)).not.toThrow();
+	});
 });

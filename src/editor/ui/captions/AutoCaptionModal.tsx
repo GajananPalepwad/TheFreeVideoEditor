@@ -39,9 +39,11 @@ export function AutoCaptionModal({ open, onClose, initialSource = 'all' }: AutoC
 
 	// Consent state
 	const [consentGranted, setConsentGranted] = useState(() => {
-		if (typeof localStorage !== 'undefined') {
-			return localStorage.getItem('tfve_stt_consent') === 'true';
-		}
+		try {
+			if (typeof localStorage !== 'undefined') {
+				return localStorage.getItem('tfve_stt_consent') === 'true';
+			}
+		} catch {}
 		return false;
 	});
 
@@ -75,9 +77,11 @@ export function AutoCaptionModal({ open, onClose, initialSource = 'all' }: AutoC
 
 	const handleGrantConsentAndDownload = () => {
 		setConsentGranted(true);
-		if (typeof localStorage !== 'undefined') {
-			localStorage.setItem('tfve_stt_consent', 'true');
-		}
+		try {
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem('tfve_stt_consent', 'true');
+			}
+		} catch {}
 	};
 
 	const handleDeleteModel = async (modelId: string) => {

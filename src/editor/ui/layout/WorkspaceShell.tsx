@@ -51,34 +51,42 @@ export default function WorkspaceShell({
 		const programEl = programVaultRef.current;
 		const timelineEl = timelineVaultRef.current;
 
-		if (programEl) {
-			const target = document.querySelector<HTMLDivElement>('.keepalive-target-program');
-			if (target && isProgramInLayout && (!maximizedPanelId || maximizedPanelId === 'program')) {
-				if (programEl.parentElement !== target) {
-					target.appendChild(programEl);
-				}
-			} else {
-				const fallback = document.querySelector<HTMLDivElement>('.keepalive-hidden-vault');
-				if (fallback && programEl.parentElement !== fallback) {
-					fallback.appendChild(programEl);
+		try {
+			if (programEl) {
+				const target = document.querySelector<HTMLDivElement>('.keepalive-target-program');
+				if (target && isProgramInLayout && (!maximizedPanelId || maximizedPanelId === 'program')) {
+					if (programEl.parentElement !== target) {
+						target.appendChild(programEl);
+					}
+				} else {
+					const fallback = document.querySelector<HTMLDivElement>('.keepalive-hidden-vault');
+					if (fallback && programEl.parentElement !== fallback) {
+						fallback.appendChild(programEl);
+					}
 				}
 			}
-		}
 
-		if (timelineEl) {
-			const target = document.querySelector<HTMLDivElement>('.keepalive-target-timeline');
-			if (target && isTimelineInLayout && (!maximizedPanelId || maximizedPanelId === 'timeline')) {
-				if (timelineEl.parentElement !== target) {
-					target.appendChild(timelineEl);
-				}
-			} else {
-				const fallback = document.querySelector<HTMLDivElement>('.keepalive-hidden-vault');
-				if (fallback && timelineEl.parentElement !== fallback) {
-					fallback.appendChild(timelineEl);
+			if (timelineEl) {
+				const target = document.querySelector<HTMLDivElement>('.keepalive-target-timeline');
+				if (
+					target &&
+					isTimelineInLayout &&
+					(!maximizedPanelId || maximizedPanelId === 'timeline')
+				) {
+					if (timelineEl.parentElement !== target) {
+						target.appendChild(timelineEl);
+					}
+				} else {
+					const fallback = document.querySelector<HTMLDivElement>('.keepalive-hidden-vault');
+					if (fallback && timelineEl.parentElement !== fallback) {
+						fallback.appendChild(timelineEl);
+					}
 				}
 			}
+		} catch {
+			// Ignore DOM reparenting race conditions
 		}
-	});
+	}, [layout, maximizedPanelId, isProgramInLayout, isTimelineInLayout]);
 
 	// If a panel is maximized, render just that panel
 	if (maximizedPanelId) {
@@ -88,6 +96,7 @@ export default function WorkspaceShell({
 			<div
 				className="workspace-shell-container workspace-root--maximized"
 				data-testid="workspace-shell"
+				translate="no"
 			>
 				<div className={`layout-stack is-maximized ${isMaxTimeline ? 'is-single-timeline' : ''}`}>
 					<div className="layout-stack-header">
@@ -167,7 +176,7 @@ export default function WorkspaceShell({
 	}
 
 	return (
-		<div className="workspace-shell-container" data-testid="workspace-shell">
+		<div className="workspace-shell-container" data-testid="workspace-shell" translate="no">
 			<LayoutNodeRenderer
 				node={layout}
 				onNodeChange={onLayoutChange}

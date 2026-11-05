@@ -76,17 +76,25 @@ function WaveformCanvas({
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
-		const dpr = window.devicePixelRatio || 1;
+		const dpr = Math.min(window.devicePixelRatio || 1, 2);
 		const rect = canvas.getBoundingClientRect();
-		const width = Math.max(
+		const MAX_CANVAS_WIDTH = 8192;
+		const MAX_CANVAS_HEIGHT = 4096;
+		const rawWidth = Math.max(
 			1,
 			Math.floor(rect.width || timeToPixels(clipDuration, pixelsPerSecond))
 		);
-		const height = Math.max(1, Math.floor(rect.height || 48));
+		const rawHeight = Math.max(1, Math.floor(rect.height || 48));
+		const width = Math.min(rawWidth, Math.floor(MAX_CANVAS_WIDTH / dpr));
+		const height = Math.min(rawHeight, Math.floor(MAX_CANVAS_HEIGHT / dpr));
 
-		canvas.width = Math.floor(width * dpr);
-		canvas.height = Math.floor(height * dpr);
-		ctx.scale(dpr, dpr);
+		try {
+			canvas.width = Math.floor(width * dpr);
+			canvas.height = Math.floor(height * dpr);
+			ctx.scale(dpr, dpr);
+		} catch {
+			return;
+		}
 
 		const totalSamples = peaks.max.length;
 		if (totalSamples === 0) return;

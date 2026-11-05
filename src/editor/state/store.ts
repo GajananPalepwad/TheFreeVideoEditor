@@ -454,8 +454,8 @@ function loadInspectorPrefs(): InspectorState {
 		expanded: { transform: true, crop: false },
 		linkScale: true
 	};
-	if (typeof localStorage === 'undefined') return fallback;
 	try {
+		if (typeof localStorage === 'undefined') return fallback;
 		const raw = localStorage.getItem(INSPECTOR_STORAGE_KEY);
 		if (!raw) return fallback;
 		const parsed = JSON.parse(raw);
@@ -469,8 +469,8 @@ function loadInspectorPrefs(): InspectorState {
 }
 
 function persistInspectorPrefs(prefs: InspectorState): void {
-	if (typeof localStorage === 'undefined') return;
 	try {
+		if (typeof localStorage === 'undefined') return;
 		localStorage.setItem(INSPECTOR_STORAGE_KEY, JSON.stringify(prefs));
 	} catch {}
 }

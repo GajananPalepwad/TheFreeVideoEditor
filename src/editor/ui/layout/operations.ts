@@ -402,9 +402,9 @@ export function migrateOldPanelSizes(
  */
 export function loadUserWorkspaceState(): UserWorkspaceState {
 	const fallback = createDefaultWorkspaceState();
-	if (typeof localStorage === 'undefined') return fallback;
 
 	try {
+		if (typeof localStorage === 'undefined') return fallback;
 		const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
 		if (!raw) return fallback;
 		const parsed = JSON.parse(raw);
@@ -466,8 +466,8 @@ export function loadUserWorkspaceState(): UserWorkspaceState {
  * Persists workspace state to localStorage safely.
  */
 export function persistUserWorkspaceState(state: UserWorkspaceState): void {
-	if (typeof localStorage === 'undefined') return;
 	try {
+		if (typeof localStorage === 'undefined') return;
 		localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(state));
 	} catch {}
 }

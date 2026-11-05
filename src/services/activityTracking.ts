@@ -6,6 +6,8 @@
  * All network calls are non-blocking, fire-and-forget, and fail completely silently.
  */
 
+import '../polyfills';
+
 export const TRACKING_ENDPOINT = 'https://sggsapp.co.in/video_editor/record_activity.php';
 
 export type AllowedActivityEvent =
@@ -342,6 +344,18 @@ export function trackError(
 	} else if (typeof error === 'string') {
 		message = error;
 	}
+
+	// Filter out noisy cross-origin browser extension or third-party ad script errors
+	if (
+		message === 'Script error.' ||
+		message.includes('M_ID') ||
+		message.includes('chrome-extension:') ||
+		message.includes('moz-extension:') ||
+		message.includes('safari-extension:')
+	) {
+		return;
+	}
+
 	message = message.replace(/(?:\/[^/\s]+)+\/?/g, '[path]').slice(0, 100);
 
 	void trackActivity('error', {

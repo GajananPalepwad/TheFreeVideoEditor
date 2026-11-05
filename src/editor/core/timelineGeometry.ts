@@ -21,24 +21,16 @@ export function intersectsPixelRange(start: number, width: number, range: PixelR
 }
 
 export function pixelsToTime(pixels: number, pixelsPerSecond: number, fps: number): Time {
-	if (!Number.isFinite(pixels) || !Number.isFinite(pixelsPerSecond) || pixelsPerSecond <= 0) {
-		throw new RangeError('Pixel position must be finite and timeline zoom must be positive.');
-	}
-	return framesToTicks(Math.max(0, Math.round((pixels / pixelsPerSecond) * fps)), fps);
+	const safePixels = Number.isFinite(pixels) ? pixels : 0;
+	const safePps = Number.isFinite(pixelsPerSecond) && pixelsPerSecond > 0 ? pixelsPerSecond : 64;
+	const safeFps = Number.isFinite(fps) && fps > 0 ? fps : 30;
+	return framesToTicks(Math.max(0, Math.round((safePixels / safePps) * safeFps)), safeFps);
 }
 
 export function timeToPixels(time: Time, pixelsPerSecond: number): number {
-	if (
-		!Number.isSafeInteger(time) ||
-		time < 0 ||
-		!Number.isFinite(pixelsPerSecond) ||
-		pixelsPerSecond <= 0
-	) {
-		throw new RangeError(
-			'Timeline time must be non-negative integer ticks and zoom must be positive.'
-		);
-	}
-	return (time / 1_000_000) * pixelsPerSecond;
+	const safeTime = Number.isFinite(time) ? Math.max(0, Math.round(time)) : 0;
+	const safePps = Number.isFinite(pixelsPerSecond) && pixelsPerSecond > 0 ? pixelsPerSecond : 64;
+	return (safeTime / 1_000_000) * safePps;
 }
 
 export function clientXToTimelineTime(

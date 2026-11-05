@@ -82,6 +82,7 @@ export interface PlaybackEngine {
 	getBusMeterLevels?(busId: string): { peakL: number; peakR: number; rmsL: number; rmsR: number };
 	getAudioNodeCount?(): number;
 	unlock?(): Promise<void>;
+	readonly disposed: boolean;
 	dispose(): void;
 }
 
@@ -133,7 +134,7 @@ class PlaybackEngineImpl implements PlaybackEngine {
 		resolved: ReturnType<typeof resolveFrame>;
 	} | null = null;
 	private writingPlayhead = false;
-	private disposed = false;
+	disposed = false;
 	private snapshotValue: PlaybackSnapshot;
 	onPoolFrame = (): void => this.requestRender();
 	onPoolMissing = (assetId: AssetId): void => this.markMissing(assetId);
@@ -305,7 +306,10 @@ class PlaybackEngineImpl implements PlaybackEngine {
 	}
 
 	attach(canvas: HTMLCanvasElement, rendererKind: RendererKind = 'canvas2d'): void {
-		if (this.disposed) throw new Error('Cannot attach a disposed playback engine.');
+		if (this.disposed) {
+			console.warn('Cannot attach a disposed playback engine.');
+			return;
+		}
 		this.detach();
 		const renderer = createFrameRenderer(canvas, {
 			forceCanvas2d: rendererKind === 'canvas2d',

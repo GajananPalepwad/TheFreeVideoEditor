@@ -269,5 +269,16 @@ describe('activityTracking service', () => {
 			expect(details?.error).toContain('[path]');
 			expect(details?.error).not.toContain('/Users/private/project.json');
 		});
+
+		it('trackError ignores noisy third-party and extension errors', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			trackError('Script error.');
+			trackError("TypeError: Cannot read properties of undefined (reading 'M_ID')");
+			trackError('Error in chrome-extension://abc/script.js');
+
+			expect(fetchMock).not.toHaveBeenCalled();
+		});
 	});
 });

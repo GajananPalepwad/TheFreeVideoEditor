@@ -51,7 +51,7 @@ export default function PreviewWorkspace({
 	// Attach engine to canvas whenever engine mounts or renderer switches
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		if (!engine || !canvas) return;
+		if (!engine || !canvas || engine.disposed) return;
 		engine.attach(canvas, renderer);
 	}, [engine, renderer]);
 
