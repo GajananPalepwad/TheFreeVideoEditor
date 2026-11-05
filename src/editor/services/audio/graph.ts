@@ -5,6 +5,7 @@ import { defaultAudioDecodeCache } from './decode';
 import { renderOfflineAudio } from './offlineRender';
 import { computeGraphPdc } from './pdc';
 import { buildAudioRack, type BuiltAudioRack } from './rack';
+import { createDspRackNode } from './dspWorklet';
 import { migrateLegacyAudioRack } from '../../core/audio/rackMigration';
 
 export interface AudioGraphMeterNodes {
@@ -190,47 +191,12 @@ function buildSingleTrackChain(
 	let rack: BuiltAudioRack | undefined;
 	if (activeFx.length > 0) {
 		rack = buildAudioRack(activeFx, ctx.sampleRate, 2);
-		if (typeof ctx.createScriptProcessor === 'function') {
-			const sp = ctx.createScriptProcessor(4096, 2, 2);
-			const chBuffers: Float32Array[] = [new Float32Array(4096), new Float32Array(4096)];
-			sp.onaudioprocess = (e) => {
-				const frameCount = e.inputBuffer.length;
-				if (chBuffers[0]!.length < frameCount) {
-					chBuffers[0] = new Float32Array(frameCount);
-					chBuffers[1] = new Float32Array(frameCount);
-				}
-				const in0 = e.inputBuffer.getChannelData(0);
-				const in1 = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : in0;
-				try {
-					chBuffers[0]!.subarray(0, frameCount).set(in0);
-					chBuffers[1]!.subarray(0, frameCount).set(in1);
-					rack!.process(chBuffers, frameCount);
-
-					// Sanitize output buffers against NaN / non-finite
-					for (let c = 0; c < 2; c++) {
-						const buf = chBuffers[c]!;
-						for (let s = 0; s < frameCount; s++) {
-							if (!Number.isFinite(buf[s])) {
-								buf[s] = 0;
-							}
-						}
-					}
-
-					e.outputBuffer.getChannelData(0).set(chBuffers[0]!.subarray(0, frameCount));
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(chBuffers[1]!.subarray(0, frameCount));
-					}
-				} catch {
-					e.outputBuffer.getChannelData(0).set(in0);
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(in1);
-					}
-				}
-			};
-			allNodes?.add(sp);
-			trackTail.connect(sp);
-			trackTail = sp;
-			rackNode = sp;
+		const dsp = createDspRackNode(ctx, activeFx, { sampleRate: ctx.sampleRate, channels: 2 });
+		if (dsp) {
+			allNodes?.add(dsp.node);
+			trackTail.connect(dsp.node);
+			trackTail = dsp.node;
+			rackNode = dsp.node;
 		}
 	} else if (tAudio.effects) {
 		rack = buildAudioRack(tAudio.effects, ctx.sampleRate, 2);
@@ -429,44 +395,12 @@ export function buildAudioGraph(
 	let masterRack: BuiltAudioRack | undefined;
 	if (activeMasterFx.length > 0) {
 		masterRack = buildAudioRack(activeMasterFx, ctx.sampleRate, 2);
-		if (typeof ctx.createScriptProcessor === 'function') {
-			const sp = ctx.createScriptProcessor(4096, 2, 2);
-			const chBuffers: Float32Array[] = [new Float32Array(4096), new Float32Array(4096)];
-			sp.onaudioprocess = (e) => {
-				const frameCount = e.inputBuffer.length;
-				if (chBuffers[0]!.length < frameCount) {
-					chBuffers[0] = new Float32Array(frameCount);
-					chBuffers[1] = new Float32Array(frameCount);
-				}
-				const in0 = e.inputBuffer.getChannelData(0);
-				const in1 = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : in0;
-				try {
-					chBuffers[0]!.subarray(0, frameCount).set(in0);
-					chBuffers[1]!.subarray(0, frameCount).set(in1);
-					masterRack!.process(chBuffers, frameCount);
-					for (let c = 0; c < 2; c++) {
-						const buf = chBuffers[c]!;
-						for (let s = 0; s < frameCount; s++) {
-							if (!Number.isFinite(buf[s])) {
-								buf[s] = 0;
-							}
-						}
-					}
-					e.outputBuffer.getChannelData(0).set(chBuffers[0]!.subarray(0, frameCount));
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(chBuffers[1]!.subarray(0, frameCount));
-					}
-				} catch {
-					e.outputBuffer.getChannelData(0).set(in0);
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(in1);
-					}
-				}
-			};
-			allNodes.add(sp);
-			currentMasterTail.connect(sp);
-			currentMasterTail = sp;
-			masterRackNode = sp;
+		const dsp = createDspRackNode(ctx, activeMasterFx, { sampleRate: ctx.sampleRate, channels: 2 });
+		if (dsp) {
+			allNodes.add(dsp.node);
+			currentMasterTail.connect(dsp.node);
+			currentMasterTail = dsp.node;
+			masterRackNode = dsp.node;
 		}
 	} else {
 		masterRack = buildAudioRack(project.masterAudio?.effects, ctx.sampleRate, 2);
@@ -509,44 +443,12 @@ export function buildAudioGraph(
 		let busRack: BuiltAudioRack | undefined;
 		if (activeBusFx.length > 0) {
 			busRack = buildAudioRack(activeBusFx, ctx.sampleRate, 2);
-			if (typeof ctx.createScriptProcessor === 'function') {
-				const sp = ctx.createScriptProcessor(4096, 2, 2);
-				const chBuffers: Float32Array[] = [new Float32Array(4096), new Float32Array(4096)];
-				sp.onaudioprocess = (e) => {
-					const frameCount = e.inputBuffer.length;
-					if (chBuffers[0]!.length < frameCount) {
-						chBuffers[0] = new Float32Array(frameCount);
-						chBuffers[1] = new Float32Array(frameCount);
-					}
-					const in0 = e.inputBuffer.getChannelData(0);
-					const in1 = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : in0;
-					try {
-						chBuffers[0]!.subarray(0, frameCount).set(in0);
-						chBuffers[1]!.subarray(0, frameCount).set(in1);
-						busRack!.process(chBuffers, frameCount);
-						for (let c = 0; c < 2; c++) {
-							const buf = chBuffers[c]!;
-							for (let s = 0; s < frameCount; s++) {
-								if (!Number.isFinite(buf[s])) {
-									buf[s] = 0;
-								}
-							}
-						}
-						e.outputBuffer.getChannelData(0).set(chBuffers[0]!.subarray(0, frameCount));
-						if (e.outputBuffer.numberOfChannels > 1) {
-							e.outputBuffer.getChannelData(1).set(chBuffers[1]!.subarray(0, frameCount));
-						}
-					} catch {
-						e.outputBuffer.getChannelData(0).set(in0);
-						if (e.outputBuffer.numberOfChannels > 1) {
-							e.outputBuffer.getChannelData(1).set(in1);
-						}
-					}
-				};
-				allNodes.add(sp);
-				busTail.connect(sp);
-				busTail = sp;
-				busRackNode = sp;
+			const dsp = createDspRackNode(ctx, activeBusFx, { sampleRate: ctx.sampleRate, channels: 2 });
+			if (dsp) {
+				allNodes.add(dsp.node);
+				busTail.connect(dsp.node);
+				busTail = dsp.node;
+				busRackNode = dsp.node;
 			}
 		} else {
 			busRack = buildAudioRack(bus.effects, ctx.sampleRate, 2);

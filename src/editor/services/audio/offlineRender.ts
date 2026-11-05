@@ -2,6 +2,7 @@ import type { Project, Time } from '../../core/types';
 import { buildAudioGraph } from './graph';
 import { analyzeAudioLoudness } from '../../core/audio/loudness';
 import { dbToGain } from '../../core/audioMath';
+import { ensureDspWorklet } from './dspWorklet';
 
 export interface RenderOfflineAudioOptions {
 	project: Project;
@@ -55,6 +56,7 @@ export async function renderOfflineAudio(options: RenderOfflineAudioOptions): Pr
 
 	if (totalFrames <= MAX_SINGLE_PASS_FRAMES) {
 		const ctx = new OfflineAudioContext(2, totalFrames, sampleRate);
+		await ensureDspWorklet(ctx);
 		const graph = buildAudioGraph(ctx, project);
 		await graph.scheduleProject({ startUs, durationUs }, buffers);
 		const rendered = await ctx.startRendering();
@@ -88,6 +90,7 @@ export async function renderOfflineAudio(options: RenderOfflineAudioOptions): Pr
 		const chunkDurationUs = Math.round((chunkTotalFrames * 1_000_000) / sampleRate);
 
 		const ctx = new OfflineAudioContext(2, chunkTotalFrames, sampleRate);
+		await ensureDspWorklet(ctx);
 		const graph = buildAudioGraph(ctx, project);
 		await graph.scheduleProject({ startUs: chunkStartUs, durationUs: chunkDurationUs }, buffers);
 
