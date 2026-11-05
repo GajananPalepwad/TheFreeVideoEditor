@@ -55,7 +55,7 @@ const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevide
 		{import.meta.env.PROD && (
 			<>
 				{/* Google tag (gtag.js) */}
-				<script async src="https://www.googletagmanager.com/gtag/js?id=G-S0B2C9G9X7" />
+				<script async src="https://www.googletagmanager.com/gtag/js?id=G-S0B2C9G9X7"></script>
 				<script is:inline>
 					window.dataLayer = window.dataLayer || [];
 					function gtag() {
@@ -70,7 +70,7 @@ const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevide
 					async
 					src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5660298759458774"
 					crossorigin="anonymous"
-				/>
+				></script>
 			</>
 		)}
 		<meta charset="utf-8" />
@@ -88,6 +88,7 @@ const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevide
 		<meta name="keywords" content={keywords} />
 		<meta name="robots" content={robots} />
 		<meta name="theme-color" content="#090909" />
+		<meta name="google" content="notranslate" />
 		<link rel="canonical" href={currentCanonical} />
 		<link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
@@ -125,47 +126,48 @@ const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevide
 		<!-- Structured Data (JSON-LD) for SoftwareApplication & WebSite -->
 		<script
 			type="application/ld+json"
-			set:html={JSON.stringify([
-				{
-					'@context': 'https://schema.org',
-					'@type': 'WebSite',
-					name: 'The Free Video Editor',
-					alternateName: ['Free Video Editor', 'Online Video Editor', 'TFVE'],
-					url: 'https://thefreevideoeditor.com/',
-					description: description,
-					potentialAction: {
-						'@type': 'SearchAction',
-						target: 'https://thefreevideoeditor.com/editor/?q={search_term_string}',
-						'query-input': 'required name=search_term_string'
-					}
-				},
-				{
-					'@context': 'https://schema.org',
-					'@type': 'WebApplication',
-					name: 'The Free Video Editor',
-					url: 'https://thefreevideoeditor.com/',
-					applicationCategory: 'MultimediaApplication',
-					operatingSystem: 'All modern web browsers (Chrome, Edge, Firefox, Safari)',
-					offers: {
-						'@type': 'Offer',
-						price: '0',
-						priceCurrency: 'USD'
+			set:html={JSON.stringify({
+				'@context': 'https://schema.org',
+				'@graph': [
+					{
+						'@type': 'WebSite',
+						name: 'The Free Video Editor',
+						alternateName: ['Free Video Editor', 'Online Video Editor', 'TFVE'],
+						url: 'https://thefreevideoeditor.com/',
+						description: description,
+						potentialAction: {
+							'@type': 'SearchAction',
+							target: 'https://thefreevideoeditor.com/editor/?q={search_term_string}',
+							'query-input': 'required name=search_term_string'
+						}
 					},
-					description:
-						'A free online video editor and AI video editor running locally in the browser with WebCodecs, WebGL2, multi-track timeline, Smart Cut AI silence removal, automatic Whisper captions, and zero cloud uploads.',
-					featureList: [
-						'Smart Cut: on-device AI silence and pause removal with voice activity detection (VAD)',
-						'On-device Whisper AI speech-to-text captions and subtitles with word-level sync',
-						'Hardware-accelerated 4K 60fps WebCodecs multi-track video timeline',
-						'Dedicated AI workspace, Assembly, Editing, Color, Effects, Audio, and Graphics layouts',
-						'Professional 3-way color grading wheels, Lumetri-style tone curves, and 3D LUTs',
-						'Multi-track audio mixer with parametric EQ, compressor, and loudness metering',
-						'Subpixel 2D motion tracking and keyframe animation with Bezier easing curves',
-						'Zero cloud uploads, 100% private client-side processing, and no export watermarks'
-					]
-				}
-			])}
-		/>
+					{
+						'@type': 'WebApplication',
+						name: 'The Free Video Editor',
+						url: 'https://thefreevideoeditor.com/',
+						applicationCategory: 'MultimediaApplication',
+						operatingSystem: 'All modern web browsers (Chrome, Edge, Firefox, Safari)',
+						offers: {
+							'@type': 'Offer',
+							price: '0',
+							priceCurrency: 'USD'
+						},
+						description:
+							'A free online video editor and AI video editor running locally in the browser with WebCodecs, WebGL2, multi-track timeline, Smart Cut AI silence removal, automatic Whisper captions, and zero cloud uploads.',
+						featureList: [
+							'Smart Cut: on-device AI silence and pause removal with voice activity detection (VAD)',
+							'On-device Whisper AI speech-to-text captions and subtitles with word-level sync',
+							'Hardware-accelerated 4K 60fps WebCodecs multi-track video timeline',
+							'Dedicated AI workspace, Assembly, Editing, Color, Effects, Audio, and Graphics layouts',
+							'Professional 3-way color grading wheels, Lumetri-style tone curves, and 3D LUTs',
+							'Multi-track audio mixer with parametric EQ, compressor, and loudness metering',
+							'Subpixel 2D motion tracking and keyframe animation with Bezier easing curves',
+							'Zero cloud uploads, 100% private client-side processing, and no export watermarks'
+						]
+					}
+				]
+			})}
+		></script>
 		<!-- Article Open Graph metadata (when ogType === 'article') -->
 		{ogType === 'article' && articleSection && (
 			<meta property="article:section" content={articleSection} />
