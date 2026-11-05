@@ -80,6 +80,21 @@ describe('timeline geometry', () => {
 		expect(snapToFrame(40_000, 30)).toBe(33_333);
 	});
 
+	it('gracefully handles edge cases without throwing in timeToPixels and pixelsToTime', () => {
+		// Negative time clamped to 0
+		expect(timeToPixels(-50_000, 100)).toBe(0);
+		// Floating point time safely rounded
+		expect(timeToPixels(2_000_000.4, 100)).toBe(200);
+		// Zero or negative zoom safely fallbacks
+		expect(timeToPixels(1_000_000, 0)).toBeGreaterThan(0);
+		expect(timeToPixels(1_000_000, -10)).toBeGreaterThan(0);
+		expect(timeToPixels(1_000_000, NaN)).toBeGreaterThan(0);
+
+		// pixelsToTime handles negative and non-finite values safely
+		expect(pixelsToTime(-100, 100, 30)).toBe(0);
+		expect(pixelsToTime(100, 0, 30)).toBeGreaterThan(0);
+	});
+
 	it('selects a ruler tick step with a readable label gap', () => {
 		expect(rulerTickStep(100, 30)).toBe(1_000_000);
 		expect(rulerTickStep(10, 30)).toBeGreaterThanOrEqual(5_000_000);
