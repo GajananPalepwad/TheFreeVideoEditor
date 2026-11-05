@@ -70,7 +70,7 @@ const faqJsonLd = {
 
 <Layout title={seoTitle} description={seoDescription} canonicalUrl="https://thefreevideoeditor.com/">
 	<!-- FAQ Structured Data (JSON-LD) for Search Engine Rich Snippets -->
-	<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+	<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} slot="head"></script>
 	<div class="home-wrapper" id="home-wrapper">
 		<!-- Top Navigation Header with MPA Links (About, Privacy, Terms, Contact) -->
 		<Header />
@@ -1118,9 +1118,11 @@ const faqJsonLd = {
 			dpr = Math.min(window.devicePixelRatio || 1, 2);
 			width = canvas!.clientWidth;
 			height = canvas!.clientHeight;
-			canvas!.width = width * dpr;
-			canvas!.height = height * dpr;
-			ctx!.scale(dpr, dpr);
+			try {
+				canvas!.width = width * dpr;
+				canvas!.height = height * dpr;
+				ctx!.scale(dpr, dpr);
+			} catch {}
 		}
 
 		resize();
