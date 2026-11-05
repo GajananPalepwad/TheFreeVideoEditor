@@ -3,7 +3,7 @@ import type { AssetId, Clip, Project, TrackAudio } from '../../core/types';
 import type { MediaPool } from '../playback/mediaPool';
 import { buildAudioGraph, type BuiltAudioGraph } from './graph';
 import { resolveAudibleTracks } from '../../core/audioMath';
-import { buildAudioRack } from './rack';
+import { createDspRackNode, ensureDspWorklet, type DspRackNode } from './dspWorklet';
 
 const AUDIO_RAMP_SECONDS = 0.015;
 const AUDIO_VOLUME_KEY = 'tfve:playback-volume';
@@ -25,6 +25,7 @@ interface ConnectedAudio {
 	clipGain: GainNode;
 	clipPan?: StereoPannerNode;
 	clipRackNode?: AudioNode;
+	clipDspNode?: DspRackNode;
 	volume: number;
 }
 
@@ -102,6 +103,7 @@ export class AudioGraphController {
 		if (this.disposed || this.unavailable) return;
 		try {
 			const context = this.ensureContext();
+			await ensureDspWorklet(context);
 			if (context.state === 'suspended') {
 				await context.resume();
 				this.options.onStateChange?.(context.state);
@@ -190,7 +192,14 @@ export class AudioGraphController {
 
 		if (!isNew) {
 			// Disconnect previous DSP node if any and remove reference
-			if (conn.clipRackNode) {
+			if (conn.clipDspNode) {
+				conn.clipDspNode.disconnect();
+				if (conn.clipRackNode) {
+					this.scriptProcessors.delete(conn.clipRackNode as ScriptProcessorNode);
+				}
+				conn.clipRackNode = undefined;
+				conn.clipDspNode = undefined;
+			} else if (conn.clipRackNode) {
 				try {
 					conn.clipRackNode.disconnect();
 				} catch {}
@@ -228,50 +237,19 @@ export class AudioGraphController {
 		// Build and insert clip DSP rack if active audio effects exist
 		const track = project.tracks.find((t) => t.id === conn.trackId);
 		const clip = track?.clips.find((c) => c.id === conn.clipId);
-		const activeFx = (clip?.audioEffects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+		const dspRack = createDspRackNode(context, clip?.audioEffects, {
+			sampleRate: context.sampleRate,
+			channels: 2
+		});
 
-		if (activeFx.length > 0 && typeof context.createScriptProcessor === 'function') {
-			const rack = buildAudioRack(activeFx, context.sampleRate, 2);
-			const sp = context.createScriptProcessor(4096, 2, 2);
-			this.scriptProcessors.add(sp);
-			const chBuffers: Float32Array[] = [new Float32Array(4096), new Float32Array(4096)];
-			sp.onaudioprocess = (e) => {
-				const frameCount = e.inputBuffer.length;
-				if (chBuffers[0]!.length < frameCount) {
-					chBuffers[0] = new Float32Array(frameCount);
-					chBuffers[1] = new Float32Array(frameCount);
-				}
-				const in0 = e.inputBuffer.getChannelData(0);
-				const in1 = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : in0;
-				try {
-					chBuffers[0]!.subarray(0, frameCount).set(in0);
-					chBuffers[1]!.subarray(0, frameCount).set(in1);
-					rack.process(chBuffers, frameCount);
-
-					// Sanitize output buffers against NaN / non-finite
-					for (let c = 0; c < 2; c++) {
-						const buf = chBuffers[c]!;
-						for (let s = 0; s < frameCount; s++) {
-							if (!Number.isFinite(buf[s])) {
-								buf[s] = 0;
-							}
-						}
-					}
-
-					e.outputBuffer.getChannelData(0).set(chBuffers[0]!.subarray(0, frameCount));
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(chBuffers[1]!.subarray(0, frameCount));
-					}
-				} catch {
-					e.outputBuffer.getChannelData(0).set(in0);
-					if (e.outputBuffer.numberOfChannels > 1) {
-						e.outputBuffer.getChannelData(1).set(in1);
-					}
-				}
-			};
-			clipTail.connect(sp);
-			clipTail = sp;
-			conn.clipRackNode = sp;
+		if (dspRack) {
+			if (dspRack.type === 'script-processor') {
+				this.scriptProcessors.add(dspRack.node as ScriptProcessorNode);
+			}
+			clipTail.connect(dspRack.node);
+			clipTail = dspRack.node;
+			conn.clipRackNode = dspRack.node;
+			conn.clipDspNode = dspRack;
 		}
 
 		try {
@@ -491,7 +469,14 @@ export class AudioGraphController {
 		const connection = this.connected.get(element);
 		if (!connection) return;
 		element.pause();
-		if (connection.clipRackNode) {
+		if (connection.clipDspNode) {
+			connection.clipDspNode.disconnect();
+			if (connection.clipRackNode) {
+				this.scriptProcessors.delete(connection.clipRackNode as ScriptProcessorNode);
+			}
+			connection.clipDspNode = undefined;
+			connection.clipRackNode = undefined;
+		} else if (connection.clipRackNode) {
 			try {
 				connection.clipRackNode.disconnect();
 			} catch {}
@@ -543,6 +528,12 @@ export class AudioGraphController {
 			});
 		}
 		this.context = context;
+		void ensureDspWorklet(context).then((loaded) => {
+			if (loaded && !this.disposed && this.currentProject) {
+				const nextTopology = this.computeTopologyKey(this.currentProject);
+				this.rebuildGraph(this.currentProject, nextTopology);
+			}
+		});
 		if (typeof context.sampleRate !== 'number') {
 			this.mockMasterGain = context.createGain();
 			this.mockMasterGain.gain.value = this.isMutedState ? 0 : this.masterVolume;

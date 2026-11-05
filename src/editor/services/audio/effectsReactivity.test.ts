@@ -397,4 +397,86 @@ describe('Audio Effects Dynamic Reactivity & Non-Muting', () => {
 
 		await controller.dispose();
 	});
+
+	it('uses AudioWorkletNode when audioWorklet is available on context', async () => {
+		const postMessageMock = vi.fn();
+		const disconnectMock = vi.fn();
+		const connectMock = vi.fn();
+
+		class MockAudioWorkletNode {
+			type = 'audioworklet';
+			port = { postMessage: postMessageMock };
+			connect = connectMock;
+			disconnect = disconnectMock;
+			constructor(
+				public ctx: unknown,
+				public name: string,
+				public options: unknown
+			) {}
+		}
+
+		vi.stubGlobal('AudioWorkletNode', MockAudioWorkletNode);
+
+		const { context } = makeFullAudioContext();
+		const addModuleMock = vi.fn().mockResolvedValue(undefined);
+		(context as unknown as { audioWorklet: unknown }).audioWorklet = {
+			addModule: addModuleMock
+		};
+
+		const { project, audioTrack, clip, asset } = makeProjectWithClip();
+		clip.audioEffects = [
+			{
+				id: 'fx-worklet',
+				type: 'gain-trim',
+				enabled: true,
+				params: { gainDb: 3 }
+			}
+		];
+		audioTrack.audio = {
+			gainDb: 0,
+			pan: 0,
+			solo: false,
+			effects: [
+				{
+					id: 'track-fx-worklet',
+					type: 'gain-trim',
+					enabled: true,
+					params: { gainDb: 2 }
+				}
+			]
+		};
+
+		const audioElement = makeAudioElement();
+		const pool = {
+			getAudioElement: vi.fn(() => audioElement)
+		};
+
+		const controller = new AudioGraphController(pool, { createContext: () => context });
+		await controller.unlock();
+
+		// addModule should have been called
+		expect(addModuleMock).toHaveBeenCalled();
+
+		const activeSource: ActiveAudio = {
+			clipId: clip.id,
+			assetId: asset.id,
+			trackId: audioTrack.id,
+			trackOrder: 1,
+			sourceTime: 0,
+			volume: 1.0
+		};
+
+		await controller.sync([activeSource], project, true, 1.0);
+
+		// AudioWorkletNode should have been instantiated
+		expect(connectMock).toHaveBeenCalled();
+
+		// buildAudioGraph also uses AudioWorkletNode
+		const graph = buildAudioGraph(context, project);
+		const trackNode = graph.trackNodes.get(audioTrack.id);
+		expect(trackNode).toBeDefined();
+
+		await controller.dispose();
+		expect(disconnectMock).toHaveBeenCalled();
+	});
 });

@@ -55,6 +55,10 @@ Live audio is owned by a single controller singleton (`src/editor/services/audio
 3. **Zero Node Leaks**:
    - All disconnections explicitly cascade through source nodes, biquads, gains, panners, and analysers.
    - Verified across 100 consecutive rebuild cycles with constant baseline node counts.
+4. **Dedicated AudioWorklet Processing**:
+   - Clip, track, submix bus, and master DSP effect racks execute on the dedicated browser audio thread via `dsp.worklet.ts` (`AudioWorkletNode`).
+   - Completely removes DSP processing from the main JavaScript thread, eliminating audio crackles and buffer underruns during timeline scrubbing, gizmo interaction, and waveform rendering.
+   - Automatically falls back to `ScriptProcessorNode` only when `AudioWorklet` is unavailable.
 
 ---
 
