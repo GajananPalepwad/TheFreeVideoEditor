@@ -12,3 +12,21 @@ import Layout from '../layouts/Layout.astro';
 	<EditorScreenLoader />
 	<Editor client:only="react" />
 </Layout>
+
+<style is:global>
+	/* Lock viewport strictly for the editor web application so iPadOS / mobile browsers
+	   never scroll the window or leave empty space around the workspace. */
+	html,
+	body {
+		height: 100% !important;
+		height: 100dvh !important;
+		min-height: 0 !important;
+		max-height: 100% !important;
+		max-height: 100dvh !important;
+		overflow: hidden !important;
+		overscroll-behavior: none !important;
+		position: fixed !important;
+		width: 100% !important;
+		inset: 0 !important;
+	}
+</style>
