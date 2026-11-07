@@ -30,6 +30,7 @@ import WorkspaceShell from '../layout/WorkspaceShell';
 import EditWorkspacesDialog from '../dialogs/EditWorkspacesDialog';
 import CodecSupportDialog from '../dialogs/CodecSupportDialog';
 import CodecPackDialog from '../dialogs/CodecPackDialog';
+import EditorFeedbackDialog from '../dialogs/EditorFeedbackDialog';
 import { collectPanels } from '../layout/operations';
 import { DragGhostOverlay } from '../drag/DragGhostOverlay';
 import { importTfve } from '../../services/interop/native';
@@ -117,6 +118,7 @@ function EditorShell() {
 	const [isWindowMenuOpen, setIsWindowMenuOpen] = useState(false);
 	const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
 	const [isGuideMenuOpen, setIsGuideMenuOpen] = useState(false);
+	const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 	const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 	const [isCodecSupportOpen, setIsCodecSupportOpen] = useState(false);
 	const [isCodecPackOpen, setIsCodecPackOpen] = useState(false);
@@ -1417,6 +1419,17 @@ function EditorShell() {
 									>
 										Buy Me a Coffee… <span>☕</span>
 									</a>
+									<hr />
+									<button
+										type="button"
+										role="menuitem"
+										onClick={() => {
+											setIsHelpMenuOpen(false);
+											setIsFeedbackDialogOpen(true);
+										}}
+									>
+										Send Feedback…
+									</button>
 								</div>
 							)}
 						</div>
@@ -1555,6 +1568,24 @@ function EditorShell() {
 									</a>
 								</div>
 							)}
+						</div>
+						<div className="application-menu">
+							<button
+								className="menu-button"
+								type="button"
+								aria-haspopup="dialog"
+								title="Send feedback or feature requests"
+								onClick={() => {
+									closeFileMenu();
+									setIsEditMenuOpen(false);
+									setIsWindowMenuOpen(false);
+									setIsHelpMenuOpen(false);
+									setIsGuideMenuOpen(false);
+									setIsFeedbackDialogOpen(true);
+								}}
+							>
+								Feedback
+							</button>
 						</div>
 					</nav>
 					<div className="project-title" role="group" aria-label="Current project">
@@ -1992,6 +2023,10 @@ function EditorShell() {
 				onClose={() => setIsCodecSupportOpen(false)}
 			/>
 			<CodecPackDialog isOpen={isCodecPackOpen} onClose={() => setIsCodecPackOpen(false)} />
+			<EditorFeedbackDialog
+				isOpen={isFeedbackDialogOpen}
+				onClose={() => setIsFeedbackDialogOpen(false)}
+			/>
 			{isShortcutsOpen && (
 				<KeyboardShortcutsDialog entries={shortcutEntries} onClose={closeShortcutsDialog} />
 			)}
