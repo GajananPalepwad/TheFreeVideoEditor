@@ -136,7 +136,13 @@ export function getSessionId(): string {
 	}
 
 	// 3. Generate a constant device session ID once, and persist to localStorage
-	const randomPart = Math.random().toString(36).substring(2, 10);
+	const cryptoObj = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
+	if (!cryptoObj?.getRandomValues) {
+		throw new Error('Secure random generator is unavailable');
+	}
+	const randomBytes = new Uint8Array(8);
+	cryptoObj.getRandomValues(randomBytes);
+	const randomPart = Array.from(randomBytes, (b) => b.toString(16).padStart(2, '0')).join('');
 	const timePart = Date.now().toString(36);
 	const newId = `s_${randomPart}${timePart}`;
 

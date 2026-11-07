@@ -1,0 +1,1214 @@
+---
+import { FEEDBACK_CATEGORIES } from '../services/feedback';
+
+interface Props {
+	id?: string;
+}
+
+const { id = 'feedback' } = Astro.props;
+---
+
+<section class="home-feedback-section" id={id} aria-labelledby="feedback-heading">
+	<!-- Ambient cosmic lighting backdrop -->
+	<div class="feedback-ambient-glow" aria-hidden="true"></div>
+
+	<div class="feedback-container">
+		<!-- Section Header -->
+		<div class="feedback-header">
+			<div class="feedback-eyebrow-badge">
+				<span class="pulsing-beacon" aria-hidden="true"></span>
+				<span class="eyebrow-text">COMMUNITY FEEDBACK · SHAPE THE ROADMAP</span>
+			</div>
+			<h2 id="feedback-heading" class="feedback-title">
+				Help Us Improve <span class="highlight-title">The Free Video Editor</span>
+			</h2>
+			<p class="feedback-subtitle">
+				Have an idea for a feature, spotted a bug, or want to share your experience? Your feedback
+				directly guides what we build next — no account required.
+			</p>
+		</div>
+
+		<!-- Feedback Card -->
+		<div class="feedback-card">
+			<!-- Success Banner (hidden by default) -->
+			<div class="feedback-success-state" id="feedback-success-state" hidden role="status">
+				<div class="feedback-success-icon" aria-hidden="true">
+					<svg
+						viewBox="0 0 24 24"
+						width="36"
+						height="36"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+						<polyline points="22 4 12 14.01 9 11.01" />
+					</svg>
+				</div>
+				<h3 class="feedback-success-title">Thank you for your feedback!</h3>
+				<p class="feedback-success-desc" id="feedback-success-message">
+					Your feedback has been submitted successfully and will help us improve future releases.
+				</p>
+				<button type="button" class="feedback-reset-btn" id="feedback-reset-btn">
+					Send Another Response
+				</button>
+			</div>
+
+			<!-- Form Container -->
+			<form class="feedback-form" id="home-feedback-form">
+				<!-- Category Selector -->
+				<div class="form-group">
+					<label class="form-label">
+						<span>Category</span>
+						<span class="label-hint">What is your feedback about?</span>
+					</label>
+					<div class="category-pills" role="radiogroup" aria-label="Feedback category">
+						{FEEDBACK_CATEGORIES.map((cat, idx) => (
+							<button
+								type="button"
+								class:list={['category-pill-btn', { 'is-active': idx === 0 }]}
+								data-category={cat.id}
+								role="radio"
+								aria-checked={idx === 0 ? 'true' : 'false'}
+							>
+								<span class="category-icon" aria-hidden="true">
+									{cat.id === 'general' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+										</svg>
+									)}
+									{cat.id === 'bug' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<rect width="8" height="14" x="8" y="6" rx="4" />
+											<path d="m19 7-3 2" />
+											<path d="m5 7 3 2" />
+											<path d="m19 19-3-2" />
+											<path d="m5 19 3-2" />
+											<path d="M20 13h-4" />
+											<path d="M4 13h4" />
+											<path d="m10 4 1 2" />
+											<path d="m14 4-1 2" />
+										</svg>
+									)}
+									{cat.id === 'feature_request' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+											<path d="M9 18h6" />
+											<path d="M10 22h4" />
+										</svg>
+									)}
+									{cat.id === 'ui_ux' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<rect x="3" y="3" width="18" height="18" rx="2" />
+											<path d="M3 9h18" />
+											<path d="M9 21V9" />
+										</svg>
+									)}
+									{cat.id === 'performance' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+										</svg>
+									)}
+									{cat.id === 'export' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+											<line x1="7" y1="2" x2="7" y2="22" />
+											<line x1="17" y1="2" x2="17" y2="22" />
+											<line x1="2" y1="12" x2="22" y2="12" />
+											<line x1="2" y1="7" x2="7" y2="7" />
+											<line x1="2" y1="17" x2="7" y2="17" />
+											<line x1="17" y1="17" x2="22" y2="17" />
+											<line x1="17" y1="7" x2="22" y2="7" />
+										</svg>
+									)}
+									{cat.id === 'other' && (
+										<svg
+											width="14"
+											height="14"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M12 20h9" />
+											<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+										</svg>
+									)}
+								</span>
+								<span class="category-label">{cat.label}</span>
+							</button>
+						))}
+					</div>
+					<input type="hidden" name="category" id="feedback-category-input" value="general" />
+				</div>
+
+				<!-- Rating Selector (Stars start EMPTY at beginning) -->
+				<div class="form-group" id="rating-form-group">
+					<div class="rating-label-row">
+						<label class="form-label" for="rating-group">
+							<span>Rating</span>
+							<span class="required-indicator" aria-hidden="true">
+								*
+							</span>
+						</label>
+						<span class="rating-value-label is-empty" id="rating-value-label">
+							Tap to rate
+						</span>
+					</div>
+					<div class="rating-interactive-box">
+						<div
+							class="star-rating-row"
+							id="rating-group"
+							role="radiogroup"
+							aria-label="Experience rating from 1 to 5 stars"
+						>
+							{[1, 2, 3, 4, 5].map((star) => (
+								<button
+									type="button"
+									class="star-btn is-empty"
+									data-star={star}
+									role="radio"
+									aria-checked="false"
+									aria-label={`${star} star${star > 1 ? 's' : ''}`}
+								>
+									<svg
+										viewBox="0 0 24 24"
+										width="28"
+										height="28"
+										class="star-icon"
+										aria-hidden="true"
+									>
+										<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+									</svg>
+								</button>
+							))}
+						</div>
+						<span class="rating-guide-hint">Select 1 to 5 stars</span>
+					</div>
+					<input type="hidden" name="rating" id="feedback-rating-input" value="0" />
+				</div>
+
+				<!-- Message Textarea -->
+				<div class="form-group">
+					<div class="message-label-row">
+						<label class="form-label" for="feedback-message">
+							<span>Your Feedback</span>
+							<span class="label-hint">(optional if rating selected)</span>
+						</label>
+						<span class="char-counter" id="char-counter">
+							0 / 1000
+						</span>
+					</div>
+					<textarea
+						id="feedback-message"
+						name="message"
+						class="feedback-textarea"
+						rows="4"
+						maxlength="1000"
+						placeholder="Please share what you like, what features you'd like to see, or any issues you encountered... (optional if rating selected)"
+					></textarea>
+				</div>
+
+				<!-- Error Banner -->
+				<div class="feedback-error-banner" id="feedback-error-banner" hidden role="alert">
+					<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+						<path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+					</svg>
+					<span id="feedback-error-text">Failed to submit feedback. Please try again.</span>
+				</div>
+
+				<!-- Actions -->
+				<div class="feedback-actions">
+					<button type="submit" class="feedback-submit-btn" id="feedback-submit-btn">
+						<span class="btn-spinner" id="btn-spinner" hidden aria-hidden="true"></span>
+						<svg
+							class="btn-icon"
+							viewBox="0 0 24 24"
+							width="16"
+							height="16"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<line x1="22" y1="2" x2="11" y2="13" />
+							<polygon points="22 2 15 22 11 13 2 9 22 2" />
+						</svg>
+						<span id="btn-label">Submit Feedback</span>
+					</button>
+					<span class="feedback-privacy-note">
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+						</svg>
+						Anonymous & on-device session. No account required.
+					</span>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Floating quick-feedback anchor trigger for easy access from anywhere on the landing page -->
+	<a
+		href={`#${id}`}
+		class="floating-feedback-pill"
+		id="floating-feedback-pill"
+		aria-label="Give feedback on The Free Video Editor"
+	>
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2.2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+		</svg>
+		<span>Feedback</span>
+	</a>
+</section>
+
+<script>
+	import { submitFeedback, type FeedbackCategory } from '../services/feedback';
+
+	const RATING_DESCRIPTIONS: Record<number, string> = {
+		1: '1 · Needs Work',
+		2: '2 · Fair',
+		3: '3 · Good',
+		4: '4 · Very Good',
+		5: '5 · Excellent'
+	};
+
+	function initFeedbackForm() {
+		const form = document.getElementById('home-feedback-form') as HTMLFormElement | null;
+		if (!form) return;
+
+		const categoryInput = document.getElementById(
+			'feedback-category-input'
+		) as HTMLInputElement | null;
+		const ratingInput = document.getElementById('feedback-rating-input') as HTMLInputElement | null;
+		const messageInput = document.getElementById('feedback-message') as HTMLTextAreaElement | null;
+		const charCounter = document.getElementById('char-counter');
+		const ratingLabel = document.getElementById('rating-value-label');
+		const successState = document.getElementById('feedback-success-state');
+		const successMsg = document.getElementById('feedback-success-message');
+		const resetBtn = document.getElementById('feedback-reset-btn');
+		const errorBanner = document.getElementById('feedback-error-banner');
+		const errorText = document.getElementById('feedback-error-text');
+		const submitBtn = document.getElementById('feedback-submit-btn') as HTMLButtonElement | null;
+		const btnSpinner = document.getElementById('btn-spinner');
+		const btnLabel = document.getElementById('btn-label');
+
+		let selectedCategory: FeedbackCategory = 'general';
+		// Stars start empty at beginning (0)
+		let selectedRating = 0;
+		let hoveredRating: number | null = null;
+
+		// 1. Category Pill selection
+		const categoryPills = form.querySelectorAll<HTMLButtonElement>('.category-pill-btn');
+		categoryPills.forEach((pill) => {
+			pill.addEventListener('click', () => {
+				categoryPills.forEach((p) => {
+					p.classList.remove('is-active');
+					p.setAttribute('aria-checked', 'false');
+				});
+				pill.classList.add('is-active');
+				pill.setAttribute('aria-checked', 'true');
+				selectedCategory = (pill.getAttribute('data-category') as FeedbackCategory) || 'general';
+				if (categoryInput) {
+					categoryInput.value = selectedCategory;
+				}
+			});
+		});
+
+		// 2. Star Rating interaction
+		const starButtons = form.querySelectorAll<HTMLButtonElement>('.star-btn');
+
+		function updateStarVisuals() {
+			const activeScore = hoveredRating ?? selectedRating;
+			starButtons.forEach((btn) => {
+				const starValue = Number(btn.getAttribute('data-star') || '1');
+				if (activeScore > 0 && starValue <= activeScore) {
+					btn.classList.add('is-active');
+					btn.classList.remove('is-empty');
+				} else {
+					btn.classList.remove('is-active');
+					btn.classList.add('is-empty');
+				}
+				btn.setAttribute(
+					'aria-checked',
+					starValue === selectedRating && selectedRating > 0 ? 'true' : 'false'
+				);
+			});
+
+			if (ratingLabel) {
+				if (activeScore > 0) {
+					ratingLabel.textContent = RATING_DESCRIPTIONS[activeScore] || `${activeScore} Stars`;
+					ratingLabel.classList.remove('is-empty');
+				} else {
+					ratingLabel.textContent = 'Tap to rate';
+					ratingLabel.classList.add('is-empty');
+				}
+			}
+		}
+
+		starButtons.forEach((btn) => {
+			const starValue = Number(btn.getAttribute('data-star') || '1');
+
+			btn.addEventListener('mouseenter', () => {
+				hoveredRating = starValue;
+				updateStarVisuals();
+			});
+
+			btn.addEventListener('mouseleave', () => {
+				hoveredRating = null;
+				updateStarVisuals();
+			});
+
+			btn.addEventListener('click', () => {
+				selectedRating = starValue;
+				if (ratingInput) {
+					ratingInput.value = String(starValue);
+				}
+				if (errorBanner) {
+					errorBanner.hidden = true;
+				}
+				updateStarVisuals();
+			});
+		});
+
+		// 3. Character Counter
+		if (messageInput && charCounter) {
+			messageInput.addEventListener('input', () => {
+				const len = messageInput.value.length;
+				charCounter.textContent = `${len} / 1000`;
+				if (errorBanner) {
+					errorBanner.hidden = true;
+				}
+			});
+		}
+
+		// 4. Reset Button
+		if (resetBtn) {
+			resetBtn.addEventListener('click', () => {
+				if (messageInput) messageInput.value = '';
+				if (charCounter) charCounter.textContent = '0 / 1000';
+				if (successState) successState.hidden = true;
+				form.style.display = 'flex';
+				if (errorBanner) errorBanner.hidden = true;
+				selectedRating = 0;
+				hoveredRating = null;
+				if (ratingInput) ratingInput.value = '0';
+				updateStarVisuals();
+			});
+		}
+
+		// 5. Form Submission
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+
+			const message = messageInput?.value.trim() ?? '';
+
+			// Require either a star rating or a feedback message
+			if (selectedRating === 0 && !message) {
+				if (errorBanner && errorText) {
+					errorText.textContent = 'Please select a star rating or enter a feedback message.';
+					errorBanner.hidden = false;
+				}
+				const ratingBox = document.getElementById('rating-group');
+				ratingBox?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				return;
+			}
+
+			// Submitting state
+			if (submitBtn) submitBtn.disabled = true;
+			if (btnSpinner) btnSpinner.hidden = false;
+			if (btnLabel) btnLabel.textContent = 'Submitting...';
+			if (errorBanner) errorBanner.hidden = true;
+
+			try {
+				const response = await submitFeedback({
+					category: selectedCategory,
+					rating: selectedRating,
+					message,
+					page: window.location.pathname || '/'
+				});
+
+				form.style.display = 'none';
+				if (successState) {
+					successState.hidden = false;
+					if (successMsg && response.message) {
+						successMsg.textContent = response.message;
+					}
+					successState.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+			} catch (err) {
+				if (errorBanner && errorText) {
+					errorText.textContent =
+						err instanceof Error ? err.message : 'Failed to submit feedback. Please try again.';
+					errorBanner.hidden = false;
+				}
+			} finally {
+				if (submitBtn) submitBtn.disabled = false;
+				if (btnSpinner) btnSpinner.hidden = true;
+				if (btnLabel) btnLabel.textContent = 'Submit Feedback';
+			}
+		});
+
+		// 6. Floating pill click handler (scroll & focus)
+		const floatingPill = document.getElementById('floating-feedback-pill');
+		if (floatingPill) {
+			floatingPill.addEventListener('click', (e) => {
+				e.preventDefault();
+				const section = document.getElementById('feedback');
+				if (section) {
+					section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					window.setTimeout(() => {
+						messageInput?.focus();
+					}, 500);
+				}
+			});
+
+			// Hide floating pill when near the feedback section or at the very top
+			const updateFloatingVisibility = () => {
+				const scrollY = window.scrollY;
+				const section = document.getElementById('feedback');
+				if (!section) return;
+				const rect = section.getBoundingClientRect();
+				const isNearSection = rect.top < window.innerHeight && rect.bottom > 0;
+				if (scrollY > 300 && !isNearSection) {
+					floatingPill.classList.add('is-visible');
+				} else {
+					floatingPill.classList.remove('is-visible');
+				}
+			};
+
+			window.addEventListener('scroll', updateFloatingVisibility, { passive: true });
+			updateFloatingVisibility();
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initFeedbackForm);
+	} else {
+		initFeedbackForm();
+	}
+</script>
+
+<style>
+	.home-feedback-section {
+		position: relative;
+		z-index: 10;
+		background: var(--color-canvas);
+		padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-4xl);
+		scroll-margin-top: 4rem;
+		overflow: hidden;
+	}
+
+	.feedback-ambient-glow {
+		position: absolute;
+		top: 15%;
+		left: 50%;
+		transform: translateX(-50%);
+		width: min(85vw, 850px);
+		height: 450px;
+		background: radial-gradient(
+			ellipse,
+			rgba(56, 189, 248, 0.08) 0%,
+			rgba(168, 85, 247, 0.05) 45%,
+			transparent 70%
+		);
+		pointer-events: none;
+		filter: blur(80px);
+		z-index: 1;
+	}
+
+	.feedback-container {
+		max-width: 54rem;
+		margin: 0 auto;
+		display: flex;
+		flex-direction: column;
+		gap: 2.25rem;
+		position: relative;
+		z-index: 2;
+	}
+
+	/* Section Header */
+	.feedback-header {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.85rem;
+	}
+
+	.feedback-eyebrow-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.35rem 0.85rem;
+		background: rgba(56, 189, 248, 0.08);
+		border: 1px solid rgba(56, 189, 248, 0.25);
+		border-radius: 9999px;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		color: #38bdf8;
+		box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
+	}
+
+	.pulsing-beacon {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: #38bdf8;
+		box-shadow: 0 0 10px #38bdf8;
+		animation: beaconGlow 2s ease-in-out infinite;
+	}
+
+	@keyframes beaconGlow {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.45;
+			transform: scale(0.85);
+		}
+	}
+
+	.feedback-title {
+		font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: -0.03em;
+		color: #f8fafc;
+		margin: 0;
+	}
+
+	.highlight-title {
+		background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	.feedback-subtitle {
+		max-width: 38rem;
+		font-size: 1rem;
+		line-height: 1.6;
+		color: #94a3b8;
+		margin: 0;
+	}
+
+	/* Feedback Card */
+	.feedback-card {
+		background: linear-gradient(
+			145deg,
+			rgba(20, 20, 32, 0.85) 0%,
+			rgba(14, 14, 24, 0.95) 50%,
+			rgba(18, 18, 28, 0.85) 100%
+		);
+		border: 1px solid rgba(56, 189, 248, 0.22);
+		border-radius: 20px;
+		padding: 2.25rem;
+		box-shadow:
+			0 24px 60px -15px rgba(0, 0, 0, 0.75),
+			0 0 35px rgba(56, 189, 248, 0.08),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* Form Structure */
+	.feedback-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.6rem;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	.form-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #f1f5f9;
+	}
+
+	.label-hint {
+		font-size: 0.8rem;
+		font-weight: 400;
+		color: #64748b;
+	}
+
+	.required-indicator {
+		color: #f43f5e;
+	}
+
+	/* Category Pills */
+	.category-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+	}
+
+	.category-pill-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.45rem 0.95rem;
+		background: rgba(255, 255, 255, 0.035);
+		border: 1px solid rgba(255, 255, 255, 0.09);
+		border-radius: 9999px;
+		font-size: 0.825rem;
+		font-weight: 500;
+		color: #94a3b8;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.category-pill-btn:hover {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: rgba(56, 189, 248, 0.3);
+		color: #f1f5f9;
+		transform: translateY(-1px);
+	}
+
+	.category-pill-btn.is-active {
+		background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(56, 189, 248, 0.12) 100%);
+		border-color: #38bdf8;
+		color: #38bdf8;
+		font-weight: 600;
+		box-shadow: 0 0 14px rgba(56, 189, 248, 0.28);
+		transform: translateY(-1px);
+	}
+
+	.category-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.category-icon svg {
+		flex-shrink: 0;
+		display: block;
+	}
+
+	/* Star Rating Box */
+	.rating-label-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.rating-value-label {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		font-weight: 600;
+		padding: 3px 10px;
+		border-radius: 9999px;
+		background: rgba(251, 191, 36, 0.12);
+		border: 1px solid rgba(251, 191, 36, 0.28);
+		color: #fbbf24;
+		transition: all 0.15s ease;
+	}
+
+	.rating-value-label.is-empty {
+		background: rgba(148, 163, 184, 0.1);
+		border-color: rgba(148, 163, 184, 0.2);
+		color: #94a3b8;
+	}
+
+	.rating-interactive-box {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 14px;
+		background: rgba(10, 10, 18, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 12px;
+		flex-wrap: wrap;
+	}
+
+	.star-rating-row {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.star-btn {
+		background: transparent;
+		border: none;
+		padding: 0.25rem;
+		margin: 0;
+		cursor: pointer;
+		color: #475569;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 6px;
+		transition:
+			transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+			color 0.15s ease;
+	}
+
+	.star-btn:hover {
+		transform: scale(1.22);
+	}
+
+	.star-btn .star-icon polygon {
+		fill: transparent;
+		stroke: #475569;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition:
+			fill 0.15s ease,
+			stroke 0.15s ease;
+	}
+
+	.star-btn:hover .star-icon polygon {
+		stroke: #fcd34d;
+	}
+
+	.star-btn.is-active .star-icon polygon {
+		fill: #fbbf24;
+		stroke: #fbbf24;
+	}
+
+	.star-btn.is-active {
+		filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+	}
+
+	.rating-guide-hint {
+		font-size: 0.78rem;
+		color: #64748b;
+	}
+
+	/* Message Textarea */
+	.message-label-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.char-counter {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: #64748b;
+	}
+
+	.feedback-textarea {
+		width: 100%;
+		box-sizing: border-box;
+		background: rgba(10, 10, 18, 0.75);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 12px;
+		padding: 0.875rem 1rem;
+		color: #f8fafc;
+		font-family: var(--font-sans);
+		font-size: 0.925rem;
+		line-height: 1.55;
+		resize: vertical;
+		min-height: 115px;
+		outline: none;
+		transition:
+			border-color 0.15s ease,
+			box-shadow 0.15s ease,
+			background 0.15s ease;
+	}
+
+	.feedback-textarea:focus {
+		background: rgba(10, 10, 18, 0.95);
+		border-color: #38bdf8;
+		box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+	}
+
+	.feedback-textarea::placeholder {
+		color: #475569;
+	}
+
+	/* Error Banner */
+	.feedback-error-banner {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.75rem 1rem;
+		background: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.35);
+		border-radius: 10px;
+		color: #fca5a5;
+		font-size: 0.85rem;
+	}
+
+	/* Actions Row */
+	.feedback-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		padding-top: 0.25rem;
+	}
+
+	.feedback-submit-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.75rem;
+		background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+		border: 1px solid #38bdf8;
+		border-radius: 10px;
+		font-weight: 600;
+		font-size: 0.925rem;
+		color: #ffffff;
+		box-shadow: 0 4px 18px rgba(2, 132, 199, 0.4);
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.feedback-submit-btn:hover:not(:disabled) {
+		background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+		border-color: #7dd3fc;
+		box-shadow: 0 6px 24px rgba(2, 132, 199, 0.6);
+		transform: translateY(-2px);
+	}
+
+	.feedback-submit-btn:active:not(:disabled) {
+		transform: translateY(0);
+	}
+
+	.feedback-submit-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	.btn-spinner {
+		width: 14px;
+		height: 14px;
+		border: 2px solid rgba(255, 255, 255, 0.3);
+		border-top-color: #ffffff;
+		border-radius: 50%;
+		animation: feedbackSpin 0.7s linear infinite;
+	}
+
+	@keyframes feedbackSpin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.feedback-privacy-note {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8rem;
+		color: #64748b;
+	}
+
+	/* Success State */
+	.feedback-success-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 1rem;
+		padding: 2.5rem 1.5rem;
+		animation: feedbackPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	@keyframes feedbackPop {
+		0% {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.feedback-success-icon {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: rgba(34, 197, 94, 0.15);
+		border: 2px solid #22c55e;
+		color: #4ade80;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+	}
+
+	.feedback-success-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #f8fafc;
+		margin: 0;
+	}
+
+	.feedback-success-desc {
+		max-width: 30rem;
+		font-size: 0.95rem;
+		color: #94a3b8;
+		line-height: 1.5;
+		margin: 0;
+	}
+
+	.feedback-reset-btn {
+		margin-top: 0.5rem;
+		padding: 0.6rem 1.4rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 8px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #cbd5e1;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.feedback-reset-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: #38bdf8;
+		color: #ffffff;
+	}
+
+	/* Floating Feedback Pill */
+	.floating-feedback-pill {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		z-index: 45;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.6rem 1.1rem;
+		background: rgba(16, 16, 24, 0.88);
+		border: 1px solid rgba(56, 189, 248, 0.45);
+		border-radius: 9999px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #f1f5f9;
+		box-shadow:
+			0 10px 25px rgba(0, 0, 0, 0.6),
+			0 0 15px rgba(56, 189, 248, 0.25);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		text-decoration: none;
+		opacity: 0;
+		pointer-events: none;
+		transform: translateY(12px);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	.floating-feedback-pill.is-visible {
+		opacity: 1;
+		pointer-events: auto;
+		transform: translateY(0);
+	}
+
+	.floating-feedback-pill:hover {
+		border-color: #38bdf8;
+		box-shadow:
+			0 12px 30px rgba(0, 0, 0, 0.8),
+			0 0 25px rgba(56, 189, 248, 0.45);
+		color: #38bdf8;
+		transform: translateY(-2px);
+	}
+
+	/* Light theme adjustments */
+	:root[data-theme='light'] .feedback-card {
+		background: #ffffff;
+		border-color: #e2e8f0;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	}
+
+	:root[data-theme='light'] .feedback-title {
+		color: #0f172a;
+	}
+
+	:root[data-theme='light'] .feedback-subtitle {
+		color: #64748b;
+	}
+
+	:root[data-theme='light'] .form-label {
+		color: #1e293b;
+	}
+
+	:root[data-theme='light'] .category-pill-btn {
+		background: #f8fafc;
+		border-color: #e2e8f0;
+		color: #475569;
+	}
+
+	:root[data-theme='light'] .category-pill-btn:hover {
+		background: #f1f5f9;
+		color: #0f172a;
+	}
+
+	:root[data-theme='light'] .category-pill-btn.is-active {
+		background: #e0f2fe;
+		border-color: #0284c7;
+		color: #0369a1;
+	}
+
+	:root[data-theme='light'] .rating-interactive-box {
+		background: #f8fafc;
+		border-color: #e2e8f0;
+	}
+
+	:root[data-theme='light'] .star-btn .star-icon polygon {
+		stroke: #cbd5e1;
+	}
+
+	:root[data-theme='light'] .star-btn:hover .star-icon polygon {
+		stroke: #f59e0b;
+	}
+
+	:root[data-theme='light'] .star-btn.is-active .star-icon polygon {
+		fill: #f59e0b;
+		stroke: #f59e0b;
+	}
+
+	:root[data-theme='light'] .rating-value-label {
+		background: #fef3c7;
+		border-color: #fde68a;
+		color: #b45309;
+	}
+
+	:root[data-theme='light'] .rating-value-label.is-empty {
+		background: #f1f5f9;
+		border-color: #e2e8f0;
+		color: #64748b;
+	}
+
+	:root[data-theme='light'] .feedback-textarea {
+		background: #ffffff;
+		border-color: #cbd5e1;
+		color: #0f172a;
+	}
+
+	:root[data-theme='light'] .floating-feedback-pill {
+		background: rgba(255, 255, 255, 0.95);
+		border-color: #cbd5e1;
+		color: #0f172a;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+	}
+
+	:root[data-theme='light'] .feedback-success-title {
+		color: #0f172a;
+	}
+
+	:root[data-theme='light'] .feedback-reset-btn {
+		background: #f1f5f9;
+		border-color: #cbd5e1;
+		color: #334155;
+	}
+
+	@media (max-width: 640px) {
+		.feedback-card {
+			padding: 1.5rem 1rem;
+		}
+
+		.floating-feedback-pill {
+			bottom: 1rem;
+			right: 1rem;
+			padding: 0.5rem 0.9rem;
+			font-size: 0.8rem;
+		}
+	}
+</style>

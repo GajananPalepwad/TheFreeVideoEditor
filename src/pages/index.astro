@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import FeaturesShowcase from '../components/FeaturesShowcase.astro';
 import BuyMeACoffee from '../components/BuyMeACoffee.astro';
 import Contributors from '../components/Contributors.astro';
+import FeedbackSection from '../components/FeedbackSection.astro';
 
 const seoTitle =
 	'The Free Video Editor — Free Online Video Editor & AI Video Editor in Your Browser';
@@ -68,7 +69,11 @@ const faqJsonLd = {
 };
 ---
 
-<Layout title={seoTitle} description={seoDescription} canonicalUrl="https://thefreevideoeditor.com/">
+<Layout
+	title={seoTitle}
+	description={seoDescription}
+	canonicalUrl="https://thefreevideoeditor.com/"
+>
 	<!-- FAQ Structured Data (JSON-LD) for Search Engine Rich Snippets -->
 	<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} slot="head"></script>
 	<div class="home-wrapper" id="home-wrapper">
@@ -461,6 +466,9 @@ const faqJsonLd = {
 			</div>
 		</article>
 
+		<!-- Interactive Community Feedback & Roadmap Feature Suggestions -->
+		<FeedbackSection id="feedback" />
+
 		<!-- Buy Me A Coffee Support & Community Section -->
 		<section class="home-support-section" id="community">
 			<div class="support-container">
@@ -474,7 +482,8 @@ const faqJsonLd = {
 						<div class="community-card-content">
 							<h3 class="community-card-title">Join The Free Video Editor Discord</h3>
 							<p class="community-card-desc">
-								Chat with creators, share your video edits, get troubleshooting help, and build the future of browser video editing with us.
+								Chat with creators, share your video edits, get troubleshooting help, and build the
+								future of browser video editing with us.
 							</p>
 						</div>
 						<a
@@ -484,7 +493,17 @@ const faqJsonLd = {
 							class="community-discord-btn"
 						>
 							<span>Join Community</span>
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 								<polyline points="12 5 19 12 12 19"></polyline>
 							</svg>
