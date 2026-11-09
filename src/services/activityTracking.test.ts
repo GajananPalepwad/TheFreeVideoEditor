@@ -280,5 +280,77 @@ describe('activityTracking service', () => {
 
 			expect(fetchMock).not.toHaveBeenCalled();
 		});
+
+		it('trackError suppresses empty, null, or undefined rejection errors without sending unknown_error', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			trackError(undefined, 'unhandledrejection');
+			trackError(null, 'unhandledrejection');
+			trackError('', 'unhandledrejection');
+			trackError({}, 'unhandledrejection');
+			trackError('unknown_error', 'unhandledrejection');
+			trackError('[object Object]', 'unhandledrejection');
+
+			expect(fetchMock).not.toHaveBeenCalled();
+		});
+
+		it('trackError extracts message from non-Error objects and cross-realm errors', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			trackError({ message: 'WebGL context was lost' }, 'webgl');
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+			const body1 = JSON.parse(
+				(fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body1.details as Record<string, unknown>).error).toBe('WebGL context was lost');
+
+			trackError({ name: 'DecoderError', message: 'H.264 profile unsupported' }, 'export');
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			const body2 = JSON.parse(
+				(fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body2.details as Record<string, unknown>).error).toBe(
+				'DecoderError: H.264 profile unsupported'
+			);
+
+			trackError({ reason: 'Quota exceeded for OPFS storage' }, 'storage');
+			expect(fetchMock).toHaveBeenCalledTimes(3);
+			const body3 = JSON.parse(
+				(fetchMock.mock.calls[2] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body3.details as Record<string, unknown>).error).toBe(
+				'Quota exceeded for OPFS storage'
+			);
+
+			trackError({ status: 503, statusText: 'Service Unavailable' }, 'network');
+			expect(fetchMock).toHaveBeenCalledTimes(4);
+			const body4 = JSON.parse(
+				(fetchMock.mock.calls[3] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body4.details as Record<string, unknown>).error).toBe('HTTP 503 Service Unavailable');
+		});
+
+		it('trackError filters out adblocker, client-blocked, extension, and cancellation errors', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			trackError('net::ERR_BLOCKED_BY_CLIENT', 'unhandledrejection');
+			trackError(new Error('AbortError: The user aborted a request.'), 'fetch');
+			trackError('ResizeObserver loop completed with undelivered notifications.', 'window.onerror');
+			trackError('ResizeObserver loop limit exceeded', 'window.onerror');
+			trackError('TagError: adsbygoogle.push() error: No slot size', 'ads');
+			trackError(
+				new Error('The message port closed before a response was received.'),
+				'unhandledrejection'
+			);
+			trackError(
+				'A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received',
+				'unhandledrejection'
+			);
+
+			expect(fetchMock).not.toHaveBeenCalled();
+		});
 	});
 });

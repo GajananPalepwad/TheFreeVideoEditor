@@ -339,34 +339,134 @@ export function trackExportFailed(error?: unknown, details?: Record<string, unkn
 	});
 }
 
+const IGNORED_ERROR_PATTERNS: readonly (string | RegExp)[] = [
+	'Script error.',
+	'M_ID',
+	'chrome-extension:',
+	'moz-extension:',
+	'safari-extension:',
+	'safari-web-extension:',
+	'extension://',
+	'The message port closed before a response was received',
+	'message channel closed before a response was received',
+	'Receiving end does not exist',
+	'ResizeObserver loop completed with undelivered notifications',
+	'ResizeObserver loop limit exceeded',
+	'AbortError',
+	'The user aborted a request',
+	'signal is aborted without reason',
+	'ERR_BLOCKED_BY_CLIENT',
+	'adsbygoogle',
+	'googletagmanager',
+	'google-analytics'
+] as const;
+
+/**
+ * Safely extracts a meaningful error message from any value (Error instance,
+ * string, DOMException, custom object, rejection reason, or event).
+ */
+export function extractErrorMessage(error: unknown): string {
+	if (error === null || error === undefined) {
+		return '';
+	}
+
+	if (error instanceof Error) {
+		const name = error.name || 'Error';
+		const msg = error.message || '';
+		return msg ? `${name}: ${msg}` : name;
+	}
+
+	if (typeof error === 'string') {
+		return error.trim();
+	}
+
+	if (typeof error === 'object') {
+		const obj = error as Record<string, unknown>;
+		const name = typeof obj.name === 'string' ? obj.name.trim() : '';
+		const message = typeof obj.message === 'string' ? obj.message.trim() : '';
+		const reason = typeof obj.reason === 'string' ? obj.reason.trim() : '';
+
+		if (name && message) {
+			return `${name}: ${message}`;
+		}
+		if (message) {
+			return message;
+		}
+		if (reason) {
+			return reason;
+		}
+		if (typeof obj.statusText === 'string' && obj.statusText.trim()) {
+			return `HTTP ${obj.status ?? ''} ${obj.statusText.trim()}`.trim();
+		}
+		if (typeof obj.error === 'string' && obj.error.trim()) {
+			return obj.error.trim();
+		}
+		if (typeof obj.description === 'string' && obj.description.trim()) {
+			return obj.description.trim();
+		}
+		if (typeof obj.type === 'string' && obj.type.trim()) {
+			return `Event: ${obj.type.trim()}`;
+		}
+		try {
+			const str = JSON.stringify(error);
+			if (str && str !== '{}' && str !== '[]') {
+				return str;
+			}
+		} catch {
+			// Circular or non-serializable object
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Checks if an error message represents known benign browser noise, ad-blocker
+ * suppression, third-party extension failures, or non-actionable empty errors.
+ */
+export function isIgnoredError(message: string): boolean {
+	const trimmed = message.trim();
+	if (
+		!trimmed ||
+		trimmed === 'unknown_error' ||
+		trimmed === '[object Object]' ||
+		trimmed === 'null' ||
+		trimmed === 'undefined'
+	) {
+		return true;
+	}
+
+	for (const pattern of IGNORED_ERROR_PATTERNS) {
+		if (typeof pattern === 'string') {
+			if (trimmed.includes(pattern)) return true;
+		} else if (pattern.test(trimmed)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Records an anonymous error telemetry event. Automatically filters out noisy
+ * browser extension messages, adblocker blocks, benign ResizeObserver loops,
+ * and empty/unknown promise rejections.
+ */
 export function trackError(
 	error: unknown,
 	source?: string,
 	details?: Record<string, unknown>
 ): void {
-	let message = 'unknown_error';
-	if (error instanceof Error) {
-		message = `${error.name}: ${error.message}`;
-	} else if (typeof error === 'string') {
-		message = error;
-	}
-
-	// Filter out noisy cross-origin browser extension or third-party ad script errors
-	if (
-		message === 'Script error.' ||
-		message.includes('M_ID') ||
-		message.includes('chrome-extension:') ||
-		message.includes('moz-extension:') ||
-		message.includes('safari-extension:')
-	) {
+	const rawMessage = extractErrorMessage(error);
+	if (isIgnoredError(rawMessage)) {
 		return;
 	}
 
-	message = message.replace(/(?:\/[^/\s]+)+\/?/g, '[path]').slice(0, 100);
+	const sanitizedMessage = rawMessage.replace(/(?:\/[^/\s]+)+\/?/g, '[path]').slice(0, 100);
 
 	void trackActivity('error', {
 		source: source || 'app',
-		error: message,
+		error: sanitizedMessage,
 		...details
 	});
 }
