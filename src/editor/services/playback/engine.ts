@@ -1,7 +1,7 @@
 import { nextBoundary, resolveFrame, type ActiveLayer } from '../../core/playback';
 import { framesToTicks, ticksToTimecode, timelineDuration } from '../../core';
 import { viewProject } from '../../core/sequences/access';
-import type { AssetId, ClipId, Project, Time, TrackId } from '../../core';
+import type { AssetId, ClipId, PlaybackResolution, Project, Time, TrackId } from '../../core';
 import type { EditorStore } from '../../state/store';
 import { AudioEngine } from './audioEngine';
 import type { FrameSource, LastGoodFrames } from './compositor';
@@ -16,7 +16,12 @@ import { createPlaybackClock, type PlaybackRate } from './clock';
 import { MediaPool } from './mediaPool';
 import { TextRasterCache } from '../render/text/cache';
 import { ensureFontLoaded, isFontLoaded, onFontLoaded } from '../render/text/fontLoader';
-import { ensureBuiltinLutLoaded, ensureLutLoaded, getParsedLut, isBuiltinLutId } from '../media/lutCache';
+import {
+	ensureBuiltinLutLoaded,
+	ensureLutLoaded,
+	getParsedLut,
+	isBuiltinLutId
+} from '../media/lutCache';
 import { rasterizeShape } from '../render/shapes/shapeRasterizer';
 
 export interface PlaybackSnapshot {
@@ -32,6 +37,7 @@ export interface PlaybackSnapshot {
 	loading: boolean;
 	error: string;
 	proxyActive?: boolean;
+	playbackResolution: PlaybackResolution;
 }
 
 export interface PlaybackDebugStats {
@@ -52,6 +58,9 @@ export interface PlaybackDebugStats {
 export interface PlaybackEngine {
 	readonly projectId: Project['id'];
 	readonly snapshot: PlaybackSnapshot;
+	readonly playbackResolution: PlaybackResolution;
+	setPlaybackResolution(resolution: PlaybackResolution): void;
+	readonly currentRenderScale: number;
 	attach(canvas: HTMLCanvasElement, renderer?: RendererKind): void;
 	detach(): void;
 	setProject(project: Project): void;
@@ -136,6 +145,26 @@ class PlaybackEngineImpl implements PlaybackEngine {
 	private writingPlayhead = false;
 	disposed = false;
 	private snapshotValue: PlaybackSnapshot;
+	private playbackResolutionValue: PlaybackResolution = 'full';
+
+	get playbackResolution(): PlaybackResolution {
+		return this.playbackResolutionValue;
+	}
+
+	get currentRenderScale(): number {
+		if (this.playbackResolutionValue === 'half') return 0.5;
+		if (this.playbackResolutionValue === 'quarter') return 0.25;
+		return 1;
+	}
+
+	setPlaybackResolution(resolution: PlaybackResolution): void {
+		if (this.playbackResolutionValue === resolution) return;
+		this.playbackResolutionValue = resolution;
+		this.updateSnapshot({ playbackResolution: resolution });
+		this.resizeCanvas();
+		this.requestRender();
+	}
+
 	onPoolFrame = (): void => this.requestRender();
 	onPoolMissing = (assetId: AssetId): void => this.markMissing(assetId);
 	onPoolError = (error: Error): void => this.reportError(error);
@@ -195,6 +224,7 @@ class PlaybackEngineImpl implements PlaybackEngine {
 	) {
 		this.project = project;
 		this.updateAllProjectClipIds();
+		this.playbackResolutionValue = store.getState().playbackResolution ?? 'full';
 		this.snapshotValue = {
 			time: clock.time,
 			duration: timelineDuration(project),
@@ -206,10 +236,15 @@ class PlaybackEngineImpl implements PlaybackEngine {
 			meter: 0,
 			missing: [],
 			loading: false,
-			error: ''
+			error: '',
+			playbackResolution: this.playbackResolutionValue
 		};
 		this.clockUnsubscribe = clock.onTick((time, playing, rate) => {
 			if (this.disposed) return;
+			const playingChanged = this.snapshotValue.playing !== playing;
+			if (playingChanged) {
+				this.resizeCanvas();
+			}
 			const aiState = this.store.getState().ai;
 			if (playing && aiState?.virtualPreview && aiState.detectedSilences.length > 0) {
 				const currentSilence = aiState.detectedSilences.find(
@@ -272,6 +307,12 @@ class PlaybackEngineImpl implements PlaybackEngine {
 					this.renderer?.enableScopes?.(true);
 				}
 				this.syncAndRender();
+			}
+			if (state.playbackResolution && state.playbackResolution !== this.playbackResolutionValue) {
+				this.playbackResolutionValue = state.playbackResolution;
+				this.updateSnapshot({ playbackResolution: state.playbackResolution });
+				this.resizeCanvas();
+				this.requestRender();
 			}
 		});
 		this.visibilityListener = () => {
@@ -363,6 +404,7 @@ class PlaybackEngineImpl implements PlaybackEngine {
 		void this.audio.unlock().catch((error: unknown) => this.reportError(error));
 		this.clock.play();
 		this.store.getState().setTimelineFollowing(this.clock.playing);
+		this.resizeCanvas();
 		this.syncAndRender();
 	}
 
@@ -373,6 +415,8 @@ class PlaybackEngineImpl implements PlaybackEngine {
 		void this.audio
 			.sync([], this.project, false, this.clock.rate)
 			.catch((error: unknown) => this.reportError(error));
+		this.resizeCanvas();
+		this.syncAndRender();
 	}
 
 	toggle(): void {
@@ -648,8 +692,8 @@ class PlaybackEngineImpl implements PlaybackEngine {
 						gradientType: data.gradientType,
 						gradientColorEnd: data.gradientColorEnd,
 						gradientAngle: data.gradientAngle,
-					gradientStops: data.gradientStops,
-					animator: data.animator,
+						gradientStops: data.gradientStops,
+						animator: data.animator,
 						colorRuns: data.colorRuns,
 						scale
 					});
@@ -667,7 +711,7 @@ class PlaybackEngineImpl implements PlaybackEngine {
 				return source;
 			},
 			this.lastGoodFrames,
-			{ playing: this.clock.playing }
+			{ playing: this.clock.playing, scale: this.currentRenderScale }
 		);
 		this.updateSnapshot({ proxyActive });
 		canvas.setAttribute(
@@ -695,8 +739,11 @@ class PlaybackEngineImpl implements PlaybackEngine {
 	private resizeCanvas(): void {
 		if (!this.canvas) return;
 		const { width, height } = this.activeProject.settings;
-		if (this.canvas.width !== width) this.canvas.width = width;
-		if (this.canvas.height !== height) this.canvas.height = height;
+		const scale = this.currentRenderScale;
+		const targetWidth = Math.max(2, Math.round((width * scale) / 2) * 2);
+		const targetHeight = Math.max(2, Math.round((height * scale) / 2) * 2);
+		if (this.canvas.width !== targetWidth) this.canvas.width = targetWidth;
+		if (this.canvas.height !== targetHeight) this.canvas.height = targetHeight;
 	}
 
 	private markMissing(assetId: AssetId): void {

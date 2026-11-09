@@ -48,6 +48,12 @@
 	background: #000000;
 }
 
+.preview-canvas.is-downscaled {
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: crisp-edges;
+	image-rendering: pixelated;
+}
+
 .preview-empty-state,
 .preview-empty-overlay {
 	display: grid;

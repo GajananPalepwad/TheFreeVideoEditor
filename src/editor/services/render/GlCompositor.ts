@@ -51,6 +51,7 @@ export interface FrameRenderer {
 			dither?: boolean;
 			bitDepth?: 8 | 10;
 			frameIndex?: number;
+			scale?: number;
 		}
 	): boolean;
 	renderVideoFrame?(
@@ -196,6 +197,7 @@ export class GlCompositor implements FrameRenderer {
 			matrix?: 'bt709' | 'bt2020';
 			range?: 'limited' | 'full';
 			timestampUs?: number;
+			scale?: number;
 		} = {},
 		asVideoFrame = false
 	): boolean | VideoFrame | null {
@@ -206,9 +208,12 @@ export class GlCompositor implements FrameRenderer {
 		if (this.context.lost || !program || !this.vao) return asVideoFrame ? null : false;
 		const started = performance.now();
 		this.frameIndex += 1;
+		const scale = asVideoFrame ? 1 : (options.scale ?? 1);
+		const targetWidth = Math.max(2, Math.round((size.width * scale) / 2) * 2);
+		const targetHeight = Math.max(2, Math.round((size.height * scale) / 2) * 2);
 		const canvas = this.context.canvas;
-		if (canvas.width !== size.width) canvas.width = size.width;
-		if (canvas.height !== size.height) canvas.height = size.height;
+		if (canvas.width !== targetWidth) canvas.width = targetWidth;
+		if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
 		const hasComplexPipeline =
 			this.highBitDepth ||
@@ -227,7 +232,7 @@ export class GlCompositor implements FrameRenderer {
 		if (!hasComplexPipeline && !asVideoFrame) {
 			// Fast path: bit-identical direct rendering onto canvas
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.viewport(0, 0, size.width, size.height);
+			gl.viewport(0, 0, targetWidth, targetHeight);
 			gl.clearColor(0, 0, 0, options.transparent ? 0 : 1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.useProgram(program.program);
@@ -277,11 +282,11 @@ export class GlCompositor implements FrameRenderer {
 		}
 
 		// Accumulation path for effects and adjustment layers
-		let accumFbo = this.fboPool.acquire(size.width, size.height, this.highBitDepth);
+		let accumFbo = this.fboPool.acquire(targetWidth, targetHeight, this.highBitDepth);
 		const frameNestedCache = new Map<string, PooledFbo>();
 		const frameFbosToRelease: PooledFbo[] = [];
 		gl.bindFramebuffer(gl.FRAMEBUFFER, accumFbo.framebuffer);
-		gl.viewport(0, 0, size.width, size.height);
+		gl.viewport(0, 0, targetWidth, targetHeight);
 		gl.clearColor(0, 0, 0, 0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -297,8 +302,8 @@ export class GlCompositor implements FrameRenderer {
 						eff,
 						currTex,
 						this.fboPool,
-						size.width,
-						size.height,
+						targetWidth,
+						targetHeight,
 						layer.sourceTime,
 						this.lutProvider ?? undefined
 					);
@@ -311,11 +316,11 @@ export class GlCompositor implements FrameRenderer {
 					const matteFbo = this.passManager.accumulateMasks(
 						activeMasks,
 						this.fboPool,
-						size.width,
-						size.height
+						targetWidth,
+						targetHeight
 					);
 					fbosToRelease.push(matteFbo);
-					const blendedFbo = this.fboPool.acquire(size.width, size.height);
+					const blendedFbo = this.fboPool.acquire(targetWidth, targetHeight);
 					const mixProg = this.passManager['getProgram']('blitMaskMix', BLIT_MASK_MIX_FRAG);
 					gl.useProgram(mixProg);
 					gl.activeTexture(gl.TEXTURE0);
@@ -328,17 +333,17 @@ export class GlCompositor implements FrameRenderer {
 					gl.bindTexture(gl.TEXTURE_2D, matteFbo.texture);
 					gl.uniform1i(gl.getUniformLocation(mixProg, 'u_maskMatte'), 2);
 					gl.uniform1f(gl.getUniformLocation(mixProg, 'u_mix'), opacity);
-					this.passManager.renderQuad(mixProg, blendedFbo.framebuffer, size.width, size.height);
+					this.passManager.renderQuad(mixProg, blendedFbo.framebuffer, targetWidth, targetHeight);
 					this.fboPool.release(origFbo);
 					accumFbo = blendedFbo;
 				} else if (opacity < 1) {
-					const blendedFbo = this.fboPool.acquire(size.width, size.height);
+					const blendedFbo = this.fboPool.acquire(targetWidth, targetHeight);
 					this.passManager.blitMix(
 						origFbo.texture,
 						currTex,
 						blendedFbo.framebuffer,
-						size.width,
-						size.height,
+						targetWidth,
+						targetHeight,
 						opacity
 					);
 					this.fboPool.release(origFbo);
@@ -355,9 +360,9 @@ export class GlCompositor implements FrameRenderer {
 			if (layer.transition) {
 				const tr = layer.transition;
 				// Render fromLayer to FBO
-				const fromFbo = this.fboPool.acquire(size.width, size.height);
+				const fromFbo = this.fboPool.acquire(targetWidth, targetHeight);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, fromFbo.framebuffer);
-				gl.viewport(0, 0, size.width, size.height);
+				gl.viewport(0, 0, targetWidth, targetHeight);
 				gl.clearColor(0, 0, 0, 0);
 				gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -365,16 +370,16 @@ export class GlCompositor implements FrameRenderer {
 				this.renderSingleLayer(tr.fromLayer, fromFbo, size, frameProvider, lastGoodFrames);
 
 				// Render toLayer to FBO
-				const toFbo = this.fboPool.acquire(size.width, size.height);
+				const toFbo = this.fboPool.acquire(targetWidth, targetHeight);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, toFbo.framebuffer);
-				gl.viewport(0, 0, size.width, size.height);
+				gl.viewport(0, 0, targetWidth, targetHeight);
 				gl.clearColor(0, 0, 0, 0);
 				gl.clear(gl.COLOR_BUFFER_BIT);
 
 				this.renderSingleLayer(tr.toLayer, toFbo, size, frameProvider, lastGoodFrames);
 
 				// Transition shader pass: blends fromFbo and toFbo into transitionFbo
-				const transitionFbo = this.fboPool.acquire(size.width, size.height);
+				const transitionFbo = this.fboPool.acquire(targetWidth, targetHeight);
 				this.passManager.applyTransition(
 					tr.type,
 					fromFbo.texture,
@@ -382,8 +387,8 @@ export class GlCompositor implements FrameRenderer {
 					tr.progress,
 					tr.params,
 					transitionFbo.framebuffer,
-					size.width,
-					size.height
+					targetWidth,
+					targetHeight
 				);
 
 				this.fboPool.release(fromFbo);
@@ -391,7 +396,7 @@ export class GlCompositor implements FrameRenderer {
 
 				// Composite transition result onto accumFbo
 				gl.bindFramebuffer(gl.FRAMEBUFFER, accumFbo.framebuffer);
-				gl.viewport(0, 0, size.width, size.height);
+				gl.viewport(0, 0, targetWidth, targetHeight);
 				gl.useProgram(program.program);
 				if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 				gl.bindVertexArray(this.vao);
@@ -437,16 +442,16 @@ export class GlCompositor implements FrameRenderer {
 					const matteFbo = this.passManager.accumulateMasks(
 						activeMasks,
 						this.fboPool,
-						size.width,
-						size.height
+						targetWidth,
+						targetHeight
 					);
 					fbosToRelease.push(matteFbo);
 					const maskedFbo = this.passManager.applyMatteToTexture(
 						currentTex,
 						matteFbo.texture,
 						this.fboPool,
-						size.width,
-						size.height
+						targetWidth,
+						targetHeight
 					);
 					fbosToRelease.push(maskedFbo);
 					currentTex = maskedFbo.texture;
@@ -462,8 +467,8 @@ export class GlCompositor implements FrameRenderer {
 							const effMatteFbo = this.passManager.generateMaskMatte(
 								effMask,
 								this.fboPool,
-								size.width,
-								size.height
+								targetWidth,
+								targetHeight
 							);
 							fbosToRelease.push(effMatteFbo);
 							maskTex = effMatteFbo.texture;
@@ -472,8 +477,8 @@ export class GlCompositor implements FrameRenderer {
 							eff,
 							currFbo ? currFbo.texture : currentTex,
 							this.fboPool,
-							size.width,
-							size.height,
+							targetWidth,
+							targetHeight,
 							layer.sourceTime,
 							this.lutProvider ?? undefined,
 							maskTex
@@ -489,7 +494,7 @@ export class GlCompositor implements FrameRenderer {
 
 				// Composite solid layer onto accumFbo
 				gl.bindFramebuffer(gl.FRAMEBUFFER, accumFbo.framebuffer);
-				gl.viewport(0, 0, size.width, size.height);
+				gl.viewport(0, 0, targetWidth, targetHeight);
 				gl.useProgram(program.program);
 				if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 				gl.bindVertexArray(this.vao);
@@ -611,7 +616,7 @@ export class GlCompositor implements FrameRenderer {
 
 				// Composite layer onto accumulation FBO
 				gl.bindFramebuffer(gl.FRAMEBUFFER, accumFbo.framebuffer);
-				gl.viewport(0, 0, size.width, size.height);
+				gl.viewport(0, 0, targetWidth, targetHeight);
 				gl.useProgram(program.program);
 				if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 				gl.bindVertexArray(this.vao);
@@ -718,7 +723,7 @@ export class GlCompositor implements FrameRenderer {
 
 			// Composite layer onto accumulation FBO
 			gl.bindFramebuffer(gl.FRAMEBUFFER, accumFbo.framebuffer);
-			gl.viewport(0, 0, size.width, size.height);
+			gl.viewport(0, 0, targetWidth, targetHeight);
 			gl.useProgram(program.program);
 			if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 			gl.bindVertexArray(this.vao);
@@ -807,10 +812,10 @@ export class GlCompositor implements FrameRenderer {
 
 		// Blit accumulated composite to canvas
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0, 0, size.width, size.height);
+		gl.viewport(0, 0, targetWidth, targetHeight);
 		gl.clearColor(0, 0, 0, options.transparent ? 0 : 1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		this.passManager.blit(accumFbo.texture, null, size.width, size.height, 1.0, {
+		this.passManager.blit(accumFbo.texture, null, targetWidth, targetHeight, 1.0, {
 			keepAlpha: Boolean(options.transparent),
 			dither: Boolean(options.dither || (this.highBitDepth && options.bitDepth === 10)),
 			bitDepth: options.bitDepth === 10 ? 10 : 8,
@@ -840,6 +845,7 @@ export class GlCompositor implements FrameRenderer {
 			dither?: boolean;
 			bitDepth?: 8 | 10;
 			frameIndex?: number;
+			scale?: number;
 		} = {}
 	): boolean {
 		return Boolean(
@@ -875,7 +881,13 @@ export class GlCompositor implements FrameRenderer {
 	): WebGLTexture {
 		const gl = this.context.gl;
 
-		const gradient = layerGradient(gradientType, color, gradientColorEnd, gradientAngle, gradientStops);
+		const gradient = layerGradient(
+			gradientType,
+			color,
+			gradientColorEnd,
+			gradientAngle,
+			gradientStops
+		);
 		if (gradient) {
 			const key = gradientKey(gradient);
 			const cached = this.solidGradientTextures.get(key);
@@ -1021,16 +1033,16 @@ export class GlCompositor implements FrameRenderer {
 				const matteFbo = this.passManager.accumulateMasks(
 					activeMasks,
 					this.fboPool,
-					size.width,
-					size.height
+					targetFbo.width,
+					targetFbo.height
 				);
 				fbosToRelease.push(matteFbo);
 				const maskedFbo = this.passManager.applyMatteToTexture(
 					currentTex,
 					matteFbo.texture,
 					this.fboPool,
-					size.width,
-					size.height
+					targetFbo.width,
+					targetFbo.height
 				);
 				fbosToRelease.push(maskedFbo);
 				currentTex = maskedFbo.texture;
@@ -1046,8 +1058,8 @@ export class GlCompositor implements FrameRenderer {
 						const effMatteFbo = this.passManager.generateMaskMatte(
 							effMask,
 							this.fboPool,
-							size.width,
-							size.height
+							targetFbo.width,
+							targetFbo.height
 						);
 						fbosToRelease.push(effMatteFbo);
 						maskTex = effMatteFbo.texture;
@@ -1056,8 +1068,8 @@ export class GlCompositor implements FrameRenderer {
 						eff,
 						currFbo ? currFbo.texture : currentTex,
 						this.fboPool,
-						size.width,
-						size.height,
+						targetFbo.width,
+						targetFbo.height,
 						layer.sourceTime,
 						this.lutProvider ?? undefined,
 						maskTex
@@ -1072,7 +1084,7 @@ export class GlCompositor implements FrameRenderer {
 			}
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo.framebuffer);
-			gl.viewport(0, 0, size.width, size.height);
+			gl.viewport(0, 0, targetFbo.width, targetFbo.height);
 			gl.useProgram(program.program);
 			if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 			gl.bindVertexArray(this.vao);
@@ -1170,7 +1182,7 @@ export class GlCompositor implements FrameRenderer {
 		}
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo.framebuffer);
-		gl.viewport(0, 0, size.width, size.height);
+		gl.viewport(0, 0, targetFbo.width, targetFbo.height);
 		gl.useProgram(program.program);
 		if (program.targetIsCanvas) gl.uniform1i(program.targetIsCanvas, 0);
 		gl.bindVertexArray(this.vao);
@@ -1260,13 +1272,35 @@ export class Canvas2DRenderer implements FrameRenderer {
 		layers: readonly ActiveLayer[],
 		frameProvider: FrameProvider,
 		lastGoodFrames: LastGoodFrames = new Map(),
-		options: { playing?: boolean; transparent?: boolean; dither?: boolean } = {}
+		options: {
+			playing?: boolean;
+			transparent?: boolean;
+			dither?: boolean;
+			scale?: number;
+		} = {}
 	): boolean {
+		const scale = options.scale ?? 1;
+		const targetWidth = Math.max(2, Math.round((size.width * scale) / 2) * 2);
+		const targetHeight = Math.max(2, Math.round((size.height * scale) / 2) * 2);
+		if (this.context.canvas) {
+			if (this.context.canvas.width !== targetWidth) this.context.canvas.width = targetWidth;
+			if (this.context.canvas.height !== targetHeight) this.context.canvas.height = targetHeight;
+		}
 		const started = performance.now();
-		renderFrame(this.context, size, layers, frameProvider, lastGoodFrames, {
-			transparent: options.transparent,
-			scratch: this.scratch
-		});
+		if (scale !== 1) {
+			this.context.save();
+			this.context.scale(targetWidth / size.width, targetHeight / size.height);
+			renderFrame(this.context, size, layers, frameProvider, lastGoodFrames, {
+				transparent: options.transparent,
+				scratch: this.scratch
+			});
+			this.context.restore();
+		} else {
+			renderFrame(this.context, size, layers, frameProvider, lastGoodFrames, {
+				transparent: options.transparent,
+				scratch: this.scratch
+			});
+		}
 		const elapsed = performance.now() - started;
 		this.stats.frames += 1;
 		this.stats.lastFrameMs = elapsed;

@@ -42,6 +42,7 @@ export default function PreviewPlayer({
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const [fitScale, setFitScale] = useState(0);
 	const activeSeqId = useEditorStore((state) => state.activeSequenceId);
+	const playbackResolution = useEditorStore((state) => state.playbackResolution ?? 'full');
 	const activeProject = project ? viewProject(project, activeSeqId) : null;
 	const scale = Number(zoom) || 1;
 	const projectWidth = project?.settings.width;
@@ -60,6 +61,15 @@ export default function PreviewPlayer({
 	const renderedWidth = Math.max(1, project?.settings.width ?? 1) * fitScale * scale;
 	const renderedHeight = Math.max(1, project?.settings.height ?? 1) * fitScale * scale;
 
+	const scaleFactor =
+		playbackResolution === 'half' ? 0.5 : playbackResolution === 'quarter' ? 0.25 : 1;
+	const canvasWidth = project
+		? Math.max(2, Math.round((project.settings.width * scaleFactor) / 2) * 2)
+		: 1920;
+	const canvasHeight = project
+		? Math.max(2, Math.round((project.settings.height * scaleFactor) / 2) * 2)
+		: 1080;
+
 	return (
 		<div className="preview-workspace">
 			<div className="preview-canvas-viewport" ref={viewportRef}>
@@ -71,9 +81,10 @@ export default function PreviewPlayer({
 						<canvas
 							key={`${project.id}:${renderer}`}
 							ref={canvasRef}
-							className="preview-canvas"
-							width={project.settings.width}
-							height={project.settings.height}
+							className={`preview-canvas ${playbackResolution !== 'full' ? 'is-downscaled' : ''}`}
+							style={playbackResolution !== 'full' ? { imageRendering: 'pixelated' } : undefined}
+							width={canvasWidth}
+							height={canvasHeight}
 							role="img"
 							tabIndex={0}
 							aria-label="Preview"
@@ -118,7 +129,9 @@ export default function PreviewPlayer({
 			{project && (
 				<div className="preview-project-status">
 					<span>
-						{project.settings.width} × {project.settings.height}
+						{playbackResolution === 'full'
+							? `${project.settings.width} × ${project.settings.height}`
+							: `${project.settings.width} × ${project.settings.height} (${playbackResolution === 'half' ? '1/2' : '1/4'}: ${canvasWidth} × ${canvasHeight})`}
 					</span>
 				</div>
 			)}

@@ -234,7 +234,9 @@ export default function TimelineToolbar({
 							>
 								<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11A5.5 5.5 0 0 1 8 2.5z" />
 							</svg>
-							<span>Adjustment Layer</span>
+							<span>
+								Adjustment<span className="tool-button-layer-suffix"> Layer</span>
+							</span>
 						</button>
 					)}
 					{onAddSolid && (
@@ -255,7 +257,9 @@ export default function TimelineToolbar({
 							>
 								<rect x="2" y="2" width="12" height="12" rx="2" />
 							</svg>
-							<span>Solid Layer</span>
+							<span>
+								Solid<span className="tool-button-layer-suffix"> Layer</span>
+							</span>
 						</button>
 					)}
 					{onAddShape && (
@@ -281,7 +285,9 @@ export default function TimelineToolbar({
 								<rect x="2" y="2" width="7.5" height="7.5" rx="1" />
 								<circle cx="10" cy="10" r="4" />
 							</svg>
-							<span>Shape Layer</span>
+							<span>
+								Shape<span className="tool-button-layer-suffix"> Layer</span>
+							</span>
 						</button>
 					)}
 					{onAddText && (
@@ -302,7 +308,9 @@ export default function TimelineToolbar({
 							>
 								<path d="M2.5 3v2h4.25v8h2.5V5H13.5V3h-11z" />
 							</svg>
-							<span>Text Layer</span>
+							<span>
+								Text<span className="tool-button-layer-suffix"> Layer</span>
+							</span>
 						</button>
 					)}
 					{onAddCaption && (
@@ -323,7 +331,9 @@ export default function TimelineToolbar({
 							>
 								<path d="M2 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h1.5v2.5L7 13h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H2zm3.5 3h1.5a.5.5 0 0 1 .5.5v.5h-1v-.5H5.5v3H6v-.5h1v.5a.5.5 0 0 1-.5.5h-1.5a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5zm5 0H12a.5.5 0 0 1 .5.5v.5h-1v-.5H10.5v3H11v-.5h1v.5a.5.5 0 0 1-.5.5h-1.5a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5z" />
 							</svg>
-							<span>Caption Layer</span>
+							<span>
+								Caption<span className="tool-button-layer-suffix"> Layer</span>
+							</span>
 						</button>
 					)}
 				</div>

@@ -152,6 +152,25 @@
 	transition: color 0.12s ease;
 }
 
+.tool-button-layer-suffix {
+	display: inline-block;
+	max-width: 0;
+	opacity: 0;
+	overflow: hidden;
+	white-space: pre;
+	vertical-align: bottom;
+	pointer-events: none;
+	transition:
+		max-width 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+		opacity 0.15s ease;
+}
+
+.timeline-tool-group .tool-button:hover .tool-button-layer-suffix,
+.timeline-tool-group .tool-button:focus-visible .tool-button-layer-suffix {
+	max-width: 50px;
+	opacity: 1;
+}
+
 .timeline-tool-group .tool-button:hover:not(:disabled),
 .timeline-toolbar-row .tool-button:hover:not(:disabled) {
 	border-color: #38bdf8;
@@ -344,28 +363,113 @@
 .timeline-toolstrip {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: flex-start;
 	gap: 3px;
 	width: 36px;
 	flex: 0 0 36px;
-	padding: 6px 0;
+	height: 100%;
+	padding: 6px 4px;
 	background: #111116;
 	border-right: 1px solid #23232e;
 	z-index: 10;
+	box-sizing: border-box;
+	overflow: hidden;
+	transition:
+		width 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+		flex-basis 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+		border-color 0.16s ease;
+}
+
+.timeline-toolstrip:hover,
+.timeline-toolstrip:focus-within {
+	width: 204px;
+	flex: 0 0 204px;
+	background: #111116;
+	border-right-color: #2e2e3e;
 }
 
 .timeline-toolstrip-button {
-	display: grid;
-	place-items: center;
-	width: 26px;
-	height: 26px;
+	display: flex;
+	align-items: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
 	border: 1px solid transparent;
 	border-radius: 5px;
 	background: transparent;
 	color: #94a3b8;
 	cursor: pointer;
-	transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 	position: relative;
+	box-sizing: border-box;
+	overflow: hidden;
+	white-space: nowrap;
+	transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-toolstrip:hover .timeline-toolstrip-button,
+.timeline-toolstrip:focus-within .timeline-toolstrip-button {
+	width: 100%;
+	padding: 0 6px 0 2px;
+	gap: 6px;
+}
+
+.timeline-toolstrip-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 26px;
+	width: 26px;
+	height: 26px;
+}
+
+.timeline-toolstrip-name {
+	flex: 1 1 auto;
+	opacity: 0;
+	max-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	text-align: left;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	color: #cbd5e1;
+	pointer-events: none;
+	transition:
+		opacity 0.12s ease,
+		max-width 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-toolstrip:hover .timeline-toolstrip-name,
+.timeline-toolstrip:focus-within .timeline-toolstrip-name {
+	opacity: 1;
+	max-width: 135px;
+}
+
+.timeline-toolstrip-shortcut {
+	flex: 0 0 auto;
+	opacity: 0;
+	max-width: 0;
+	overflow: hidden;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 10px;
+	font-weight: 600;
+	color: #64748b;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	padding: 1px 5px;
+	line-height: 1.2;
+	pointer-events: none;
+	transition:
+		opacity 0.12s ease,
+		max-width 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-toolstrip:hover .timeline-toolstrip-shortcut,
+.timeline-toolstrip:focus-within .timeline-toolstrip-shortcut {
+	opacity: 1;
+	max-width: 30px;
 }
 
 .timeline-toolstrip-button:hover {
@@ -374,11 +478,31 @@
 	color: #f1f5f9;
 }
 
+.timeline-toolstrip-button:hover .timeline-toolstrip-name {
+	color: #ffffff;
+}
+
+.timeline-toolstrip-button:hover .timeline-toolstrip-shortcut {
+	color: #94a3b8;
+	background: rgba(255, 255, 255, 0.1);
+}
+
 .timeline-toolstrip-button.is-active {
 	background: #1a2234;
 	border-color: rgba(56, 189, 248, 0.5);
 	color: #38bdf8;
 	box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+}
+
+.timeline-toolstrip-button.is-active .timeline-toolstrip-name {
+	color: #38bdf8;
+	font-weight: 600;
+}
+
+.timeline-toolstrip-button.is-active .timeline-toolstrip-shortcut {
+	color: #38bdf8;
+	background: rgba(56, 189, 248, 0.15);
+	border-color: rgba(56, 189, 248, 0.3);
 }
 
 .timeline-scroll {
@@ -2314,8 +2438,24 @@
 	border-right: 1px solid #e2e8f0;
 }
 
+:root[data-theme='light'] .timeline-toolstrip:hover,
+:root[data-theme='light'] .timeline-toolstrip:focus-within {
+	background: #f8fafc;
+	border-right-color: #cbd5e1;
+}
+
 :root[data-theme='light'] .timeline-toolstrip-button {
 	color: #64748b;
+}
+
+:root[data-theme='light'] .timeline-toolstrip-name {
+	color: #475569;
+}
+
+:root[data-theme='light'] .timeline-toolstrip-shortcut {
+	color: #64748b;
+	background: #f1f5f9;
+	border-color: #e2e8f0;
 }
 
 :root[data-theme='light'] .timeline-toolstrip-button:hover {
@@ -2324,11 +2464,25 @@
 	color: #0f172a;
 }
 
+:root[data-theme='light'] .timeline-toolstrip-button:hover .timeline-toolstrip-name {
+	color: #0f172a;
+}
+
 :root[data-theme='light'] .timeline-toolstrip-button.is-active {
 	background: #e0f2fe;
 	border-color: #38bdf8;
 	color: #0284c7;
 	box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+:root[data-theme='light'] .timeline-toolstrip-button.is-active .timeline-toolstrip-name {
+	color: #0284c7;
+}
+
+:root[data-theme='light'] .timeline-toolstrip-button.is-active .timeline-toolstrip-shortcut {
+	color: #0284c7;
+	background: rgba(2, 132, 199, 0.1);
+	border-color: rgba(2, 132, 199, 0.3);
 }
 
 :root[data-theme='light'] .timeline-ruler-corner {

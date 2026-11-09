@@ -5,7 +5,7 @@ import { createEditorStore, type EditorStore, type EditorState } from './store';
 import { attachAutosave } from '../services/storage/autosave';
 import { deleteMediaFile } from '../services/storage/opfs';
 
-const EditorStoreContext = createContext<EditorStore | null>(null);
+export const EditorStoreContext = createContext<EditorStore | null>(null);
 
 export function EditorProvider({ children }: { children: ReactNode }) {
 	const [store] = useState(createEditorStore);
