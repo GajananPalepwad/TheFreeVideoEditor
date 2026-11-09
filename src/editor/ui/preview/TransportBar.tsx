@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ticksToTimecode } from '../../core';
+import { ticksToTimecode, type PlaybackResolution } from '../../core';
 import type { PlaybackEngine, PlaybackSnapshot } from '../../services/playback/engine';
 import { useEditorStore, useEditorStoreApi } from '../../state/EditorProvider';
 import YouTubeTimelineScrubber from './YouTubeTimelineScrubber';
@@ -13,6 +13,12 @@ const ZOOM_OPTIONS = [
 	{ label: '125%', value: '1.25' },
 	{ label: '150%', value: '1.5' },
 	{ label: '200%', value: '2' }
+] as const;
+
+const RESOLUTION_OPTIONS = [
+	{ label: 'Full', value: 'full' },
+	{ label: '1/2', value: 'half' },
+	{ label: '1/4', value: 'quarter' }
 ] as const;
 
 interface TransportBarProps {
@@ -33,6 +39,7 @@ export default function TransportBar({
 	onToggleFullscreen
 }: TransportBarProps) {
 	const store = useEditorStoreApi();
+	const playbackResolution = useEditorStore((state) => state.playbackResolution ?? 'full');
 	const scopesOpen = useEditorStore((state) => state.scopes.open);
 	const proxiesEnabled = useEditorStore((state) => state.project?.proxy?.enabled ?? false);
 	const previewGuides = useEditorStore((state) => state.previewGuides);
@@ -353,6 +360,28 @@ export default function TransportBar({
 						onChange={(event) => onZoomChange(event.currentTarget.value)}
 					>
 						{ZOOM_OPTIONS.map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</select>
+					<label className="sr-only" htmlFor="preview-resolution">
+						Playback resolution
+					</label>
+					<select
+						id="preview-resolution"
+						name="preview-resolution"
+						aria-label="Playback resolution"
+						value={playbackResolution}
+						onChange={(event) =>
+							store
+								.getState()
+								.setPlaybackResolution(event.currentTarget.value as PlaybackResolution)
+						}
+						title="Playback resolution"
+						data-testid="preview-resolution-select"
+					>
+						{RESOLUTION_OPTIONS.map((option) => (
 							<option key={option.value} value={option.value}>
 								{option.label}
 							</option>

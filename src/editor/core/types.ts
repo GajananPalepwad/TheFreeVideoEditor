@@ -21,6 +21,8 @@ export interface ProjectSettings {
 
 export type AssetKind = 'video' | 'audio' | 'image' | 'lut' | 'font';
 
+export type PlaybackResolution = 'full' | 'half' | 'quarter';
+
 export interface AssetVideoMetadata {
 	width?: number;
 	height?: number;
@@ -234,7 +236,10 @@ export type ClipSource =
 			gradientColorEnd?: { r: number; g: number; b: number; a: number };
 			gradientAngle?: number;
 			/** The whole colour list; replaces the fill and end colour when it has two or more stops. */
-			gradientStops?: Array<{ offset: number; color: { r: number; g: number; b: number; a: number } }>;
+			gradientStops?: Array<{
+				offset: number;
+				color: { r: number; g: number; b: number; a: number };
+			}>;
 	  }
 	| { type: 'adjustment' }
 	| {
@@ -257,7 +262,10 @@ export type ClipSource =
 			gradientColorEnd?: { r: number; g: number; b: number; a: number };
 			gradientAngle?: number;
 			/** The whole colour list; replaces the fill and end colour when it has two or more stops. */
-			gradientStops?: Array<{ offset: number; color: { r: number; g: number; b: number; a: number } }>;
+			gradientStops?: Array<{
+				offset: number;
+				color: { r: number; g: number; b: number; a: number };
+			}>;
 	  };
 
 export interface MaskPoint {

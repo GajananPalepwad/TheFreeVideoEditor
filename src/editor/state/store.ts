@@ -119,6 +119,7 @@ import {
 	type ProjectSummary,
 	type PropertyId,
 	type PropertyValue,
+	type PlaybackResolution,
 	type Time,
 	type Track,
 	type TrackId,
@@ -589,6 +590,7 @@ export interface EditorState {
 	scopes: ScopesUiState;
 	colorUi: ColorUiState;
 	previewGuides: PreviewGuidesState;
+	playbackResolution: PlaybackResolution;
 	voiceover: VoiceoverState;
 	effectsClipboard: EffectInstance[] | null;
 	clipClipboard: ClipClipboard | null;
@@ -845,6 +847,7 @@ export interface EditorState {
 	togglePreviewGuide: (guide: keyof PreviewGuidesState) => void;
 	setPreviewGuide: (guide: keyof PreviewGuidesState, enabled: boolean) => void;
 	resetPreviewGuides: () => void;
+	setPlaybackResolution: (resolution: PlaybackResolution) => void;
 	setVoiceoverState: (partial: Partial<VoiceoverState>) => void;
 	resetVoiceoverState: () => void;
 	addEffect: (
@@ -1655,6 +1658,7 @@ export function createEditorStore() {
 					ruleOfThirds: false,
 					socialGuide: false
 				},
+				playbackResolution: 'full',
 				voiceover: {
 					phase: 'idle',
 					countdownValue: null,
@@ -5001,6 +5005,11 @@ export function createEditorStore() {
 						state.previewGuides.safeMargins = false;
 						state.previewGuides.ruleOfThirds = false;
 						state.previewGuides.socialGuide = false;
+					});
+				},
+				setPlaybackResolution(resolution) {
+					set((state) => {
+						state.playbackResolution = resolution;
 					});
 				},
 				setVoiceoverState(partial) {
