@@ -148,9 +148,6 @@ export function TimelineTools({
 			{TOOLS.map((tool) => {
 				const isAction = tool.id === 'mark' || tool.id === 'type' || tool.id === 'rect';
 				const isActive = !isAction && activeTool === tool.id;
-				const title = tool.shortcut
-					? `${tool.label} (${tool.shortcut}) – ${tool.description}`
-					: `${tool.label} – ${tool.description}`;
 				return (
 					<button
 						key={tool.id}
@@ -158,7 +155,6 @@ export function TimelineTools({
 						className={`timeline-toolstrip-button ${isActive ? 'is-active' : ''}`}
 						aria-pressed={isActive}
 						aria-label={tool.shortcut ? `${tool.label} (${tool.shortcut})` : tool.label}
-						title={title}
 						onClick={() => {
 							if (tool.id === 'mark') {
 								trackFeatureUsed('marker');
@@ -183,7 +179,15 @@ export function TimelineTools({
 							}
 						}}
 					>
-						{tool.icon}
+						<span className="timeline-toolstrip-icon" aria-hidden="true">
+							{tool.icon}
+						</span>
+						<span className="timeline-toolstrip-name">{tool.label}</span>
+						{tool.shortcut && (
+							<kbd className="timeline-toolstrip-shortcut" aria-hidden="true">
+								{tool.shortcut}
+							</kbd>
+						)}
 					</button>
 				);
 			})}
