@@ -178,13 +178,14 @@ export function sanitizeDetails(
 
 	for (const [key, val] of Object.entries(details)) {
 		if (count >= 10) break;
-		// Skip sensitive keys unless explicitly allowed (like 'feature')
-		if (key !== 'feature' && SENSITIVE_KEY_REGEX.test(key)) {
+		// Skip sensitive keys unless explicitly allowed (like 'feature' or 'error')
+		if (key !== 'feature' && key !== 'error' && SENSITIVE_KEY_REGEX.test(key)) {
 			continue;
 		}
 
 		if (typeof val === 'string') {
-			sanitized[key] = val.length > 100 ? val.slice(0, 100) : val;
+			const maxLen = key === 'error' ? 250 : 100;
+			sanitized[key] = val.length > maxLen ? val.slice(0, maxLen) : val;
 			count++;
 		} else if (typeof val === 'number' || typeof val === 'boolean') {
 			sanitized[key] = val;
@@ -462,7 +463,14 @@ export function trackError(
 		return;
 	}
 
-	const sanitizedMessage = rawMessage.replace(/(?:\/[^/\s]+)+\/?/g, '[path]').slice(0, 100);
+	const sanitizedMessage = rawMessage
+		.replace(/\bhttps?:\/\/[^\s]+|(?:\/|[a-zA-Z]:\\)(?:[^\s/\\:]+[/\\])+[^\s]*/g, (match) => {
+			if (match.startsWith('http://') || match.startsWith('https://')) {
+				return match;
+			}
+			return '[path]';
+		})
+		.slice(0, 250);
 
 	void trackActivity('error', {
 		source: source || 'app',
