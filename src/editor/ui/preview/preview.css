@@ -33,6 +33,10 @@
 	background: #000000;
 }
 
+.preview-canvas-viewport.is-fit {
+	overflow: hidden;
+}
+
 .preview-canvas-frame {
 	position: relative;
 	display: grid;
