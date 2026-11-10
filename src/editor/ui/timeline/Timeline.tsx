@@ -59,12 +59,14 @@ import TimelineRuler from './TimelineRuler';
 import TimelineToolbar from './TimelineToolbar';
 import TimelineTools from './TimelineTools';
 import GraphEditor from '../graph/GraphEditor';
+import type { DetectedSilence } from '../../core/ai/silence/types';
 import './timeline.css';
 import '../ai/ai.css';
 
 const DEFAULT_HEADER_WIDTH = 212;
 const MOBILE_HEADER_WIDTH = 88;
 const TAIL_SECONDS = 12;
+const EMPTY_SILENCES = Object.freeze([]);
 
 function useIsMobile(breakpoint = '(max-width: 48rem)'): boolean {
 	const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -653,11 +655,33 @@ function ActiveTimeline({ project }: { project: Project }) {
 	useEffect(() => {
 		const scroller = scrollerRef.current;
 		if (!scroller) return;
-		const updateWidth = () => setViewportWidth(scroller.clientWidth);
+		let rafId: number | null = null;
+		let lastWidth = scroller.clientWidth;
+		const updateWidth = () => {
+			if (typeof requestAnimationFrame === 'undefined') {
+				setViewportWidth(scroller.clientWidth);
+				return;
+			}
+			if (rafId !== null) return;
+			rafId = requestAnimationFrame(() => {
+				rafId = null;
+				if (!scroller) return;
+				const currentWidth = scroller.clientWidth;
+				if (Math.abs(currentWidth - lastWidth) >= 1) {
+					lastWidth = currentWidth;
+					setViewportWidth(currentWidth);
+				}
+			});
+		};
 		updateWidth();
 		const observer = new ResizeObserver(updateWidth);
 		observer.observe(scroller);
-		return () => observer.disconnect();
+		return () => {
+			if (rafId !== null && typeof cancelAnimationFrame !== 'undefined') {
+				cancelAnimationFrame(rafId);
+			}
+			observer.disconnect();
+		};
 	}, []);
 
 	useEffect(() => {
@@ -748,7 +772,9 @@ function ActiveTimeline({ project }: { project: Project }) {
 	}, [context]);
 
 	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
-	const detectedSilences = useEditorStore((state) => state.ai?.detectedSilences ?? []);
+	const detectedSilences = useEditorStore(
+		(state) => (state.ai?.detectedSilences ?? EMPTY_SILENCES) as readonly DetectedSilence[]
+	);
 	const activeProject = useMemo(
 		() => viewProject(project, activeSequenceId),
 		[project, activeSequenceId]

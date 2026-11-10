@@ -268,6 +268,20 @@ describe('activityTracking service', () => {
 			expect(body.event).toBe('error');
 			expect(details?.error).toContain('[path]');
 			expect(details?.error).not.toContain('/Users/private/project.json');
+
+			// Preserves documentation and error URLs
+			trackError(
+				new Error(
+					'Minified React error #185; visit https://react.dev/errors/185 for the full message'
+				)
+			);
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			const body2 = JSON.parse(
+				(fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			const details2 = body2.details as Record<string, unknown> | undefined;
+			expect(details2?.error).toContain('https://react.dev/errors/185');
+			expect(details2?.error).not.toContain('[path]');
 		});
 
 		it('trackError ignores noisy third-party and extension errors', async () => {

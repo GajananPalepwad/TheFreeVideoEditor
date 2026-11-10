@@ -10,13 +10,41 @@ export function observePreviewScale(
 	source: PreviewDimensions,
 	onScale: (scale: number) => void
 ): () => void {
-	const update = () => {
+	let lastScale = -1;
+	let rafId: number | null = null;
+
+	const measureAndNotify = () => {
+		rafId = null;
 		const { width, height } = element.getBoundingClientRect();
 		if (width <= 0 || height <= 0) return;
-		onScale(previewScale(source.width, source.height, width, height));
+		const nextScale = previewScale(source.width, source.height, width, height);
+		// Guard against microscopic subpixel float jitter causing repeated re-renders
+		if (lastScale < 0 || Math.abs(nextScale - lastScale) > 0.001) {
+			lastScale = nextScale;
+			onScale(nextScale);
+		}
 	};
-	const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+
+	const scheduleUpdate = () => {
+		if (typeof requestAnimationFrame === 'undefined') {
+			measureAndNotify();
+			return;
+		}
+		if (rafId !== null) return;
+		rafId = requestAnimationFrame(measureAndNotify);
+	};
+
+	const observer =
+		typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
 	observer?.observe(element);
-	update();
-	return () => observer?.disconnect();
+	// Perform immediate initial measurement
+	measureAndNotify();
+
+	return () => {
+		if (rafId !== null && typeof cancelAnimationFrame !== 'undefined') {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+		observer?.disconnect();
+	};
 }

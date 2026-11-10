@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { resolveFrame, projectNeedsGpu } from '../../core';
 import type { Project } from '../../core';
 import type { PlaybackEngine, PlaybackSnapshot } from '../../services/playback/engine';
@@ -48,15 +48,19 @@ export default function PreviewPlayer({
 	const projectWidth = project?.settings.width;
 	const projectHeight = project?.settings.height;
 
+	const handleScale = useCallback((nextScale: number) => {
+		setFitScale((prev) => (Math.abs(prev - nextScale) > 0.001 ? nextScale : prev));
+	}, []);
+
 	useEffect(() => {
 		const viewport = viewportRef.current;
 		if (!viewport || !projectWidth || !projectHeight) return;
 		return observePreviewScale(
 			viewport,
 			{ width: projectWidth, height: projectHeight },
-			setFitScale
+			handleScale
 		);
-	}, [projectHeight, projectWidth]);
+	}, [handleScale, projectHeight, projectWidth]);
 
 	const renderedWidth = Math.max(1, project?.settings.width ?? 1) * fitScale * scale;
 	const renderedHeight = Math.max(1, project?.settings.height ?? 1) * fitScale * scale;
@@ -72,7 +76,10 @@ export default function PreviewPlayer({
 
 	return (
 		<div className="preview-workspace">
-			<div className="preview-canvas-viewport" ref={viewportRef}>
+			<div
+				className={`preview-canvas-viewport ${zoom === 'fit' ? 'is-fit' : ''}`}
+				ref={viewportRef}
+			>
 				{project ? (
 					<div
 						className="preview-canvas-frame"
