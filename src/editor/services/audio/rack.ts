@@ -33,7 +33,7 @@ export function buildAudioRack(
 	let totalLatency = 0;
 
 	for (const inst of effects) {
-		if (inst.enabled === false || inst.bypass === true) continue;
+		if (!inst || inst.enabled === false || inst.bypass === true) continue;
 		const def = audioEffectRegistry.get(inst.type);
 		if (!def) continue;
 

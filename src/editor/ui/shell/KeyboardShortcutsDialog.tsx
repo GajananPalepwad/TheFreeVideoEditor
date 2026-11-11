@@ -80,16 +80,16 @@ export default function KeyboardShortcutsDialog({
 						<section key={group} aria-labelledby={`shortcut-group-${group.toLowerCase()}`}>
 							<h3 id={`shortcut-group-${group.toLowerCase()}`}>{group}</h3>
 							{filtered
-								.filter((item) => item.group === group)
+								.filter((item) => item && item.group === group)
 								.map((item) => (
 									<div
-										className={`shortcut-row${item.enabled ? '' : 'is-disabled'}`}
+										className={`shortcut-row ${item?.enabled ? '' : 'is-disabled'}`.trim()}
 										key={item.id}
-										aria-disabled={!item.enabled}
+										aria-disabled={!item?.enabled}
 									>
 										<span>{item.label}</span>
 										<kbd>{item.keys}</kbd>
-										{!item.enabled && <span className="shortcut-coming-soon">Coming soon</span>}
+										{!item?.enabled && <span className="shortcut-coming-soon">Coming soon</span>}
 									</div>
 								))}
 						</section>

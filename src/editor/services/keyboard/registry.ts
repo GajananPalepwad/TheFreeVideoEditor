@@ -168,15 +168,17 @@ export function buildCheatSheet(
 	entries: readonly ShortcutEntry[],
 	platform: ShortcutPlatform
 ): CheatSheetItem[] {
-	return entries.map((entry) => ({
-		id: entry.id,
-		label: entry.label,
-		keys: shortcutKeysFor(entry, platform)
-			.map((key) => platformLabel(key, platform))
-			.join(' / '),
-		group: entry.group,
-		enabled: entry.enabled?.() ?? true
-	}));
+	return entries
+		.filter((entry): entry is ShortcutEntry => Boolean(entry))
+		.map((entry) => ({
+			id: entry.id,
+			label: entry.label,
+			keys: shortcutKeysFor(entry, platform)
+				.map((key) => platformLabel(key, platform))
+				.join(' / '),
+			group: entry.group,
+			enabled: entry.enabled?.() ?? true
+		}));
 }
 
 export function detectShortcutPlatform(
@@ -256,7 +258,7 @@ export function registerShortcutListener(
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (shouldSuppressShortcut(event)) return;
 		for (const entry of entries) {
-			if (entry.enabled?.() === false) continue;
+			if (!entry || entry.enabled?.() === false) continue;
 			if (entry.when && !entry.when({ event, platform })) continue;
 			if (!shortcutKeysFor(entry, platform).some((key) => matchesShortcut(event, key))) continue;
 			entry.handler({ event, platform });

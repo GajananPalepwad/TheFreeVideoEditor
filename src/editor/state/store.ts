@@ -5251,7 +5251,7 @@ export function createEditorStore() {
 											return {
 												...fresh,
 												id: eff.id,
-												enabled: eff.enabled
+												enabled: eff?.enabled !== false
 											};
 										});
 										return { ...clip, effects };

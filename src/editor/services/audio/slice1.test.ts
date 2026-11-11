@@ -139,6 +139,33 @@ describe('Slice 1: PDC, Racks, Routing & Schema Migration', () => {
 		expect(compFx?.params.makeupDb).toBe(2);
 	});
 
+	it('safely migrates legacy audio rack with incomplete or undefined fields', () => {
+		const project = createEmptyProject({ name: 'Incomplete Legacy Audio' });
+		const legacyTrack: Track = {
+			id: 'legacy-incomplete' as Track['id'],
+			name: 'Incomplete Track',
+			kind: 'audio' as const,
+			muted: false,
+			locked: false,
+			hidden: false,
+			clips: [],
+			audio: {
+				gainDb: 0,
+				pan: 0,
+				solo: false,
+				eq: { bands: [] } as unknown as NonNullable<Track['audio']>['eq'],
+				compressor: {} as unknown as NonNullable<Track['audio']>['compressor']
+			}
+		};
+		project.tracks.push(legacyTrack);
+
+		const migrated = migrateLegacyAudioRack(project);
+		const track = migrated.tracks.find((t) => t.id === 'legacy-incomplete')!;
+		expect(track.audio?.effects).toHaveLength(2);
+		expect(track.audio?.effects?.[0]?.enabled).toBe(true);
+		expect(track.audio?.effects?.[1]?.enabled).toBe(true);
+	});
+
 	it('Supports adding and removing submix buses and resets routing cleanly', () => {
 		const project = createEmptyProject({ name: 'Bus Routing Test' });
 		const bus1 = {

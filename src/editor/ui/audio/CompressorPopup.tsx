@@ -16,7 +16,7 @@ export const CompressorPopup: React.FC<CompressorPopupProps> = ({
 	onClose,
 	onChange
 }) => {
-	const currentComp = compressor ?? defaultTrackCompressor();
+	const currentComp = { ...defaultTrackCompressor(), ...(compressor ?? {}) };
 	const titleId = useId();
 
 	useEffect(() => {

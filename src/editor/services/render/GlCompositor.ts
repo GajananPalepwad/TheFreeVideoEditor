@@ -225,8 +225,8 @@ export class GlCompositor implements FrameRenderer {
 					layer.kind === 'adjustment' ||
 					layer.kind === 'solid' ||
 					layer.kind === 'sequence' ||
-					(layer.effects && layer.effects.some((e) => !e.isNeutral)) ||
-					(layer.masks && layer.masks.some((m) => m.enabled))
+					(layer.effects && layer.effects.some((e) => e && !e.isNeutral)) ||
+					(layer.masks && layer.masks.some((m) => m?.enabled))
 			);
 
 		if (!hasComplexPipeline && !asVideoFrame) {
@@ -311,7 +311,7 @@ export class GlCompositor implements FrameRenderer {
 					currTex = nextFbo.texture;
 				}
 				const opacity = layer.transform?.opacity ?? 1;
-				const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+				const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 				if (activeMasks.length > 0) {
 					const matteFbo = this.passManager.accumulateMasks(
 						activeMasks,
@@ -432,10 +432,10 @@ export class GlCompositor implements FrameRenderer {
 				let currentTex = solidTex;
 				const fbosToRelease: PooledFbo[] = [];
 
-				const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+				const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 				const effectMasks = new Map<string, EvaluatedMask>();
 				for (const m of layer.masks ?? []) {
-					if (m.enabled && m.effectId) effectMasks.set(m.effectId, m);
+					if (m?.enabled && m.effectId) effectMasks.set(m.effectId, m);
 				}
 
 				if (activeMasks.length > 0) {
@@ -556,10 +556,10 @@ export class GlCompositor implements FrameRenderer {
 				const width = nested.size.width;
 				const height = nested.size.height;
 
-				const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+				const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 				const effectMasks = new Map<string, EvaluatedMask>();
 				for (const m of layer.masks ?? []) {
-					if (m.enabled && m.effectId) effectMasks.set(m.effectId, m);
+					if (m?.enabled && m.effectId) effectMasks.set(m.effectId, m);
 				}
 
 				const effW = Math.min(width, size.width * 2);
@@ -663,10 +663,10 @@ export class GlCompositor implements FrameRenderer {
 			let layerTex = entry.texture;
 			const fbosToRelease: PooledFbo[] = [];
 
-			const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+			const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 			const effectMasks = new Map<string, EvaluatedMask>();
 			for (const m of layer.masks ?? []) {
-				if (m.enabled && m.effectId) effectMasks.set(m.effectId, m);
+				if (m?.enabled && m.effectId) effectMasks.set(m.effectId, m);
 			}
 
 			const effW = Math.min(width, size.width * 2);
@@ -1023,10 +1023,10 @@ export class GlCompositor implements FrameRenderer {
 			let currentTex = solidTex;
 			const fbosToRelease: PooledFbo[] = [];
 
-			const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+			const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 			const effectMasks = new Map<string, EvaluatedMask>();
 			for (const m of layer.masks ?? []) {
-				if (m.enabled && m.effectId) effectMasks.set(m.effectId, m);
+				if (m?.enabled && m.effectId) effectMasks.set(m.effectId, m);
 			}
 
 			if (activeMasks.length > 0) {
@@ -1128,10 +1128,10 @@ export class GlCompositor implements FrameRenderer {
 		let layerTex = entry.texture;
 		const fbosToRelease: PooledFbo[] = [];
 
-		const activeMasks = (layer.masks ?? []).filter((m) => m.enabled && !m.effectId);
+		const activeMasks = (layer.masks ?? []).filter((m) => m?.enabled && !m.effectId);
 		const effectMasks = new Map<string, EvaluatedMask>();
 		for (const m of layer.masks ?? []) {
-			if (m.enabled && m.effectId) effectMasks.set(m.effectId, m);
+			if (m?.enabled && m.effectId) effectMasks.set(m.effectId, m);
 		}
 
 		const effW = Math.min(width, size.width * 2);

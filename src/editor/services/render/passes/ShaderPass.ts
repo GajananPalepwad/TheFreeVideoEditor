@@ -627,7 +627,7 @@ export class ShaderPassManager {
 		height: number
 	): PooledFbo {
 		const gl = this.gl;
-		const active = masks.filter((m) => m.enabled && !m.effectId);
+		const active = masks.filter((m) => m?.enabled && !m.effectId);
 		let accumFbo = fboPool.acquire(width, height);
 
 		if (active.length === 0) {

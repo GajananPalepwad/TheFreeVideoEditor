@@ -14,37 +14,41 @@ export function migrateLegacyAudioRack(project: Project): Project {
 		let trackModified = false;
 
 		// 1. Migrate legacy EQ if present and not already migrated
-		if (tAudio.eq && !effects.some((fx) => fx.id === `migrated-eq-${track.id}`)) {
+		if (
+			tAudio.eq &&
+			tAudio.eq.bands &&
+			!effects.some((fx) => fx.id === `migrated-eq-${track.id}`)
+		) {
 			const eq = tAudio.eq;
 			const eqInstance: AudioEffectInstance = {
 				id: `migrated-eq-${track.id}`,
 				type: 'parametric-eq',
 				name: 'Parametric EQ',
-				enabled: eq.enabled,
+				enabled: eq.enabled !== false,
 				mix: 1.0,
 				params: {
-					band1_type: eq.bands[0].type,
-					band1_freq: eq.bands[0].frequencyHz,
-					band1_gain: eq.bands[0].gainDb,
-					band1_q: eq.bands[0].q,
+					band1_type: eq.bands[0]?.type ?? 'low-shelf',
+					band1_freq: eq.bands[0]?.frequencyHz ?? 80,
+					band1_gain: eq.bands[0]?.gainDb ?? 0,
+					band1_q: eq.bands[0]?.q ?? 0.71,
 					band1_enabled: true,
 
-					band2_type: eq.bands[1].type,
-					band2_freq: eq.bands[1].frequencyHz,
-					band2_gain: eq.bands[1].gainDb,
-					band2_q: eq.bands[1].q,
+					band2_type: eq.bands[1]?.type ?? 'peaking',
+					band2_freq: eq.bands[1]?.frequencyHz ?? 500,
+					band2_gain: eq.bands[1]?.gainDb ?? 0,
+					band2_q: eq.bands[1]?.q ?? 1.0,
 					band2_enabled: true,
 
-					band3_type: eq.bands[2].type,
-					band3_freq: eq.bands[2].frequencyHz,
-					band3_gain: eq.bands[2].gainDb,
-					band3_q: eq.bands[2].q,
+					band3_type: eq.bands[2]?.type ?? 'peaking',
+					band3_freq: eq.bands[2]?.frequencyHz ?? 3000,
+					band3_gain: eq.bands[2]?.gainDb ?? 0,
+					band3_q: eq.bands[2]?.q ?? 1.0,
 					band3_enabled: true,
 
-					band4_type: eq.bands[3].type,
-					band4_freq: eq.bands[3].frequencyHz,
-					band4_gain: eq.bands[3].gainDb,
-					band4_q: eq.bands[3].q,
+					band4_type: eq.bands[3]?.type ?? 'high-shelf',
+					band4_freq: eq.bands[3]?.frequencyHz ?? 12000,
+					band4_gain: eq.bands[3]?.gainDb ?? 0,
+					band4_q: eq.bands[3]?.q ?? 0.71,
 					band4_enabled: true
 				}
 			};
@@ -59,15 +63,15 @@ export function migrateLegacyAudioRack(project: Project): Project {
 				id: `migrated-comp-${track.id}`,
 				type: 'compressor',
 				name: 'Compressor',
-				enabled: comp.enabled,
+				enabled: comp.enabled !== false,
 				mix: 1.0,
 				params: {
-					thresholdDb: comp.thresholdDb,
-					ratio: comp.ratio,
-					attackMs: comp.attackMs,
-					releaseMs: comp.releaseMs,
-					kneeDb: comp.kneeDb,
-					makeupDb: comp.makeupDb
+					thresholdDb: comp.thresholdDb ?? -24,
+					ratio: comp.ratio ?? 3,
+					attackMs: comp.attackMs ?? 20,
+					releaseMs: comp.releaseMs ?? 250,
+					kneeDb: comp.kneeDb ?? 6,
+					makeupDb: comp.makeupDb ?? 0
 				}
 			};
 			effects.push(compInstance);

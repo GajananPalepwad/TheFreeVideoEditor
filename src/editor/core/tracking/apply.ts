@@ -98,7 +98,7 @@ export function evaluateLiveTrackingBinding(
 	sourceWidth: number = 1920,
 	sourceHeight: number = 1080
 ): EvaluatedTrackingMotion | null {
-	if (!tracker.enabled || !tracker.binding) return null;
+	if (!tracker?.enabled || !tracker.binding) return null;
 
 	// Check whether timelineTime is within trackedClip range
 	if (

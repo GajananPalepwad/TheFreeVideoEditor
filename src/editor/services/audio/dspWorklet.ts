@@ -84,7 +84,7 @@ export function createDspRackNode(
 	effects: readonly AudioEffectInstance[] | undefined,
 	options: DspRackOptions = {}
 ): DspRackNode | undefined {
-	const activeFx = (effects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+	const activeFx = (effects ?? []).filter((e) => e && !e.bypass && e.enabled !== false);
 	if (activeFx.length === 0) return undefined;
 
 	const sampleRate = options.sampleRate ?? ctx.sampleRate ?? 48000;
@@ -108,7 +108,9 @@ export function createDspRackNode(
 				node: workletNode,
 				type: 'worklet',
 				updateEffects: (nextEffects: readonly AudioEffectInstance[]) => {
-					const nextActive = (nextEffects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+					const nextActive = (nextEffects ?? []).filter(
+						(e) => e && !e.bypass && e.enabled !== false
+					);
 					workletNode.port.postMessage({
 						type: 'update-effects',
 						effects: nextActive
@@ -180,7 +182,7 @@ export function createDspRackNode(
 			node: sp,
 			type: 'script-processor',
 			updateEffects: (nextEffects: readonly AudioEffectInstance[]) => {
-				const nextActive = (nextEffects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+				const nextActive = (nextEffects ?? []).filter((e) => e && !e.bypass && e.enabled !== false);
 				currentRack = buildAudioRack(nextActive, sampleRate, channels);
 			},
 			reset: () => {
