@@ -292,4 +292,33 @@ describe('keyboard shortcut registry', () => {
 
 		cleanup();
 	});
+
+	it('safely handles sparse or undefined entries in buildCheatSheet and registerShortcutListener', () => {
+		const testHandler = vi.fn();
+		const sparseEntries: ShortcutEntry[] = [
+			undefined as unknown as ShortcutEntry,
+			entry('valid-shortcut', 'k'),
+			null as unknown as ShortcutEntry
+		];
+		sparseEntries[1]!.handler = testHandler;
+
+		// 1. buildCheatSheet must not throw when encountering undefined/null entry
+		expect(() => buildCheatSheet(sparseEntries, 'mac')).not.toThrow();
+		const cheatSheet = buildCheatSheet(sparseEntries, 'mac');
+		expect(cheatSheet.length).toBe(1);
+		expect(cheatSheet[0]?.id).toBe('valid-shortcut');
+
+		// 2. registerShortcutListener must not throw on keydown with sparse entries
+		const mockWindow = new EventTarget() as unknown as Window;
+		const cleanup = registerShortcutListener(sparseEntries, {
+			target: mockWindow,
+			platform: 'mac'
+		});
+
+		const kEvent = keyEvent('k');
+		expect(() => mockWindow.dispatchEvent(kEvent)).not.toThrow();
+		expect(testHandler).toHaveBeenCalledTimes(1);
+
+		cleanup();
+	});
 });

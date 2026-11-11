@@ -300,11 +300,13 @@ export default function EffectsSection({
 						.map((eff, index) => {
 							const def = EFFECT_DEFINITIONS[eff.type];
 							const isExpanded = expandedEffects[eff.id] !== false; // default open
-							const isEnabled = eff.enabled !== false;
+							const isEnabled = eff?.enabled !== false;
 							const isSoloed =
 								isEnabled &&
 								effects.length > 1 &&
-								effects.every((e) => (e.id === eff.id ? e.enabled !== false : e.enabled === false));
+								effects.every((e) =>
+									e?.id === eff.id ? e?.enabled !== false : e?.enabled === false
+								);
 
 							return (
 								<div key={eff.id} className={`effect-stack-item ${isEnabled ? '' : 'is-disabled'}`}>

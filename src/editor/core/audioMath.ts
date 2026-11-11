@@ -314,10 +314,12 @@ export function biquadFrequencyResponse(
  * Total 4-band EQ magnitude response in dB at frequency f.
  */
 export function totalEqResponse(eq: TrackEq, f: number, fs = 48000): number {
-	if (!eq.enabled) return 0;
+	if (!eq?.enabled || !Array.isArray(eq.bands)) return 0;
 	let totalDb = 0;
 	for (const band of eq.bands) {
-		totalDb += biquadFrequencyResponse(band, f, fs);
+		if (band) {
+			totalDb += biquadFrequencyResponse(band, f, fs);
+		}
 	}
 	return totalDb;
 }

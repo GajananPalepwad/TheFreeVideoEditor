@@ -11,7 +11,7 @@ interface EqPopupProps {
 }
 
 export const EqPopup: React.FC<EqPopupProps> = ({ eq, trackName, onClose, onChange }) => {
-	const currentEq = eq ?? defaultTrackEq();
+	const currentEq = { ...defaultTrackEq(), ...(eq ?? {}) };
 	const titleId = useId();
 
 	useEffect(() => {

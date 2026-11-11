@@ -44,7 +44,7 @@ export function createEffectInstance(
 
 export function evaluateEffect(instance: EffectInstance, localTime: Time): EvaluatedEffect {
 	const def = getEffectDefinition(instance.type);
-	const enabled = instance.enabled !== false;
+	const enabled = instance?.enabled !== false;
 	const evaluatedParams: Record<string, unknown> = {};
 
 	for (const [key, val] of Object.entries(instance.params)) {
@@ -115,7 +115,7 @@ export function toggleEffectInClip(clip: Clip, effectId: string, enabled?: boole
 		...clip,
 		effects: clip.effects.map((e) => {
 			if (e.id !== effectId) return e;
-			const nextEnabled = enabled !== undefined ? enabled : e.enabled === false;
+			const nextEnabled = enabled !== undefined ? enabled : e?.enabled === false;
 			return { ...e, enabled: nextEnabled };
 		})
 	};
@@ -179,7 +179,7 @@ export function setEffectParamInClip(
 export function soloEffectInClip(clip: Clip, effectId: string): Clip {
 	if (!clip.effects || clip.effects.length === 0) return clip;
 	const isAlreadySoloed = clip.effects.every((e) =>
-		e.id === effectId ? e.enabled !== false : e.enabled === false
+		e?.id === effectId ? e?.enabled !== false : e?.enabled === false
 	);
 	return {
 		...clip,

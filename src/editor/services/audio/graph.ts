@@ -187,7 +187,7 @@ function buildSingleTrackChain(
 
 	// Track Inserts Rack
 	let rackNode: AudioNode | undefined;
-	const activeFx = (tAudio.effects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+	const activeFx = (tAudio.effects ?? []).filter((e) => e && !e.bypass && e.enabled !== false);
 	let rack: BuiltAudioRack | undefined;
 	if (activeFx.length > 0) {
 		rack = buildAudioRack(activeFx, ctx.sampleRate, 2);
@@ -390,7 +390,7 @@ export function buildAudioGraph(
 
 	let masterRackNode: AudioNode | undefined;
 	const activeMasterFx = (project.masterAudio?.effects ?? []).filter(
-		(e) => !e.bypass && e.enabled !== false
+		(e) => e && !e.bypass && e.enabled !== false
 	);
 	let masterRack: BuiltAudioRack | undefined;
 	if (activeMasterFx.length > 0) {
@@ -439,7 +439,7 @@ export function buildAudioGraph(
 		}
 
 		let busRackNode: AudioNode | undefined;
-		const activeBusFx = (bus.effects ?? []).filter((e) => !e.bypass && e.enabled !== false);
+		const activeBusFx = (bus.effects ?? []).filter((e) => e && !e.bypass && e.enabled !== false);
 		let busRack: BuiltAudioRack | undefined;
 		if (activeBusFx.length > 0) {
 			busRack = buildAudioRack(activeBusFx, ctx.sampleRate, 2);
@@ -550,7 +550,7 @@ export function buildAudioGraph(
 		if (track.audio?.sends && track.audio.sends.length > 0) {
 			const sendGains = new Map<string, GainNode>();
 			for (const send of track.audio.sends) {
-				if (!send.enabled) continue;
+				if (!send || !send.enabled) continue;
 				const targetBus = busNodes.get(send.busId);
 				if (!targetBus) continue;
 

@@ -472,10 +472,22 @@ export function trackError(
 		})
 		.slice(0, 250);
 
+	const errorDetails: Record<string, unknown> = { ...details };
+	if (error instanceof Error && typeof error.stack === 'string') {
+		const stackLines = error.stack.split('\n').slice(1);
+		for (const line of stackLines) {
+			const match = line.trim().match(/^at\s+([a-zA-Z0-9_$.<>]+)\s+/);
+			if (match && match[1] && !match[1].startsWith('Object.') && !match[1].startsWith('eval')) {
+				errorDetails.caller = match[1];
+				break;
+			}
+		}
+	}
+
 	void trackActivity('error', {
 		source: source || 'app',
 		error: sanitizedMessage,
-		...details
+		...errorDetails
 	});
 }
 

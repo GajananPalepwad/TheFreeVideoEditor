@@ -22,7 +22,7 @@ export function computeGraphPdc(project: Project): PathLatencyResult {
 		if (track.kind !== 'audio') continue;
 		let lat = 0;
 		for (const fx of track.audio?.effects ?? []) {
-			if (fx.enabled === false || fx.bypass === true) continue;
+			if (!fx || fx.enabled === false || fx.bypass === true) continue;
 			const def = audioEffectRegistry.get(fx.type);
 			if (def) lat += def.latencySamples(fx.params);
 		}
@@ -33,7 +33,7 @@ export function computeGraphPdc(project: Project): PathLatencyResult {
 	for (const bus of project.audioBuses ?? []) {
 		let lat = 0;
 		for (const fx of bus.effects ?? []) {
-			if (fx.enabled === false || fx.bypass === true) continue;
+			if (!fx || fx.enabled === false || fx.bypass === true) continue;
 			const def = audioEffectRegistry.get(fx.type);
 			if (def) lat += def.latencySamples(fx.params);
 		}
@@ -43,7 +43,7 @@ export function computeGraphPdc(project: Project): PathLatencyResult {
 	// 3. Compute master rack latency
 	let masterLatency = 0;
 	for (const fx of project.masterAudio?.effects ?? []) {
-		if (fx.enabled === false || fx.bypass === true) continue;
+		if (!fx || fx.enabled === false || fx.bypass === true) continue;
 		const def = audioEffectRegistry.get(fx.type);
 		if (def) masterLatency += def.latencySamples(fx.params);
 	}

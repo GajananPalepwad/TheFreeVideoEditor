@@ -210,6 +210,13 @@ describe('audioMath unit tests', () => {
 	});
 
 	describe('RBJ Biquad EQ & Compressor static curves', () => {
+		it('returns 0 dB response when EQ is undefined or has no bands', () => {
+			expect(
+				totalEqResponse(undefined as unknown as Parameters<typeof totalEqResponse>[0], 1000)
+			).toBe(0);
+			expect(totalEqResponse({} as unknown as Parameters<typeof totalEqResponse>[0], 1000)).toBe(0);
+		});
+
 		it('returns 0 dB response when EQ gain is 0', () => {
 			const eq = defaultTrackEq();
 			expect(totalEqResponse(eq, 1000)).toBe(0);

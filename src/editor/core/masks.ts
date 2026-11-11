@@ -109,7 +109,7 @@ export function evaluateMask(
 		feather,
 		expansion,
 		opacity,
-		enabled: mask.enabled !== false,
+		enabled: mask?.enabled !== false,
 		closed: mask.closed !== false,
 		shape,
 		points,
@@ -161,7 +161,7 @@ export function evaluateMatteCpu(
 	height: number
 ): Float32Array {
 	const buffer = new Float32Array(width * height);
-	const active = masks.filter((m) => m.enabled && !m.effectId);
+	const active = masks.filter((m) => m?.enabled && !m.effectId);
 	if (active.length === 0) {
 		buffer.fill(1.0);
 		return buffer;
