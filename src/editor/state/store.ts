@@ -2735,6 +2735,7 @@ export function createEditorStore() {
 					});
 				},
 				setSaveStatus(status) {
+					if (get().saveStatus === status) return;
 					set((state) => {
 						state.saveStatus = status;
 					});
@@ -2866,12 +2867,21 @@ export function createEditorStore() {
 					});
 				},
 				setScroll(scrollLeft, scrollTop) {
+					const nextScrollLeft = Math.max(0, scrollLeft);
+					const nextScrollTop = Math.max(0, scrollTop);
+					if (
+						get().timeline.scrollLeft === nextScrollLeft &&
+						get().timeline.scrollTop === nextScrollTop
+					) {
+						return;
+					}
 					set((state) => {
-						state.timeline.scrollLeft = Math.max(0, scrollLeft);
-						state.timeline.scrollTop = Math.max(0, scrollTop);
+						state.timeline.scrollLeft = nextScrollLeft;
+						state.timeline.scrollTop = nextScrollTop;
 					});
 				},
 				setTimelineFollowing(following) {
+					if (get().timeline.followPlayhead === following) return;
 					set((state) => {
 						state.timeline.followPlayhead = following;
 					});
@@ -2879,11 +2889,10 @@ export function createEditorStore() {
 				setPlayhead(time) {
 					const project = get().project;
 					if (!project) return;
+					const snapped = snapToFrame(Math.max(0, Math.round(time)), project.settings.fps);
+					if (get().timeline.playhead === snapped) return;
 					set((state) => {
-						state.timeline.playhead = snapToFrame(
-							Math.max(0, Math.round(time)),
-							project.settings.fps
-						);
+						state.timeline.playhead = snapped;
 					});
 				},
 				selectClips(ids, mode = 'replace') {
@@ -4966,6 +4975,7 @@ export function createEditorStore() {
 					});
 				},
 				setScopesOpen(open) {
+					if (get().scopes.open === open) return;
 					set((state) => {
 						state.scopes.open = open;
 					});
@@ -5008,6 +5018,7 @@ export function createEditorStore() {
 					});
 				},
 				setPlaybackResolution(resolution) {
+					if (get().playbackResolution === resolution) return;
 					set((state) => {
 						state.playbackResolution = resolution;
 					});

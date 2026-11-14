@@ -1350,5 +1350,39 @@ LUT_3D_SIZE 2
 			expect(clips.find((c) => c.id === c1)!.groupId).toBeDefined();
 			expect(clips.find((c) => c.id === c1)!.groupId).toBe(clips.find((c) => c.id === c2)!.groupId);
 		});
+
+		it('avoids spurious subscriber notifications when setting unchanged timeline properties', async () => {
+			const store = createEditorStore();
+			await store.getState().createProject({ name: 'No-op Guard Test' });
+
+			store.getState().setScroll(150, 50);
+			let notificationCount = 0;
+			const unsubscribe = store.subscribe(() => {
+				notificationCount++;
+			});
+
+			// No-op calls with identical values should NOT trigger subscribers
+			store.getState().setScroll(150, 50);
+			store.getState().setScroll(150, 50);
+			expect(notificationCount).toBe(0);
+
+			const currentPlayhead = store.getState().timeline.playhead;
+			store.getState().setPlayhead(currentPlayhead);
+			expect(notificationCount).toBe(0);
+
+			const currentFollowing = store.getState().timeline.followPlayhead;
+			store.getState().setTimelineFollowing(currentFollowing);
+			expect(notificationCount).toBe(0);
+
+			const currentSaveStatus = store.getState().saveStatus;
+			store.getState().setSaveStatus(currentSaveStatus);
+			expect(notificationCount).toBe(0);
+
+			// Distinct changes should notify as expected
+			store.getState().setScroll(200, 50);
+			expect(notificationCount).toBe(1);
+
+			unsubscribe();
+		});
 	});
 });

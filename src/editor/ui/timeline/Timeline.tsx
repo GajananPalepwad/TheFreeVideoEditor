@@ -1171,7 +1171,9 @@ function ActiveTimeline({ project }: { project: Project }) {
 	function handleScroll(): void {
 		const scroller = scrollerRef.current;
 		if (!scroller) return;
-		const programmatic = programmaticScrollLeft.current === scroller.scrollLeft;
+		const programmatic =
+			programmaticScrollLeft.current !== null &&
+			Math.abs(programmaticScrollLeft.current - scroller.scrollLeft) <= 1;
 		programmaticScrollLeft.current = null;
 		if (!programmatic) setTimelineFollowing(false);
 		setScroll(scroller.scrollLeft, scroller.scrollTop);
