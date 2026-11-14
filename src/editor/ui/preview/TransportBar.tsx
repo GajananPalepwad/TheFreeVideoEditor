@@ -70,11 +70,32 @@ export default function TransportBar({
 	const [playAnnouncement, setPlayAnnouncement] = useState('');
 	const previousPlaying = useRef<boolean | null>(null);
 	useEffect(() => {
-		setSnapshot(engine?.snapshot ?? null);
+		setSnapshot((prev) =>
+			prev === (engine?.snapshot ?? null) ? prev : (engine?.snapshot ?? null)
+		);
 		previousPlaying.current = engine?.snapshot.playing ?? null;
 		if (!engine) return;
 		return engine.subscribe((next) => {
-			setSnapshot(next);
+			setSnapshot((prev) => {
+				if (
+					prev &&
+					prev.time === next.time &&
+					prev.duration === next.duration &&
+					prev.playing === next.playing &&
+					prev.rate === next.rate &&
+					prev.looping === next.looping &&
+					prev.loading === next.loading &&
+					prev.playbackResolution === next.playbackResolution &&
+					prev.muted === next.muted &&
+					prev.volume === next.volume &&
+					prev.meter === next.meter &&
+					prev.proxyActive === next.proxyActive &&
+					prev.error === next.error
+				) {
+					return prev;
+				}
+				return next;
+			});
 			if (previousPlaying.current !== null && previousPlaying.current !== next.playing) {
 				setPlayAnnouncement(next.playing ? 'Playback started.' : 'Playback paused.');
 			}

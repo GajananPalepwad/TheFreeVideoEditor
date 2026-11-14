@@ -70,6 +70,7 @@ let memorySessionId: string | null = null;
 
 export function _resetSessionForTest(): void {
 	memorySessionId = null;
+	recentEvents.clear();
 }
 
 function getLocalStorage(): Storage | null {
@@ -453,6 +454,112 @@ export function isIgnoredError(message: string): boolean {
  * browser extension messages, adblocker blocks, benign ResizeObserver loops,
  * and empty/unknown promise rejections.
  */
+const REACT_INTERNAL_CALLERS = new Set([
+	'Hi',
+	'Ui',
+	'Wi',
+	'Ri',
+	'zi',
+	'Bi',
+	'Vi',
+	'Ki',
+	'qi',
+	'Ji',
+	'Yi',
+	'Xi',
+	'Zi',
+	'Qi',
+	'$i',
+	'dispatchSetState',
+	'enqueueConcurrentRenderForLane',
+	'markUpdateLaneFromFiberToRoot',
+	'renderWithHooks',
+	'mountState',
+	'updateState',
+	'performSyncWorkOnRoot',
+	'performConcurrentWorkOnRoot',
+	'flushPassiveEffects',
+	'commitRoot',
+	'workLoop',
+	'workLoopSync',
+	'workLoopConcurrent',
+	'flushWork',
+	'ensureRootIsScheduled',
+	'scheduleUpdateOnFiber',
+	'callCallback2',
+	'invokeGuardedCallbackDev'
+]);
+
+export function extractErrorCaller(stack: string): string | undefined {
+	const lines = stack.split('\n').slice(1);
+	let fallbackCaller: string | undefined;
+
+	for (const rawLine of lines) {
+		const line = rawLine.trim();
+		if (!line) continue;
+
+		let funcName: string | undefined;
+		let location = '';
+
+		const v8NamedMatch = line.match(/^at\s+([a-zA-Z0-9_$.<>]+)\s+\((.*)\)$/);
+		const v8AnonMatch = line.match(/^at\s+(https?:\/\/[^\s]+|\/[^\s]+)$/);
+		const geckoMatch = line.match(/^([a-zA-Z0-9_$.<>]+)@(.*)$/);
+
+		if (v8NamedMatch) {
+			funcName = v8NamedMatch[1];
+			location = v8NamedMatch[2] ?? '';
+		} else if (geckoMatch) {
+			funcName = geckoMatch[1];
+			location = geckoMatch[2] ?? '';
+		} else if (v8AnonMatch) {
+			funcName = undefined;
+			location = v8AnonMatch[1] ?? '';
+		} else {
+			const fallbackMatch = line.match(/^at\s+([a-zA-Z0-9_$.<>]+)/);
+			if (fallbackMatch && fallbackMatch[1]) {
+				funcName = fallbackMatch[1];
+			}
+		}
+
+		if (funcName && (funcName.startsWith('Object.') || funcName.startsWith('eval'))) {
+			continue;
+		}
+
+		const cleanFile = location
+			? location.replace(/^.*[/\\]([^/\\]+\.[a-zA-Z0-9]+)(?::\d+)?(?::\d+)?.*$/, '$1') || ''
+			: '';
+
+		const isFrameworkFile =
+			cleanFile.startsWith('client.') ||
+			cleanFile.includes('react-dom') ||
+			cleanFile.includes('react.');
+
+		if (
+			funcName &&
+			(REACT_INTERNAL_CALLERS.has(funcName) ||
+				(isFrameworkFile && /^[a-zA-Z0-9_$]{1,2}$/.test(funcName)))
+		) {
+			continue;
+		}
+
+		if (funcName && funcName !== '<anonymous>') {
+			return funcName;
+		}
+
+		if (cleanFile && !isFrameworkFile) {
+			const lineColMatch = location.match(/:(\d+)(?::\d+)?\)?$/);
+			const lineNum = lineColMatch ? `:${lineColMatch[1]}` : '';
+			return `${cleanFile}${lineNum}`;
+		}
+
+		if (!fallbackCaller && funcName && funcName !== '<anonymous>') {
+			fallbackCaller = funcName;
+		}
+	}
+
+	return fallbackCaller;
+}
+
 export function trackError(
 	error: unknown,
 	source?: string,
@@ -474,13 +581,9 @@ export function trackError(
 
 	const errorDetails: Record<string, unknown> = { ...details };
 	if (error instanceof Error && typeof error.stack === 'string') {
-		const stackLines = error.stack.split('\n').slice(1);
-		for (const line of stackLines) {
-			const match = line.trim().match(/^at\s+([a-zA-Z0-9_$.<>]+)\s+/);
-			if (match && match[1] && !match[1].startsWith('Object.') && !match[1].startsWith('eval')) {
-				errorDetails.caller = match[1];
-				break;
-			}
+		const caller = extractErrorCaller(error.stack);
+		if (caller) {
+			errorDetails.caller = caller;
 		}
 	}
 
