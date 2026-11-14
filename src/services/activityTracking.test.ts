@@ -366,5 +366,59 @@ describe('activityTracking service', () => {
 
 			expect(fetchMock).not.toHaveBeenCalled();
 		});
+
+		it('trackError skips minified React internals (e.g. Hi) and extracts application caller from stack', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			const err = new Error(
+				'Minified React error #185; visit https://react.dev/errors/185 for the full message'
+			);
+			err.stack = `Error: Minified React error #185; visit https://react.dev/errors/185 for the full message
+    at Hi (https://thefreevideoeditor.com/_astro/client.z8wur9Ut.js:40191:23)
+    at Ui (https://thefreevideoeditor.com/_astro/client.z8wur9Ut.js:40205:5)
+    at dispatchSetState (https://thefreevideoeditor.com/_astro/client.z8wur9Ut.js:41020:10)
+    at handleScale (https://thefreevideoeditor.com/_astro/index.BYSrA4Cq.js:1502:12)
+    at ResizeObserver.<anonymous> (https://thefreevideoeditor.com/_astro/index.BYSrA4Cq.js:1520:8)`;
+
+			trackError(err, 'window.onerror');
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+			const body = JSON.parse(
+				(fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			const details = body.details as Record<string, unknown> | undefined;
+			expect(details?.caller).toBe('handleScale');
+		});
+
+		it('trackError extracts caller from Safari/Gecko format and anonymous frames', async () => {
+			const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+			vi.stubGlobal('fetch', fetchMock);
+
+			const geckoErr = new Error('Gecko error');
+			geckoErr.stack = `Gecko error
+Hi@https://thefreevideoeditor.com/_astro/client.z8wur9Ut.js:40191:23
+customComponentRender@https://thefreevideoeditor.com/_astro/index.BYSrA4Cq.js:123:45`;
+
+			trackError(geckoErr, 'window.onerror');
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+			const body1 = JSON.parse(
+				(fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body1.details as Record<string, unknown>)?.caller).toBe('customComponentRender');
+
+			_resetSessionForTest();
+
+			const anonErr = new Error('Anonymous error');
+			anonErr.stack = `Anonymous error
+    at Hi (https://thefreevideoeditor.com/_astro/client.z8wur9Ut.js:40191:23)
+    at https://thefreevideoeditor.com/_astro/Timeline.tsx:689:15`;
+
+			trackError(anonErr, 'window.onerror');
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			const body2 = JSON.parse(
+				(fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string
+			) as Record<string, unknown>;
+			expect((body2.details as Record<string, unknown>)?.caller).toBe('Timeline.tsx:689');
+		});
 	});
 });
