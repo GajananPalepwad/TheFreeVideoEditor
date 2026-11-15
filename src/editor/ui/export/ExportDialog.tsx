@@ -41,7 +41,6 @@ import {
 } from '../../../services/activityTracking';
 import { describeProgress } from './exportProgress';
 import { useElapsedTime } from './useElapsedTime';
-import { AdSenseBanner } from '../ads/AdSenseBanner';
 import './export-dialog.css';
 
 type ExportTab = 'video' | 'project';
@@ -922,7 +921,6 @@ export default function ExportDialog() {
 				}}
 			>
 				<div className="dialog-modal-layout">
-					<AdSenseBanner position="left" />
 					<div className="dialog-surface-card export-dialog">
 						<div className="dialog-content">
 							<div className="dialog-heading">
@@ -1567,7 +1565,6 @@ export default function ExportDialog() {
 							</div>
 						</div>
 					</div>
-					<AdSenseBanner position="right" />
 				</div>
 			</dialog>
 			<dialog

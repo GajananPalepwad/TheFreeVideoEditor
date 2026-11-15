@@ -7,7 +7,7 @@ const seoTitle = 'Privacy Policy — The Free Video Editor';
 const seoDescription =
 	'Read our Privacy Policy. The Free Video Editor processes all videos, audio, and media 100% locally on your device with zero cloud uploads and zero media tracking.';
 
-const lastUpdated = 'October 12, 2026';
+const lastUpdated = 'November 15, 2026';
 ---
 
 <Layout
@@ -26,7 +26,8 @@ const lastUpdated = 'October 12, 2026';
 				</div>
 				<h1 class="page-title">Privacy Policy</h1>
 				<p class="page-lead">
-					Your media never leaves your computer. We believe privacy is a fundamental human right, not a paid tier.
+					Your media never leaves your computer. We believe privacy is a fundamental human right,
+					not a paid tier.
 				</p>
 				<p class="last-updated">Last Updated: {lastUpdated}</p>
 			</div>
@@ -34,75 +35,195 @@ const lastUpdated = 'October 12, 2026';
 			<article class="content-body">
 				<div class="highlight-callout">
 					<div class="callout-icon">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<svg
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 						</svg>
 					</div>
 					<div class="callout-text">
 						<h3>The Core Privacy Guarantee</h3>
 						<p>
-							<strong>We never upload your video, audio, or image files to our servers or any third-party cloud.</strong>
-							All decoding, trimming, filtering, keyframing, AI captions, and exporting happen 100% locally on your computer via client-side WebAssembly, WebCodecs, and WebGL2.
+							<strong>
+								We never upload your video, audio, or image files to our servers or any third-party
+								cloud.
+							</strong>
+							All decoding, trimming, filtering, keyframing, AI captions, and exporting happen 100%
+							locally on your computer via client-side WebAssembly, WebCodecs, and WebGL2.
 						</p>
 					</div>
 				</div>
 
 				<section class="content-section">
 					<h2>1. Information We Do NOT Collect</h2>
-					<p>Unlike cloud-based editing platforms, The Free Video Editor is designed with zero-knowledge architecture regarding your content:</p>
+					<p>
+						Unlike cloud-based editing platforms, The Free Video Editor is designed with
+						zero-knowledge architecture regarding your content:
+					</p>
 					<ul>
-						<li><strong>Your Media Files:</strong> We cannot access, view, copy, or store your videos, photos, or voice recordings.</li>
-						<li><strong>Project Content:</strong> Timeline assets, subtitles, cuts, project names, and exported videos remain stored solely in your browser's local sandbox (Origin Private File System / IndexedDB).</li>
-						<li><strong>Personal Information:</strong> We do not ask for your name, phone number, physical address, or payment details. No account creation is required to use the editor.</li>
+						<li>
+							<strong>Your Media Files:</strong> We cannot access, view, copy, or store your videos,
+							photos, or voice recordings.
+						</li>
+						<li>
+							<strong>Project Content:</strong> Timeline assets, subtitles, cuts, project names, and
+							exported videos remain stored solely in your browser's local sandbox (Origin Private
+							File System / IndexedDB).
+						</li>
+						<li>
+							<strong>Personal Information:</strong> We do not ask for your name, phone number,
+							physical address, or payment details. No account creation is required to use the
+							editor.
+						</li>
 					</ul>
 				</section>
 
 				<section class="content-section">
 					<h2>2. Client-Side AI & Speech-to-Text Processing</h2>
 					<p>
-						When you generate automatic subtitles or perform motion tracking, our machine learning models (such as Whisper AI) are downloaded directly to your browser's local cache and execute inference on your device's hardware (via WebAssembly or WebGPU). Audio data is never streamed to external AI API servers or voice intelligence providers.
+						When you generate automatic subtitles or perform motion tracking, our machine learning
+						models (such as Whisper AI) are downloaded directly to your browser's local cache and
+						execute inference on your device's hardware (via WebAssembly or WebGPU). Audio data is
+						never streamed to external AI API servers or voice intelligence providers.
 					</p>
 				</section>
 
 				<section class="content-section">
 					<h2>3. Local Storage & Offline Capabilities</h2>
 					<p>
-						To ensure smooth autosaving and instant recovery, The Free Video Editor stores project state using browser-standard local storage technologies:
+						To ensure smooth autosaving and instant recovery, The Free Video Editor stores project
+						state using browser-standard local storage technologies:
 					</p>
 					<ul>
-						<li><strong>IndexedDB:</strong> Stores project timelines, clip arrangements, keyframes, and color grading parameters.</li>
-						<li><strong>Origin Private File System (OPFS):</strong> Stores imported media handles and cached waveforms locally on your hard drive.</li>
+						<li>
+							<strong>IndexedDB:</strong> Stores project timelines, clip arrangements, keyframes,
+							and color grading parameters.
+						</li>
+						<li>
+							<strong>Origin Private File System (OPFS):</strong> Stores imported media handles and
+							cached waveforms locally on your hard drive.
+						</li>
 					</ul>
 					<p>
-						This data exists solely on your local device. You can purge all stored projects at any time through your browser's "Clear Site Data" settings or within the editor's Project Manager.
+						This data exists solely on your local device. You can purge all stored projects at any
+						time through your browser's "Clear Site Data" settings or within the editor's Project
+						Manager.
 					</p>
 				</section>
 
 				<section class="content-section">
 					<h2>4. Analytics and Server Logs</h2>
 					<p>
-						When you visit our marketing pages, our static hosting infrastructure (such as Cloudflare/Vercel) may log standard technical web traffic metadata (such as IP address, browser user-agent, and HTTP request headers) for security, DDoS mitigation, and server performance monitoring. We do not use intrusive cross-site tracking cookies or sell marketing profiles to data brokers.
+						When you visit our marketing pages, our static hosting infrastructure (such as
+						Cloudflare/Vercel) may log standard technical web traffic metadata (such as IP address,
+						browser user-agent, and HTTP request headers) for security, DDoS mitigation, and server
+						performance monitoring. We do not sell personal data to brokers; please refer to Section
+						5 below for details regarding third-party advertising cookies.
 					</p>
 				</section>
 
 				<section class="content-section">
-					<h2>5. Third-Party Links</h2>
+					<h2>5. Advertising, Google AdSense, and Third-Party Cookies</h2>
 					<p>
-						Our website may include links to third-party services (such as GitHub or open-source repositories). We are not responsible for the privacy practices of external platforms, and we encourage you to review their respective policies.
+						To support the ongoing maintenance and development of The Free Video Editor as a
+						completely free platform without paywalls or subscriptions, we work with third-party
+						advertising partners, including Google AdSense, to display advertisements on our
+						website.
+					</p>
+					<p>
+						In accordance with Google AdSense program policies, please review the following
+						information regarding advertising cookies and tracking:
+					</p>
+					<ul>
+						<li>
+							<strong>Third-Party Vendor Cookies:</strong> Third-party vendors, including Google,
+							use cookies (such as the DoubleClick cookie) to serve advertisements based on a user's
+							prior visits to this website or other websites on the Internet.
+						</li>
+						<li>
+							<strong>Personalized Advertising:</strong> Google's use of advertising cookies enables
+							it and its partners to serve relevant advertisements to users based on their browsing
+							patterns across the web.
+						</li>
+						<li>
+							<strong>Opting Out of Personalized Advertising:</strong> You have the right to control
+							and opt out of personalized advertising at any time. You can opt out of personalized
+							Google advertising by visiting{' '}
+							<a
+								href="https://adssettings.google.com/"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-link"
+							>
+								Google Ads Settings
+							</a>
+							. Alternatively, you can opt out of third-party advertising cookies by visiting the{' '}
+							<a
+								href="https://www.aboutads.info/choices/"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-link"
+							>
+								Digital Advertising Alliance Consumer Choice page (aboutads.info)
+							</a>{' '}
+							or the{' '}
+							<a
+								href="https://youronlinechoices.com/"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-link"
+							>
+								European Interactive Digital Advertising Alliance (Your Online Choices)
+							</a>
+							.
+						</li>
+						<li>
+							<strong>Zero Media or Timeline Association:</strong> Advertisers and advertising
+							networks never receive or have access to your timeline data, imported video/audio
+							clips, project assets, or exported files. All video editing and processing execute
+							100% locally on your computer.
+						</li>
+					</ul>
+				</section>
+
+				<section class="content-section">
+					<h2>6. Third-Party Links</h2>
+					<p>
+						Our website may include links to third-party services (such as GitHub or open-source
+						repositories). We are not responsible for the privacy practices of external platforms,
+						and we encourage you to review their respective policies.
 					</p>
 				</section>
 
 				<section class="content-section">
-					<h2>6. Changes to this Privacy Policy</h2>
+					<h2>7. Changes to this Privacy Policy</h2>
 					<p>
-						We may update our Privacy Policy periodically to reflect architectural enhancements or new browser API standards. Any updates will be posted to this page with an updated "Last Updated" timestamp.
+						We may update our Privacy Policy periodically to reflect architectural enhancements or
+						new browser API standards. Any updates will be posted to this page with an updated "Last
+						Updated" timestamp.
 					</p>
 				</section>
 
 				<section class="content-section">
-					<h2>7. Contacting Us Regarding Privacy</h2>
+					<h2>8. Contacting Us Regarding Privacy</h2>
 					<p>
-						If you have questions, concerns, or technical inquiries regarding data handling or local security, please visit our <a href="/contact/" class="inline-link">Contact Us page</a> or reach out to our team at <a href="mailto:contact@beestack.in" class="inline-link">contact@beestack.in</a>.
+						If you have questions, concerns, or technical inquiries regarding data handling or local
+						security, please visit our{' '}
+						<a href="/contact/" class="inline-link">
+							Contact Us page
+						</a>{' '}
+						or reach out to our team at{' '}
+						<a href="mailto:contact@beestack.in" class="inline-link">
+							contact@beestack.in
+						</a>
+						.
 					</p>
 				</section>
 			</article>
@@ -248,4 +369,3 @@ const lastUpdated = 'October 12, 2026';
 		color: #7dd3fc;
 	}
 </style>
-

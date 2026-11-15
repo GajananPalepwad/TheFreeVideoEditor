@@ -4,7 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ToolIcon from '../../components/ToolIcon.astro';
 import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
-import { TOOL_GUIDES, getRelatedGuides, type ToolGuide } from '../../data/guides';
+import { TOOL_GUIDES, getRelatedGuides, extractYoutubeId, type ToolGuide } from '../../data/guides';
 
 export async function getStaticPaths() {
 	return TOOL_GUIDES.map((guide, idx) => {
@@ -25,6 +25,7 @@ interface Props {
 
 const { guide, prevGuide, nextGuide } = Astro.props;
 const relatedGuides = getRelatedGuides(guide);
+const hasVideo = Boolean(extractYoutubeId(guide.youtubeVideoId || guide.youtubeUrl));
 
 const seoTitle = `${guide.title} Tutorial & Complete Workflow Guide — The Free Video Editor`;
 const seoDescription = `${guide.subtitle} Follow step-by-step instructions, keyboard shortcuts, pro tips, and video walkthroughs for ${guide.title} in The Free Video Editor.`;
@@ -163,7 +164,13 @@ if (guide.youtubeVideoId) {
 	keywords={toolKeywords}
 	ogType="article"
 	articleSection={guide.categoryLabel}
-	articleTags={[guide.title, guide.categoryLabel, 'Video Editing', 'Tutorial', 'The Free Video Editor']}
+	articleTags={[
+		guide.title,
+		guide.categoryLabel,
+		'Video Editing',
+		'Tutorial',
+		'The Free Video Editor'
+	]}
 	publishedTime="2026-01-01T00:00:00Z"
 	modifiedTime={new Date().toISOString()}
 >
@@ -178,16 +185,30 @@ if (guide.youtubeVideoId) {
 			<div class="guide-container">
 				<ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
 					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-						<a href="/" class="breadcrumb-link" itemprop="item"><span itemprop="name">Home</span></a>
+						<a href="/" class="breadcrumb-link" itemprop="item">
+							<span itemprop="name">Home</span>
+						</a>
 						<meta itemprop="position" content="1" />
 					</li>
-					<li class="breadcrumb-sep" aria-hidden="true">/</li>
+					<li class="breadcrumb-sep" aria-hidden="true">
+						/
+					</li>
 					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-						<a href="/guides/" class="breadcrumb-link" itemprop="item"><span itemprop="name">Guides</span></a>
+						<a href="/guides/" class="breadcrumb-link" itemprop="item">
+							<span itemprop="name">Guides</span>
+						</a>
 						<meta itemprop="position" content="2" />
 					</li>
-					<li class="breadcrumb-sep" aria-hidden="true">/</li>
-					<li aria-current="page" class="breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+					<li class="breadcrumb-sep" aria-hidden="true">
+						/
+					</li>
+					<li
+						aria-current="page"
+						class="breadcrumb-current"
+						itemprop="itemListElement"
+						itemscope
+						itemtype="https://schema.org/ListItem"
+					>
 						<span itemprop="name">{guide.title}</span>
 						<meta itemprop="position" content="3" />
 					</li>
@@ -223,20 +244,46 @@ if (guide.youtubeVideoId) {
 					<div class="action-buttons-group">
 						<a href="/editor/" class="hero-cta-btn">
 							<span>Try in Editor</span>
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<svg
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
 								<polyline points="9 18 15 12 9 6"></polyline>
 							</svg>
 						</a>
 						<a href="#how-to-use" class="hero-secondary-btn">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<svg
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<polyline points="19 12 12 19 5 12"></polyline>
 							</svg>
 							<span>Step-by-Step Instructions</span>
 						</a>
 						<a href="#video-tutorial" class="hero-secondary-btn">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-								<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+							<svg
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								aria-hidden="true"
+							>
+								<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
 							</svg>
 							<span>Video Tutorial</span>
 						</a>
@@ -254,14 +301,34 @@ if (guide.youtubeVideoId) {
 		<nav class="guide-toc-strip" aria-label="Table of contents">
 			<div class="guide-container">
 				<div class="toc-pills">
-					<a href="#video-tutorial" class="toc-pill">Video Tutorial</a>
-					<a href="#overview" class="toc-pill">Overview</a>
-					<a href="#anatomy" class="toc-pill">Tool Anatomy</a>
-					<a href="#how-to-use" class="toc-pill">How to Use</a>
-					<a href="#pro-tips" class="toc-pill">Pro Tips</a>
-					<a href="#shortcuts" class="toc-pill">Shortcuts</a>
-					<a href="#faq" class="toc-pill">FAQ</a>
-					{relatedGuides.length > 0 && <a href="#related" class="toc-pill">Related Tools</a>}
+					{hasVideo && (
+						<a href="#video-tutorial" class="toc-pill">
+							Video Tutorial
+						</a>
+					)}
+					<a href="#overview" class="toc-pill">
+						Overview
+					</a>
+					<a href="#anatomy" class="toc-pill">
+						Tool Anatomy
+					</a>
+					<a href="#how-to-use" class="toc-pill">
+						How to Use
+					</a>
+					<a href="#pro-tips" class="toc-pill">
+						Pro Tips
+					</a>
+					<a href="#shortcuts" class="toc-pill">
+						Shortcuts
+					</a>
+					<a href="#faq" class="toc-pill">
+						FAQ
+					</a>
+					{relatedGuides.length > 0 && (
+						<a href="#related" class="toc-pill">
+							Related Tools
+						</a>
+					)}
 				</div>
 			</div>
 		</nav>
@@ -272,29 +339,38 @@ if (guide.youtubeVideoId) {
 				<!-- Main Content Body -->
 				<article class="guide-content">
 					<!-- Video Tutorial Section -->
-					<section id="video-tutorial" class="content-block">
-						<div class="section-heading">
-							<div class="section-eyebrow">
-								<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="red-icon" aria-hidden="true">
-									<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-								</svg>
-								<span>VIDEO WALKTHROUGH & TUTORIAL</span>
+					{hasVideo && (
+						<section id="video-tutorial" class="content-block">
+							<div class="section-heading">
+								<div class="section-eyebrow">
+									<svg
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										class="red-icon"
+										aria-hidden="true"
+									>
+										<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+									</svg>
+									<span>VIDEO WALKTHROUGH & TUTORIAL</span>
+								</div>
+								<h2>Watch How to Use the {guide.title}</h2>
+								<p>
+									Watch the visual demonstration of the {guide.title} in action, or follow the
+									complete step-by-step instructions below.
+								</p>
 							</div>
-							<h2>Watch How to Use the {guide.title}</h2>
-							<p>
-								Watch the visual demonstration of the {guide.title} in action, or follow the complete
-								step-by-step instructions below.
-							</p>
-						</div>
 
-						<!-- Responsive YouTube Player or Placeholder -->
-						<YouTubeEmbed
-							videoId={guide.youtubeVideoId}
-							videoUrl={guide.youtubeUrl}
-							title={guide.title}
-							toolId={guide.id}
-						/>
-					</section>
+							<!-- Responsive YouTube Player -->
+							<YouTubeEmbed
+								videoId={guide.youtubeVideoId}
+								videoUrl={guide.youtubeUrl}
+								title={guide.title}
+								toolId={guide.id}
+							/>
+						</section>
+					)}
 
 					<!-- Overview Section -->
 					<section id="overview" class="content-block">
@@ -313,7 +389,16 @@ if (guide.youtubeVideoId) {
 								{guide.whenToUse.map((item) => (
 									<li>
 										<span class="check-icon" aria-hidden="true">
-											<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+											<svg
+												width="16"
+												height="16"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2.5"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											>
 												<polyline points="20 6 9 17 4 12"></polyline>
 											</svg>
 										</span>
@@ -329,7 +414,9 @@ if (guide.youtubeVideoId) {
 						<div class="section-heading">
 							<span class="section-tag">UI BREAKDOWN</span>
 							<h2>Visual Anatomy & Interface Controls</h2>
-							<p>Understanding the cursor feedback, indicators, and controls of the {guide.title}.</p>
+							<p>
+								Understanding the cursor feedback, indicators, and controls of the {guide.title}.
+							</p>
 						</div>
 
 						<div class="anatomy-grid">
@@ -350,7 +437,9 @@ if (guide.youtubeVideoId) {
 						<div class="section-heading">
 							<span class="section-tag">STEP-BY-STEP WORKFLOW</span>
 							<h2>How to Use the {guide.title}</h2>
-							<p>Follow these numbered steps to master the tool quickly and avoid common pitfalls.</p>
+							<p>
+								Follow these numbered steps to master the tool quickly and avoid common pitfalls.
+							</p>
 						</div>
 
 						<div class="steps-timeline">
@@ -373,12 +462,25 @@ if (guide.youtubeVideoId) {
 										<p class="step-desc">{step.description}</p>
 										{step.tip && (
 											<div class="step-tip-callout">
-												<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tip-icon" aria-hidden="true">
+												<svg
+													width="15"
+													height="15"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="tip-icon"
+													aria-hidden="true"
+												>
 													<circle cx="12" cy="12" r="10"></circle>
 													<line x1="12" y1="16" x2="12" y2="12"></line>
 													<line x1="12" y1="8" x2="12.01" y2="8"></line>
 												</svg>
-												<span><strong>Pro Tip:</strong> {step.tip}</span>
+												<span>
+													<strong>Pro Tip:</strong> {step.tip}
+												</span>
 											</div>
 										)}
 									</div>
@@ -392,14 +494,25 @@ if (guide.youtubeVideoId) {
 						<div class="section-heading">
 							<span class="section-tag">PRO EDITING TIPS</span>
 							<h2>Power-User Workflow Secrets</h2>
-							<p>Expert techniques to boost editing speed and maintain clean, professional timelines.</p>
+							<p>
+								Expert techniques to boost editing speed and maintain clean, professional timelines.
+							</p>
 						</div>
 
 						<div class="tips-grid">
 							{guide.quickTips.map((tip) => (
 								<div class="tip-card">
 									<div class="tip-icon-box" aria-hidden="true">
-										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
 											<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
 										</svg>
 									</div>
@@ -433,11 +546,23 @@ if (guide.youtubeVideoId) {
 												<strong>{sc.action}</strong>
 											</td>
 											<td class="key-cell">
-												<kbd>{sc.modifier ? `${sc.modifier} + ` : ''}{sc.key}</kbd>
+												<kbd>
+													{sc.modifier ? `${sc.modifier} + ` : ''}
+													{sc.key}
+												</kbd>
 											</td>
 											<td class="note-cell">
 												{sc.modifier ? (
-													<span>Mac: <code>{sc.modifier.replace('Cmd/Ctrl', '⌘').replace('Alt/Option', '⌥')}</code> &bull; Win: <code>{sc.modifier.replace('Cmd/Ctrl', 'Ctrl').replace('Alt/Option', 'Alt')}</code></span>
+													<span>
+														Mac:{' '}
+														<code>
+															{sc.modifier.replace('Cmd/Ctrl', '⌘').replace('Alt/Option', '⌥')}
+														</code>{' '}
+														&bull; Win:{' '}
+														<code>
+															{sc.modifier.replace('Cmd/Ctrl', 'Ctrl').replace('Alt/Option', 'Alt')}
+														</code>
+													</span>
 												) : (
 													<span>Single Keypress</span>
 												)}
@@ -520,7 +645,9 @@ if (guide.youtubeVideoId) {
 							{guide.shortcut && (
 								<div class="spec-row">
 									<span class="spec-label">Shortcut:</span>
-									<span class="spec-value"><kbd>{guide.shortcut}</kbd></span>
+									<span class="spec-value">
+										<kbd>{guide.shortcut}</kbd>
+									</span>
 								</div>
 							)}
 							<div class="spec-row">
@@ -543,7 +670,17 @@ if (guide.youtubeVideoId) {
 							<div class="sidebar-cta-wrapper">
 								<a href="/editor/" class="sidebar-launch-btn">
 									<span>Open Editor</span>
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+									<svg
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2.2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+									>
 										<polyline points="9 18 15 12 9 6"></polyline>
 									</svg>
 								</a>
@@ -570,7 +707,9 @@ if (guide.youtubeVideoId) {
 								))}
 							</ul>
 							<div class="sidebar-back-box">
-								<a href="/guides/" class="sidebar-all-guides-link">&larr; View All Guides Directory</a>
+								<a href="/guides/" class="sidebar-all-guides-link">
+									&larr; View All Guides Directory
+								</a>
 							</div>
 						</div>
 					</div>
@@ -584,11 +723,24 @@ if (guide.youtubeVideoId) {
 				<div class="cta-banner">
 					<div class="cta-content">
 						<h2>Ready to Try the {guide.title}?</h2>
-						<p>Open The Free Video Editor right in your browser. No downloads, no registration, and zero cloud uploads.</p>
+						<p>
+							Open The Free Video Editor right in your browser. No downloads, no registration, and
+							zero cloud uploads.
+						</p>
 					</div>
 					<a href="/editor/" class="cta-launch-btn">
 						<span>Launch Editor Now</span>
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
 							<polyline points="9 18 15 12 9 6"></polyline>
 						</svg>
 					</a>
@@ -669,7 +821,12 @@ if (guide.youtubeVideoId) {
 		left: 20%;
 		width: 500px;
 		height: 300px;
-		background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, rgba(168, 85, 247, 0.05) 50%, transparent 75%);
+		background: radial-gradient(
+			circle,
+			rgba(56, 189, 248, 0.1) 0%,
+			rgba(168, 85, 247, 0.05) 50%,
+			transparent 75%
+		);
 		pointer-events: none;
 		filter: blur(50px);
 	}
@@ -721,7 +878,9 @@ if (guide.youtubeVideoId) {
 		font-weight: 500;
 	}
 
-	.shortcut-pill kbd, .step-badge kbd, .spec-value kbd {
+	.shortcut-pill kbd,
+	.step-badge kbd,
+	.spec-value kbd {
 		font-family: var(--font-mono, monospace);
 		font-weight: 700;
 		color: #ffffff;
@@ -730,7 +889,8 @@ if (guide.youtubeVideoId) {
 		background: rgba(255, 255, 255, 0.15);
 	}
 
-	.difficulty-pill, .reading-time-pill {
+	.difficulty-pill,
+	.reading-time-pill {
 		padding: 4px 10px;
 		border-radius: 6px;
 		background: rgba(255, 255, 255, 0.04);
@@ -1129,7 +1289,11 @@ if (guide.youtubeVideoId) {
 	.tip-card {
 		display: flex;
 		gap: 12px;
-		background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+		background: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.03) 0%,
+			rgba(255, 255, 255, 0.01) 100%
+		);
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: 12px;
 		padding: 1.25rem;
@@ -1512,7 +1676,8 @@ if (guide.youtubeVideoId) {
 	}
 
 	.cta-banner {
-		background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(168, 85, 247, 0.06) 100%), #0c0c0c;
+		background:
+			linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(168, 85, 247, 0.06) 100%), #0c0c0c;
 		border: 1px solid rgba(56, 189, 248, 0.2);
 		border-radius: 20px;
 		padding: 3rem 2.5rem;
@@ -1591,4 +1756,3 @@ if (guide.youtubeVideoId) {
 		}
 	}
 </style>
-
