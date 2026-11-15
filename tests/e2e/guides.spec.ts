@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Tool Guides & Tutorials', () => {
 	test('navigates to /guides hub, filters by category, and searches tools', async ({ page }) => {
-		await page.goto('/guides');
+		await page.goto('/guides/');
 
 		// Header & Eyebrow
 		await expect(
@@ -51,7 +51,7 @@ test.describe('Tool Guides & Tutorials', () => {
 	test('navigates to individual tool guide page and verifies video embed and detailed sections', async ({
 		page
 	}) => {
-		await page.goto('/guides/razor-tool');
+		await page.goto('/guides/razor-tool/');
 
 		// Hero elements
 		await expect(page.getByRole('heading', { level: 1, name: 'Razor Tool' })).toBeVisible();
@@ -64,12 +64,9 @@ test.describe('Tool Guides & Tutorials', () => {
 		await expect(breadcrumb).toContainText('Guides');
 		await expect(breadcrumb).toContainText('Razor Tool');
 
-		// Video Walkthrough Section & Placeholder
+		// Video Walkthrough Section is hidden when tool has no video ID configured
 		const videoSection = page.locator('#video-tutorial');
-		await expect(videoSection).toBeVisible();
-		await expect(page.locator('.video-placeholder-card')).toBeVisible();
-		await expect(page.locator('.placeholder-title')).toContainText('Master the Razor Tool');
-		await expect(page.locator('.jump-to-steps-btn')).toBeVisible();
+		await expect(videoSection).toHaveCount(0);
 
 		// Overview Section & Checklist
 		const overviewSection = page.locator('#overview');
@@ -110,6 +107,14 @@ test.describe('Tool Guides & Tutorials', () => {
 		// Next / Prev Navigation
 		const nextCard = page.locator('.next-card');
 		await expect(nextCard).toBeVisible();
+
+		// Verify tool WITH configured video tutorial renders video embed
+		await page.goto('/guides/marker-tool/');
+		const markerVideoSection = page.locator('#video-tutorial');
+		await expect(markerVideoSection).toBeVisible();
+		const iframe = markerVideoSection.locator('iframe');
+		await expect(iframe).toBeVisible();
+		await expect(iframe).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/OVfbxcjQhsk/);
 	});
 
 	test('navigates to Guides from main site header navigation and features banner', async ({
@@ -131,7 +136,7 @@ test.describe('Tool Guides & Tutorials', () => {
 	test('header is responsive without horizontal scrollbar across desktop, laptop, tablet, and mobile', async ({
 		page
 	}) => {
-		for (const pageUrl of ['/', '/guides', '/about']) {
+		for (const pageUrl of ['/', '/guides/', '/about/']) {
 			for (const viewport of [
 				{ width: 1440, height: 900, name: 'desktop' },
 				{ width: 1100, height: 800, name: 'laptop-devtools' },
@@ -166,13 +171,13 @@ test.describe('Tool Guides & Tutorials', () => {
 	test('renders comprehensive SEO tags and valid Schema.org JSON-LD structured data on guides hub and individual guide', async ({
 		page
 	}) => {
-		// 1. Check Guides Hub (/guides)
-		await page.goto('/guides');
+		// 1. Check Guides Hub (/guides/)
+		await page.goto('/guides/');
 		await expect(page).toHaveTitle(/Tool Guides & Tutorials — The Free Video Editor/);
 		const hubCanonical = page.locator('link[rel="canonical"]');
-		await expect(hubCanonical).toHaveAttribute('href', 'https://thefreevideoeditor.com/guides');
+		await expect(hubCanonical).toHaveAttribute('href', 'https://thefreevideoeditor.com/guides/');
 
-		// Parse JSON-LD on /guides
+		// Parse JSON-LD on /guides/
 		const hubSchemas = await page.evaluate(() => {
 			const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
 			return scripts.flatMap((s) => JSON.parse(s.textContent || '[]'));
@@ -183,11 +188,14 @@ test.describe('Tool Guides & Tutorials', () => {
 		expect(collectionSchema.mainEntity?.['@type']).toBe('ItemList');
 		expect(collectionSchema.mainEntity?.itemListElement?.length).toBe(18);
 
-		// 2. Check Individual Tool Guide (/guides/razor-tool)
-		await page.goto('/guides/razor-tool');
+		// 2. Check Individual Tool Guide (/guides/razor-tool/)
+		await page.goto('/guides/razor-tool/');
 		await expect(page).toHaveTitle(/Razor Tool Tutorial & Complete Workflow Guide/);
 		const guideCanonical = page.locator('link[rel="canonical"]');
-		await expect(guideCanonical).toHaveAttribute('href', 'https://thefreevideoeditor.com/guides/razor-tool');
+		await expect(guideCanonical).toHaveAttribute(
+			'href',
+			'https://thefreevideoeditor.com/guides/razor-tool/'
+		);
 
 		const ogType = page.locator('meta[property="og:type"]');
 		await expect(ogType).toHaveAttribute('content', 'article');
@@ -214,5 +222,3 @@ test.describe('Tool Guides & Tutorials', () => {
 		expect(faqSchema.mainEntity?.length).toBe(3);
 	});
 });
-
-
