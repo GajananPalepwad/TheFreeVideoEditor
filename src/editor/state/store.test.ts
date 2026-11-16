@@ -1366,6 +1366,10 @@ LUT_3D_SIZE 2
 			store.getState().setScroll(150, 50);
 			expect(notificationCount).toBe(0);
 
+			// Subpixel jitter (< 0.5px) should NOT trigger subscribers
+			store.getState().setScroll(150.25, 50.15);
+			expect(notificationCount).toBe(0);
+
 			const currentPlayhead = store.getState().timeline.playhead;
 			store.getState().setPlayhead(currentPlayhead);
 			expect(notificationCount).toBe(0);
@@ -1381,6 +1385,12 @@ LUT_3D_SIZE 2
 			// Distinct changes should notify as expected
 			store.getState().setScroll(200, 50);
 			expect(notificationCount).toBe(1);
+
+			// Calling refreshProjects when projects are identical should NOT trigger subscribers
+			await store.getState().refreshProjects();
+			const countAfterFirstRefresh = notificationCount;
+			await store.getState().refreshProjects();
+			expect(notificationCount).toBe(countAfterFirstRefresh);
 
 			unsubscribe();
 		});
