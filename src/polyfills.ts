@@ -55,4 +55,56 @@ if (!Array.prototype.with) {
 	};
 }
 
-export {};
+/**
+ * Resilient DOM reconciliation safety guards.
+ *
+ * In complex React applications, browser translation extensions (e.g. Google Translate),
+ * browser plugins, or imperative keepalive reparenting can reparent or wrap DOM nodes.
+ * When React unmounts or reconciles fibers, calling parent.removeChild(child) or
+ * parent.insertBefore(newNode, refNode) throws a DOMException (NotFoundError: The node
+ * to be removed is not a child of this node) if the node's parent was mutated externally,
+ * crashing React's commit phase.
+ *
+ * These guards make removeChild and insertBefore resilient by routing the operation to
+ * the child's actual parentNode if reparented, preventing fatal commit crashes.
+ */
+export function patchNodeDomMethods(targetNode: {
+	prototype: {
+		removeChild: (child: Node) => Node;
+		insertBefore: (newNode: Node, referenceNode: Node | null) => Node;
+		appendChild?: (newNode: Node) => Node;
+	};
+}): void {
+	if (!targetNode || !targetNode.prototype) return;
+
+	const proto = targetNode.prototype;
+	const originalRemoveChild = proto.removeChild;
+	proto.removeChild = function <T extends Node>(this: Node, child: T): T {
+		if (child && child.parentNode !== this) {
+			if (child.parentNode) {
+				return child.parentNode.removeChild(child) as T;
+			}
+			return child;
+		}
+		return originalRemoveChild.call(this, child) as T;
+	};
+
+	const originalInsertBefore = proto.insertBefore;
+	proto.insertBefore = function <T extends Node>(
+		this: Node,
+		newNode: T,
+		referenceNode: Node | null
+	): T {
+		if (referenceNode && referenceNode.parentNode !== this) {
+			if (referenceNode.parentNode) {
+				return referenceNode.parentNode.insertBefore(newNode, referenceNode) as T;
+			}
+			return (proto.appendChild ? proto.appendChild.call(this, newNode) : newNode) as T;
+		}
+		return originalInsertBefore.call(this, newNode, referenceNode) as T;
+	};
+}
+
+if (typeof Node !== 'undefined' && Node.prototype) {
+	patchNodeDomMethods(Node);
+}
