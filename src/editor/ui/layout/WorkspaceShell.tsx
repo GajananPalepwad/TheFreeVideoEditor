@@ -86,18 +86,32 @@ export default function WorkspaceShell({
 		} catch {
 			// Ignore DOM reparenting race conditions
 		}
+
+		return () => {
+			try {
+				const fallback = document.querySelector<HTMLDivElement>('.keepalive-hidden-vault');
+				if (fallback) {
+					if (programEl && programEl.parentElement !== fallback) {
+						fallback.appendChild(programEl);
+					}
+					if (timelineEl && timelineEl.parentElement !== fallback) {
+						fallback.appendChild(timelineEl);
+					}
+				}
+			} catch {}
+		};
 	}, [layout, maximizedPanelId, isProgramInLayout, isTimelineInLayout]);
 
-	// If a panel is maximized, render just that panel
-	if (maximizedPanelId) {
-		const def = PANEL_REGISTRY[maximizedPanelId];
-		const isMaxTimeline = maximizedPanelId === 'timeline';
-		return (
-			<div
-				className="workspace-shell-container workspace-root--maximized"
-				data-testid="workspace-shell"
-				translate="no"
-			>
+	const def = maximizedPanelId ? PANEL_REGISTRY[maximizedPanelId] : null;
+	const isMaxTimeline = maximizedPanelId === 'timeline';
+
+	return (
+		<div
+			className={`workspace-shell-container ${maximizedPanelId ? 'workspace-root--maximized' : ''}`}
+			data-testid="workspace-shell"
+			translate="no"
+		>
+			{maximizedPanelId ? (
 				<div className={`layout-stack is-maximized ${isMaxTimeline ? 'is-single-timeline' : ''}`}>
 					<div className="layout-stack-header">
 						<div className="layout-tablist" role="tablist">
@@ -153,38 +167,16 @@ export default function WorkspaceShell({
 						)}
 					</div>
 				</div>
-
-				{/* Keep alive persistent vaults so GL context / engine are never unmounted */}
-				<div className="keepalive-hidden-vault" aria-hidden="true">
-					<div
-						ref={programVaultRef}
-						className="keepalive-persistent-mount"
-						style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
-					>
-						{keepAliveSlots.program}
-					</div>
-					<div
-						ref={timelineVaultRef}
-						className="keepalive-persistent-mount"
-						style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
-					>
-						{keepAliveSlots.timeline}
-					</div>
-				</div>
-			</div>
-		);
-	}
-
-	return (
-		<div className="workspace-shell-container" data-testid="workspace-shell" translate="no">
-			<LayoutNodeRenderer
-				node={layout}
-				onNodeChange={onLayoutChange}
-				keepAliveSlots={keepAliveSlots}
-				renderPanel={renderPanel}
-				onToggleMaximize={onToggleMaximize}
-				onClosePanel={onClosePanel}
-			/>
+			) : (
+				<LayoutNodeRenderer
+					node={layout}
+					onNodeChange={onLayoutChange}
+					keepAliveSlots={keepAliveSlots}
+					renderPanel={renderPanel}
+					onToggleMaximize={onToggleMaximize}
+					onClosePanel={onClosePanel}
+				/>
+			)}
 
 			{/* Keep alive persistent vaults so GL context / engine are never unmounted */}
 			<div className="keepalive-hidden-vault" aria-hidden="true">
