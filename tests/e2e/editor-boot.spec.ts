@@ -20,13 +20,15 @@ test('editor hydrates, creates and renames a project, and changes theme without 
 		localStorage.removeItem('tfve:theme');
 		sessionStorage.setItem('tfve:e2e-initialized', 'true');
 	});
-	await page.goto('/editor');
+	await page.goto('/editor/');
 	await expect(page.getByRole('main', { name: 'Video editing workspace' })).toBeVisible();
 	await expect(page.getByRole('region', { name: 'Timeline' })).toBeVisible();
 	await expect(page.getByRole('dialog', { name: 'Your Projects' })).toBeVisible();
 	const managerTitle = page.locator('#project-manager-title');
 	await expect(managerTitle).toBeVisible();
-	const titleOutline = await managerTitle.evaluate((el) => window.getComputedStyle(el).outlineStyle);
+	const titleOutline = await managerTitle.evaluate(
+		(el) => window.getComputedStyle(el).outlineStyle
+	);
 	expect(titleOutline).toBe('none');
 	await page.getByRole('button', { name: 'New project' }).click();
 	await page
@@ -81,7 +83,7 @@ test('top application menus (File, Edit, Help, Guide) close on outside click and
 		localStorage.removeItem('tfve:theme');
 		sessionStorage.setItem('tfve:e2e-initialized', 'true');
 	});
-	await page.goto('/editor');
+	await page.goto('/editor/');
 	await page.getByRole('button', { name: 'New project' }).click();
 	await page
 		.getByRole('dialog', { name: 'Create a Project' })
@@ -137,7 +139,7 @@ test('top application menus (File, Edit, Help, Guide) close on outside click and
 test('scrollbars are hidden by default and only visible when hovering over a scrollable container', async ({
 	page
 }) => {
-	await page.goto('/editor');
+	await page.goto('/editor/');
 	const defaultScrollbarColor = await page.evaluate(() => {
 		return window.getComputedStyle(document.documentElement).scrollbarColor;
 	});
@@ -146,5 +148,3 @@ test('scrollbars are hidden by default and only visible when hovering over a scr
 			defaultScrollbarColor.includes('rgba(0, 0, 0, 0)')
 	).toBe(true);
 });
-
-

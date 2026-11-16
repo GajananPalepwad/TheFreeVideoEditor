@@ -358,6 +358,8 @@ const IGNORED_ERROR_PATTERNS: readonly (string | RegExp)[] = [
 	'The user aborted a request',
 	'signal is aborted without reason',
 	'ERR_BLOCKED_BY_CLIENT',
+	'The node to be removed is not a child of this node',
+	'The node before which the new node is to be inserted is not a child of this node',
 	'adsbygoogle',
 	'googletagmanager',
 	'google-analytics'

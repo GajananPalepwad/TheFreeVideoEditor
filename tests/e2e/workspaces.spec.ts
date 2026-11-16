@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Workspaces & Layouts', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/editor');
+		await page.goto('/editor/');
 		// Ensure fresh workspace state for test start
 		await page.evaluate(() => {
 			window.localStorage.removeItem('tfve:workspace-state');
@@ -197,5 +197,29 @@ test.describe('Workspaces & Layouts', () => {
 		// Close dialog
 		await page.click('button[data-testid="done-workspaces-btn"]');
 		await expect(page.locator('.edit-workspaces-dialog')).toHaveCount(0);
+	});
+
+	test('maximizes and restores panels without removeChild or depth errors', async ({ page }) => {
+		const errors: string[] = [];
+		page.on('pageerror', (err) => errors.push(err.message));
+
+		// Maximize project/media panel via header maximize button
+		const mediaStack = page.locator('[data-testid="stack-media"]');
+		await mediaStack.locator('button[title="Maximize panel"]').click();
+		await expect(page.locator('.workspace-root--maximized')).toBeVisible();
+
+		// Restore via Restore button
+		await page.getByRole('button', { name: 'Restore' }).click();
+		await expect(page.locator('.workspace-root--maximized')).toHaveCount(0);
+
+		// Maximize and restore using Backquote shortcut on timeline
+		const timeline = page.locator('.timeline-panel');
+		await timeline.hover();
+		await page.keyboard.press('Backquote');
+		await expect(page.locator('.workspace-root--maximized')).toBeVisible();
+		await page.keyboard.press('Backquote');
+		await expect(page.locator('.workspace-root--maximized')).toHaveCount(0);
+
+		expect(errors).toHaveLength(0);
 	});
 });

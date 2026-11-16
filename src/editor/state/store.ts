@@ -1466,6 +1466,20 @@ export function createEditorStore() {
 			async function refreshProjects(): Promise<void> {
 				try {
 					const projects = await listProjects();
+					const current = get().projects;
+					if (
+						current.length === projects.length &&
+						current.every(
+							(p, i) =>
+								p.id === projects[i]?.id &&
+								p.name === projects[i]?.name &&
+								p.updatedAt === projects[i]?.updatedAt &&
+								p.duration === projects[i]?.duration &&
+								p.assetCount === projects[i]?.assetCount
+						)
+					) {
+						return;
+					}
 					set((state) => {
 						state.projects = projects;
 					});
@@ -2870,8 +2884,8 @@ export function createEditorStore() {
 					const nextScrollLeft = Math.max(0, scrollLeft);
 					const nextScrollTop = Math.max(0, scrollTop);
 					if (
-						get().timeline.scrollLeft === nextScrollLeft &&
-						get().timeline.scrollTop === nextScrollTop
+						Math.abs(get().timeline.scrollLeft - nextScrollLeft) < 0.5 &&
+						Math.abs(get().timeline.scrollTop - nextScrollTop) < 0.5
 					) {
 						return;
 					}

@@ -140,6 +140,7 @@ function EditorShell() {
 	const playbackRef = useRef<PlaybackEngine | null>(null);
 	const [playbackEngine, setPlaybackEngine] = useState<PlaybackEngine | null>(null);
 	const onPlaybackEngineChange = useCallback((engine: PlaybackEngine | null) => {
+		if (playbackRef.current === engine) return;
 		playbackRef.current = engine;
 		setPlaybackEngine(engine);
 	}, []);

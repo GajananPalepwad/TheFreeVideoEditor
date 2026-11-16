@@ -35,7 +35,11 @@ export default function Editor() {
 			loader.setAttribute('aria-hidden', 'true');
 			loader.classList.add('is-ready');
 			const timer = setTimeout(() => {
-				loader.remove();
+				if (loader.parentNode) {
+					try {
+						loader.remove();
+					} catch {}
+				}
 			}, 500);
 			return () => clearTimeout(timer);
 		}
