@@ -90,8 +90,8 @@ const guidesHubJsonLd = [
 					Master Every Tool in <span class="gradient-text">The Free Video Editor</span>
 				</h1>
 				<p class="hero-lead">
-					Detailed step-by-step instructions, keyboard shortcuts, professional workflow tips,
-					and dedicated video tutorial walkthroughs for each editing tool.
+					Detailed step-by-step instructions, keyboard shortcuts, professional workflow tips, and
+					dedicated video tutorial walkthroughs for each editing tool.
 				</p>
 
 				<!-- Search and Filter Bar -->
@@ -189,20 +189,53 @@ const guidesHubJsonLd = [
 							</div>
 
 							<div class="card-footer">
-								<div class="video-indicator">
-									<span class="video-icon" aria-hidden="true">
-										<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-											<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-										</svg>
-									</span>
-									<span class="video-text">
-										{guide.youtubeVideoId ? 'Video Available' : 'Video Tutorial Planned'}
-									</span>
-								</div>
+								{guide.youtubeVideoId ? (
+									<div class="video-indicator">
+										<span class="video-icon" aria-hidden="true">
+											<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+												<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+											</svg>
+										</span>
+										<span class="video-text">Video Available</span>
+									</div>
+								) : (
+									<div class="reading-indicator">
+										<span class="reading-icon" aria-hidden="true">
+											<svg
+												width="13"
+												height="13"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											>
+												<circle cx="12" cy="12" r="10"></circle>
+												<polyline points="12 6 12 12 16 14"></polyline>
+											</svg>
+										</span>
+										<span class="reading-text">{guide.readingTimeMinutes} min read</span>
+									</div>
+								)}
 
-								<a href={`/guides/${guide.id}/`} class="read-guide-btn" aria-label={`Read guide for ${guide.title}`}>
+								<a
+									href={`/guides/${guide.id}/`}
+									class="read-guide-btn"
+									aria-label={`Read guide for ${guide.title}`}
+								>
 									<span>Read Guide</span>
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+									<svg
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+									>
 										<polyline points="9 18 15 12 9 6"></polyline>
 									</svg>
 								</a>
@@ -214,14 +247,25 @@ const guidesHubJsonLd = [
 				<!-- Empty State for Search -->
 				<div id="no-results-box" class="no-results-box" style="display: none;">
 					<div class="no-results-icon" aria-hidden="true">
-						<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<svg
+							width="32"
+							height="32"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<circle cx="11" cy="11" r="8"></circle>
 							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
 						</svg>
 					</div>
 					<h3>No matching tools found</h3>
 					<p>Try searching for a different keyword or browse all tool categories above.</p>
-					<button type="button" id="reset-search-btn" class="reset-btn">Reset Filter</button>
+					<button type="button" id="reset-search-btn" class="reset-btn">
+						Reset Filter
+					</button>
 				</div>
 			</div>
 		</section>
@@ -237,7 +281,17 @@ const guidesHubJsonLd = [
 						</div>
 						<a href="/editor/" class="launch-editor-btn">
 							<span>Launch Video Editor</span>
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
 								<polyline points="9 18 15 12 9 6"></polyline>
 							</svg>
 						</a>
@@ -452,7 +506,12 @@ const guidesHubJsonLd = [
 		transform: translateX(-50%);
 		width: 700px;
 		height: 380px;
-		background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(168, 85, 247, 0.06) 50%, transparent 75%);
+		background: radial-gradient(
+			circle,
+			rgba(56, 189, 248, 0.12) 0%,
+			rgba(168, 85, 247, 0.06) 50%,
+			transparent 75%
+		);
 		pointer-events: none;
 		filter: blur(60px);
 	}
@@ -484,8 +543,15 @@ const guidesHubJsonLd = [
 	}
 
 	@keyframes pulse-glow {
-		0%, 100% { opacity: 1; transform: scale(1); }
-		50% { opacity: 0.4; transform: scale(0.85); }
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.4;
+			transform: scale(0.85);
+		}
 	}
 
 	.hero-title {
@@ -621,14 +687,19 @@ const guidesHubJsonLd = [
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: 16px;
 		padding: 1.5rem;
-		transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	.guide-card:hover {
 		transform: translateY(-3px);
 		border-color: rgba(56, 189, 248, 0.3);
 		background: rgba(255, 255, 255, 0.035);
-		box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.06);
+		box-shadow:
+			0 12px 32px -8px rgba(0, 0, 0, 0.5),
+			0 0 20px rgba(56, 189, 248, 0.06);
 	}
 
 	.card-top {
@@ -648,7 +719,9 @@ const guidesHubJsonLd = [
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: background 0.2s ease, color 0.2s ease;
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
 	}
 
 	.guide-card:hover .tool-icon-box {
@@ -756,6 +829,19 @@ const guidesHubJsonLd = [
 		display: inline-flex;
 	}
 
+	.reading-indicator {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 0.76rem;
+		color: #94a3b8;
+	}
+
+	.reading-icon {
+		color: #38bdf8;
+		display: inline-flex;
+	}
+
 	.read-guide-btn {
 		display: inline-flex;
 		align-items: center;
@@ -824,7 +910,8 @@ const guidesHubJsonLd = [
 	}
 
 	.cheat-sheet-card {
-		background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%), #0d0d0d;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%), #0d0d0d;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: 20px;
 		padding: 2.5rem;
@@ -948,4 +1035,3 @@ const guidesHubJsonLd = [
 		}
 	}
 </style>
-
