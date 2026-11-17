@@ -46,6 +46,13 @@ test.describe('Tool Guides & Tutorials', () => {
 		// Clear search
 		await searchInput.fill('');
 		await expect(cards).toHaveCount(18);
+
+		// Verify reading time is displayed and placeholder text is absent
+		const plannedText = page.locator('.video-text:has-text("Video Tutorial Planned")');
+		await expect(plannedText).toHaveCount(0);
+		const readingPills = page.locator('.reading-indicator');
+		await expect(readingPills.first()).toBeVisible();
+		await expect(readingPills.first()).toContainText('min read');
 	});
 
 	test('navigates to individual tool guide page and verifies video embed and detailed sections', async ({
@@ -122,6 +129,15 @@ test.describe('Tool Guides & Tutorials', () => {
 	}) => {
 		await page.goto('/');
 
+		// Check featured guides section on homepage
+		const guidesSection = page.locator('#guides-section');
+		await expect(guidesSection).toBeVisible();
+		await expect(
+			guidesSection.getByRole('heading', { name: /Master In-Depth Editing Workflows & Tutorials/i })
+		).toBeVisible();
+		const smartCutLink = guidesSection.locator('a[href="/guides/smart-cut-silence-removal/"]');
+		await expect(smartCutLink).toBeVisible();
+
 		// Click 'Guides' in the top header
 		const guidesNavLink = page.locator('.site-nav').getByRole('link', { name: 'Guides' });
 		await expect(guidesNavLink).toBeVisible();
@@ -131,6 +147,24 @@ test.describe('Tool Guides & Tutorials', () => {
 		await expect(
 			page.getByRole('heading', { name: /Master Every Tool in The Free Video Editor/i })
 		).toBeVisible();
+	});
+
+	test('renders transparent creator E-E-A-T leadership and standards on About page', async ({
+		page
+	}) => {
+		await page.goto('/about/');
+		const founderSection = page.locator('#founder');
+		await expect(founderSection).toBeVisible();
+		await expect(founderSection.locator('.author-name')).toHaveText('Gajanan Palepwad');
+		await expect(founderSection.locator('.author-role')).toContainText(
+			'Founder & Lead Systems Architect'
+		);
+
+		const standardsSection = page.locator('#editorial-standards');
+		await expect(standardsSection).toBeVisible();
+
+		const maintenanceSection = page.locator('#curation-and-maintenance');
+		await expect(maintenanceSection).toBeVisible();
 	});
 
 	test('header is responsive without horizontal scrollbar across desktop, laptop, tablet, and mobile', async ({
