@@ -6,6 +6,25 @@ import Footer from '../components/Footer.astro';
 const seoTitle = 'Contact Us — The Free Video Editor';
 const seoDescription =
 	'Get in touch with The Free Video Editor team. Reach out for support, technical questions, bug reports, feature requests, or partnership inquiries.';
+
+const contactJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'ContactPage',
+	name: 'Contact The Free Video Editor',
+	description: seoDescription,
+	url: 'https://thefreevideoeditor.com/contact/',
+	mainEntity: {
+		'@type': 'Organization',
+		name: 'The Free Video Editor',
+		url: 'https://thefreevideoeditor.com/',
+		contactPoint: {
+			'@type': 'ContactPoint',
+			email: 'contact@beestack.in',
+			contactType: 'customer support',
+			availableLanguage: ['English']
+		}
+	}
+};
 ---
 
 <Layout
@@ -13,6 +32,7 @@ const seoDescription =
 	description={seoDescription}
 	canonicalUrl="https://thefreevideoeditor.com/contact/"
 >
+	<script type="application/ld+json" set:html={JSON.stringify(contactJsonLd)} slot="head"></script>
 	<Header />
 
 	<main class="page-main">
@@ -31,25 +51,51 @@ const seoDescription =
 			<div class="channels-grid">
 				<div class="contact-card info-card">
 					<div class="info-icon">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<svg
+							width="22"
+							height="22"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
 							<polyline points="22,6 12,13 2,6"></polyline>
 						</svg>
 					</div>
-					<h3>Direct Email</h3>
-					<p>For support, questions, legal, or partnerships:</p>
-					<a href="mailto:contact@beestack.in" class="channel-link">contact@beestack.in</a>
+					<h3>Direct Email Support</h3>
+					<p>For technical support, tutorial questions, feedback, or business inquiries:</p>
+					<a href="mailto:contact@beestack.in" class="channel-link">
+						contact@beestack.in
+					</a>
+					<span class="response-badge">Typical response: 24–48 hours</span>
 				</div>
 
 				<div class="contact-card info-card">
 					<div class="info-icon">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<svg
+							width="22"
+							height="22"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
 						</svg>
 					</div>
 					<h3>Open Source & Community</h3>
 					<p>Report issues, contribute code, or view architecture discussions:</p>
-					<a href="https://github.com/GajananPalepwad/TheFreeVideoEditor" target="_blank" rel="noopener noreferrer" class="channel-link">
+					<a
+						href="https://github.com/GajananPalepwad/TheFreeVideoEditor"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="channel-link"
+					>
 						GitHub Repository &rarr;
 					</a>
 				</div>
@@ -61,23 +107,44 @@ const seoDescription =
 						</svg>
 					</div>
 					<h3>Discord Community</h3>
-					<p>Join creators and developers, ask editing questions, and discuss features in real time:</p>
-					<a href="https://discord.gg/6MtmjsA53V" target="_blank" rel="noopener noreferrer" class="channel-link discord-link">
+					<p>
+						Join creators and developers, ask editing questions, and discuss features in real time:
+					</p>
+					<a
+						href="https://discord.gg/6MtmjsA53V"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="channel-link discord-link"
+					>
 						Join Discord Server &rarr;
 					</a>
 				</div>
 
 				<div class="contact-card info-card faq-shortcut">
 					<div class="info-icon">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<svg
+							width="22"
+							height="22"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<circle cx="12" cy="12" r="10"></circle>
 							<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
 							<line x1="12" y1="17" x2="12.01" y2="17"></line>
 						</svg>
 					</div>
 					<h3>Looking for Answers?</h3>
-					<p>Check out our frequently asked questions on our home page for instant help on formats, shortcuts, and performance.</p>
-					<a href="/#faq-section" class="channel-link">Visit FAQ &rarr;</a>
+					<p>
+						Check out our frequently asked questions on our home page for instant help on formats,
+						shortcuts, and performance.
+					</p>
+					<a href="/#faq-section" class="channel-link">
+						Visit FAQ &rarr;
+					</a>
 				</div>
 
 				<div class="contact-card info-card bmc-card">
@@ -85,8 +152,15 @@ const seoDescription =
 						☕
 					</div>
 					<h3>Support Our Work</h3>
-					<p>Love using The Free Video Editor? Support future development, hosting, and AI models:</p>
-					<a href="https://buymeacoffee.com/beestack" target="_blank" rel="noopener noreferrer" class="channel-link bmc-link">
+					<p>
+						Love using The Free Video Editor? Support future development, hosting, and AI models:
+					</p>
+					<a
+						href="https://buymeacoffee.com/beestack"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="channel-link bmc-link"
+					>
 						Buy Me a Coffee &rarr;
 					</a>
 				</div>
@@ -170,7 +244,9 @@ const seoDescription =
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
-		transition: transform 0.2s ease, border-color 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			border-color 0.2s ease;
 	}
 
 	.contact-card:hover {
@@ -219,9 +295,25 @@ const seoDescription =
 		text-decoration: underline;
 	}
 
+	.response-badge {
+		display: inline-block;
+		margin-top: 0.5rem;
+		font-size: 0.72rem;
+		color: #94a3b8;
+		font-family: var(--font-mono);
+		background: rgba(255, 255, 255, 0.04);
+		padding: 2px 8px;
+		border-radius: 4px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
 	.discord-card {
 		border-color: rgba(88, 101, 242, 0.28);
-		background: linear-gradient(135deg, rgba(88, 101, 242, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+		background: linear-gradient(
+			135deg,
+			rgba(88, 101, 242, 0.08) 0%,
+			rgba(255, 255, 255, 0.02) 100%
+		);
 	}
 
 	.discord-card:hover {
@@ -272,4 +364,3 @@ const seoDescription =
 		}
 	}
 </style>
-

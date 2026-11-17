@@ -7,6 +7,31 @@ import BuyMeACoffee from '../components/BuyMeACoffee.astro';
 const seoTitle = 'About Us — The Free Video Editor';
 const seoDescription =
 	'Learn about The Free Video Editor, our mission to build a completely free, private, browser-native video editor with zero cloud tracking and zero watermarks.';
+
+const aboutJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'AboutPage',
+	name: 'About The Free Video Editor',
+	description: seoDescription,
+	url: 'https://thefreevideoeditor.com/about/',
+	mainEntity: {
+		'@type': 'Organization',
+		name: 'The Free Video Editor',
+		url: 'https://thefreevideoeditor.com/',
+		logo: 'https://thefreevideoeditor.com/favicon.svg',
+		founder: {
+			'@type': 'Person',
+			name: 'Gajanan Palepwad',
+			jobTitle: 'Founder & Principal Systems Architect',
+			sameAs: ['https://github.com/GajananPalepwad']
+		},
+		parentOrganization: {
+			'@type': 'Organization',
+			name: 'BeeStack',
+			url: 'https://beestack.in'
+		}
+	}
+};
 ---
 
 <Layout
@@ -14,6 +39,7 @@ const seoDescription =
 	description={seoDescription}
 	canonicalUrl="https://thefreevideoeditor.com/about/"
 >
+	<script type="application/ld+json" set:html={JSON.stringify(aboutJsonLd)} slot="head"></script>
 	<Header />
 
 	<main class="page-main">
@@ -144,6 +170,177 @@ const seoDescription =
 							<p>
 								No multi-gigabyte installers, no driver mismatches, and no administrator
 								permissions. Launch on Chrome, Safari, Edge, Firefox, or Chromebooks.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<section class="content-section" id="founder">
+					<h2>Founder & Engineering Leadership</h2>
+					<div class="author-card">
+						<div class="author-avatar" aria-hidden="true">
+							<span class="author-initials">GP</span>
+						</div>
+						<div class="author-info">
+							<h3 class="author-name">Gajanan Palepwad</h3>
+							<p class="author-role">Founder & Lead Systems Architect &middot; BeeStack</p>
+							<p class="author-bio">
+								Gajanan is a software engineer and multimedia systems developer specializing in
+								high-performance web technologies, WebCodecs, WebGL2/WebGPU shader pipelines, and
+								client-side artificial intelligence. With extensive experience building real-time
+								browser applications and open-source developer tooling, he founded The Free Video
+								Editor under
+								<strong>BeeStack</strong> to bring studio-grade non-linear video editing to every
+								creator with zero cloud data collection and zero subscription costs.
+							</p>
+							<div class="author-links">
+								<a
+									href="https://github.com/GajananPalepwad"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="author-link"
+								>
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+									>
+										<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+									</svg>
+									<span>GitHub Profile</span>
+								</a>
+								<a href="mailto:contact@beestack.in" class="author-link">
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+									>
+										<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+										<polyline points="22,6 12,13 2,6"></polyline>
+									</svg>
+									<span>contact@beestack.in</span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="content-section" id="editorial-standards">
+					<h2>Editorial Standards & Technical Verification</h2>
+					<p>
+						Every tutorial, workflow guide, and keyboard reference published on The Free Video
+						Editor is developed under rigorous engineering and editorial quality controls:
+					</p>
+					<ul class="features-list">
+						<li>
+							<strong>Hardware Benchmarking:</strong> All guides (such as 4K 60fps export, 3-way
+							color grading, and Whisper subtitle generation) are tested and verified across actual
+							hardware environments—including Apple Silicon (M1/M2/M3/M4), Intel/AMD discrete GPUs,
+							Windows laptops, and ChromeOS devices.
+						</li>
+						<li>
+							<strong>W3C Web Standards Alignment:</strong> Our documentation reflects living
+							browser standards including W3C WebCodecs, WebGL2, WebAudio DSP, and WebGPU specs to
+							ensure advice remains accurate, efficient, and forward-compatible.
+						</li>
+						<li>
+							<strong>Real-World Production Scenarios:</strong> Step-by-step procedures are verified
+							against real creator workflows—ranging from YouTube 16:9 widescreen vlogs to TikTok
+							9:16 vertical shorts and podcast dialogue editing.
+						</li>
+						<li>
+							<strong>Human-Curated Editorial Oversight:</strong> Our team directly researches,
+							writes, and reviews all educational documentation to prevent misleading or superficial
+							content.
+						</li>
+					</ul>
+				</section>
+
+				<section class="content-section" id="curation-and-maintenance">
+					<h2>Ongoing Platform Curation & Maintenance</h2>
+					<p>
+						The Free Video Editor is actively developed and maintained with continuous quality
+						updates, community issue triage, and browser compatibility patches:
+					</p>
+					<div class="cards-grid">
+						<div class="card">
+							<div class="card-icon">
+								<svg
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<polyline points="16 18 22 12 16 6"></polyline>
+									<polyline points="8 6 2 12 8 18"></polyline>
+								</svg>
+							</div>
+							<h3>Open-Source & Transparent</h3>
+							<p>
+								Codebase transparently hosted on GitHub with open issue tracking, reproducible test
+								suites, and public pull request reviews.
+							</p>
+						</div>
+						<div class="card">
+							<div class="card-icon">
+								<svg
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<circle cx="12" cy="12" r="10"></circle>
+									<polyline points="12 6 12 12 14 14"></polyline>
+								</svg>
+							</div>
+							<h3>Continuous Evolution</h3>
+							<p>
+								Weekly updates delivering new codecs, Whisper model optimizations, timeline UI
+								refinements, and performance improvements.
+							</p>
+						</div>
+						<div class="card">
+							<div class="card-icon">
+								<svg
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+									<circle cx="9" cy="7" r="4"></circle>
+									<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+									<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+								</svg>
+							</div>
+							<h3>Community-Driven</h3>
+							<p>
+								Active Discord community and feedback channels where video editors submit feature
+								requests, report anomalies, and shape our roadmap.
 							</p>
 						</div>
 					</div>
@@ -362,5 +559,100 @@ const seoDescription =
 		background: #ffffff;
 		box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
 		transform: scale(1.02);
+	}
+
+	.author-card {
+		display: flex;
+		gap: 1.5rem;
+		align-items: flex-start;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 14px;
+		padding: 1.75rem;
+		margin-top: 1rem;
+	}
+
+	@media (max-width: 640px) {
+		.author-card {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+	}
+
+	.author-avatar {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #38bdf8, #818cf8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+	}
+
+	.author-initials {
+		font-weight: 700;
+		font-size: 1.25rem;
+		color: #09090b;
+		letter-spacing: -0.02em;
+	}
+
+	.author-info {
+		flex: 1;
+	}
+
+	.author-name {
+		font-size: 1.3rem;
+		color: #ffffff;
+		font-weight: 600;
+		margin: 0 0 0.25rem 0;
+	}
+
+	.author-role {
+		font-size: 0.85rem;
+		color: #38bdf8;
+		font-family: var(--font-mono);
+		margin: 0 0 0.85rem 0;
+	}
+
+	.author-bio {
+		color: #94a3b8;
+		font-size: 0.92rem;
+		line-height: 1.65;
+		margin: 0 0 1.25rem 0 !important;
+	}
+
+	.author-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+	}
+
+	@media (max-width: 640px) {
+		.author-links {
+			justify-content: center;
+		}
+	}
+
+	.author-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 14px;
+		border-radius: 9999px;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: #cbd5e1;
+		font-size: 0.82rem;
+		text-decoration: none;
+		transition: all 0.15s ease;
+	}
+
+	.author-link:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: #ffffff;
+		border-color: rgba(56, 189, 248, 0.4);
 	}
 </style>
