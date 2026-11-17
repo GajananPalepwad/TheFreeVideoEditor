@@ -13,6 +13,7 @@ interface Props {
 	articleTags?: string[];
 	publishedTime?: string;
 	modifiedTime?: string;
+	showAds?: boolean;
 }
 
 const {
@@ -26,7 +27,8 @@ const {
 	articleSection,
 	articleTags,
 	publishedTime,
-	modifiedTime
+	modifiedTime,
+	showAds = true
 } = Astro.props;
 
 function normalizeCanonical(rawUrl: string): string {
@@ -66,11 +68,13 @@ const currentCanonical = normalizeCanonical(canonicalUrl || 'https://thefreevide
 					gtag('config', 'G-S0B2C9G9X7');
 				</script>
 				{/* Google AdSense */}
-				<script
-					async
-					src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5660298759458774"
-					crossorigin="anonymous"
-				></script>
+				{showAds && (
+					<script
+						async
+						src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5660298759458774"
+						crossorigin="anonymous"
+					></script>
+				)}
 			</>
 		)}
 		<meta charset="utf-8" />
