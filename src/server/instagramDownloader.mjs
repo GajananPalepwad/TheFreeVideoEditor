@@ -19,6 +19,14 @@ export function extractShortcode(url) {
 	return match ? match[1] : null;
 }
 
+export function getCanonicalInstagramUrl(shortcode, url = '') {
+	if (!shortcode) return '';
+	const isPhotoPost = Boolean(url && /(?:\/p\/|\/share\/p\/)/i.test(url));
+	return isPhotoPost
+		? `https://www.instagram.com/p/${shortcode}/`
+		: `https://www.instagram.com/reel/${shortcode}/`;
+}
+
 function sanitizeFilename(name) {
 	if (!name || typeof name !== 'string') return 'instagram_media';
 	const singleLine = name.replace(/[\r\n\t]+/g, ' ').trim();
@@ -147,7 +155,8 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 
 	// 2. Fallback to yt-dlp
 	try {
-		const info = await youtubedl(targetUrl, {
+		const canonicalUrl = getCanonicalInstagramUrl(shortcode, targetUrl);
+		const info = await youtubedl(canonicalUrl, {
 			dumpSingleJson: true,
 			noWarnings: true,
 			ffmpegLocation: ffmpeg.path
@@ -391,7 +400,8 @@ export async function handleInstagramDownload(req, res) {
 		}
 
 		try {
-			await youtubedl(targetUrl, dlOptions);
+			const canonicalUrl = getCanonicalInstagramUrl(shortcode, targetUrl);
+			await youtubedl(canonicalUrl, dlOptions);
 		} catch (ytdlErr) {
 			// If yt-dlp download failed, check if we have a direct progressive video URL from details
 			const progressive = (details.videoVersions || []).find((v) => v.url);

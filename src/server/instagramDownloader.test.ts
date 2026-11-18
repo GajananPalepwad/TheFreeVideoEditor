@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
 	extractShortcode,
 	isInstagramUrl,
+	getCanonicalInstagramUrl,
 	getCachedInstagramDetails,
 	setCachedInstagramDetails,
 	clearInstagramCache,
@@ -59,6 +60,36 @@ describe('instagramDownloader', () => {
 			expect(extractShortcode('')).toBeNull();
 			expect(extractShortcode('https://youtube.com')).toBeNull();
 			expect(extractShortcode('invalid')).toBeNull();
+		});
+	});
+
+	describe('getCanonicalInstagramUrl', () => {
+		it('normalizes share/reel and query strings to canonical reel URL', () => {
+			expect(
+				getCanonicalInstagramUrl(
+					'DehR-cGhfPv',
+					'https://www.instagram.com/share/reel/DehR-cGhfPv/?igsh=4MTIwNjQ2YQ%3D%3D'
+				)
+			).toBe('https://www.instagram.com/reel/DehR-cGhfPv/');
+			expect(
+				getCanonicalInstagramUrl(
+					'DehR-cGhfPv',
+					'https://www.instagram.com/reel/DehR-cGhfPv/?utm_source=ig_web_copy_link'
+				)
+			).toBe('https://www.instagram.com/reel/DehR-cGhfPv/');
+		});
+
+		it('normalizes post URLs to canonical post URL', () => {
+			expect(
+				getCanonicalInstagramUrl('DZxvMgyH8yR', 'https://www.instagram.com/share/p/DZxvMgyH8yR/')
+			).toBe('https://www.instagram.com/p/DZxvMgyH8yR/');
+			expect(
+				getCanonicalInstagramUrl('DZxvMgyH8yR', 'https://www.instagram.com/p/DZxvMgyH8yR/?igsh=123')
+			).toBe('https://www.instagram.com/p/DZxvMgyH8yR/');
+		});
+
+		it('returns empty string if shortcode is missing', () => {
+			expect(getCanonicalInstagramUrl('')).toBe('');
 		});
 	});
 

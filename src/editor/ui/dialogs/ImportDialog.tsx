@@ -204,10 +204,20 @@ export default function ImportDialog() {
 			return;
 		}
 
+		// Normalize to clean canonical URL to strip tracking queries and /share/ paths
+		const match = trimmed.match(INSTAGRAM_REGEX);
+		const shortcode = match?.[1];
+		const isPhotoPost = /(?:\/p\/|\/share\/p\/)/i.test(trimmed);
+		const cleanUrl = shortcode
+			? isPhotoPost
+				? `https://www.instagram.com/p/${shortcode}/`
+				: `https://www.instagram.com/reel/${shortcode}/`
+			: trimmed;
+
 		instaDebounceTimeoutRef.current = setTimeout(async () => {
 			setIsFetchingInstaInfo(true);
 			try {
-				const res = await fetch(`/api/instagram-info?url=${encodeURIComponent(trimmed)}`);
+				const res = await fetch(`/api/instagram-info?url=${encodeURIComponent(cleanUrl)}`);
 				if (res.ok) {
 					const data = (await res.json()) as InstagramInfo;
 					setInstaInfo(data);
@@ -399,6 +409,16 @@ export default function ImportDialog() {
 			return;
 		}
 
+		// Normalize to clean canonical URL to strip tracking queries and /share/ paths
+		const match = trimmedUrl.match(INSTAGRAM_REGEX);
+		const shortcode = match?.[1];
+		const isPhotoPost = /(?:\/p\/|\/share\/p\/)/i.test(trimmedUrl);
+		const downloadUrl = shortcode
+			? isPhotoPost
+				? `https://www.instagram.com/p/${shortcode}/`
+				: `https://www.instagram.com/reel/${shortcode}/`
+			: trimmedUrl;
+
 		setErrorMessage('');
 		setSuccessMessage('');
 		setIsDownloading(true);
@@ -425,7 +445,7 @@ export default function ImportDialog() {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					url: trimmedUrl,
+					url: downloadUrl,
 					formatType: instaFormatType,
 					quality: instaQuality
 				}),
@@ -805,6 +825,7 @@ export default function ImportDialog() {
 												alt=""
 												className="import-preview-thumb"
 												loading="lazy"
+												referrerPolicy="no-referrer"
 											/>
 											{videoInfo.duration > 0 && (
 												<span className="import-preview-duration">
@@ -1063,6 +1084,10 @@ export default function ImportDialog() {
 												alt=""
 												className="import-preview-thumb"
 												loading="lazy"
+												referrerPolicy="no-referrer"
+												onError={(e) => {
+													(e.target as HTMLElement).style.display = 'none';
+												}}
 											/>
 											{instaInfo.duration > 0 ? (
 												<span className="import-preview-duration">
