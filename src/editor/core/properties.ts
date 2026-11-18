@@ -2,6 +2,7 @@ import { evaluate, isAnimatedValue } from './animation';
 import { clampCrop, type Crop } from './crop';
 import { getEffectDefinition } from './effects/registry';
 import { gradientFieldsOf, stopsForEditing, type GradientColor } from './gradient';
+import { pointsToPathShape } from './maskGeometry';
 import type { AnimatedValue, Clip, ClipTransform, PropertyId, Time } from './types';
 
 export type PropertyShape = 'number' | 'vec2' | 'vec4' | 'numberArray';
@@ -812,6 +813,9 @@ export function propertyCurve(
 			}
 			const staticVal = (mask as unknown as Record<string, unknown>)[paramName];
 			if (staticVal !== undefined) return { value: staticVal as PropertyValue };
+			if (paramName === 'shape' && mask.type === 'path' && mask.points) {
+				return { value: pointsToPathShape(mask.points) };
+			}
 		}
 	}
 	if (id === 'timeRemap') {

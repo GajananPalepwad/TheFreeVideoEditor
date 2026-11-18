@@ -153,6 +153,60 @@ describe('Mask Core Operations', () => {
 		const atEnd = evaluateMask(mask, 1_000_000);
 		expect(atEnd.feather).toBe(50);
 	});
+
+	it('evaluates animated path mask shape and interpolates points over time', () => {
+		const shapeAt0 = pointsToPathShape([
+			{ x: 0.2, y: 0.2 },
+			{ x: 0.8, y: 0.2 },
+			{ x: 0.5, y: 0.8 }
+		]);
+		const shapeAt1 = pointsToPathShape([
+			{ x: 0.4, y: 0.4 },
+			{ x: 0.9, y: 0.3 },
+			{ x: 0.6, y: 0.9 }
+		]);
+
+		const mask: Mask = {
+			id: 'mask-path-anim',
+			type: 'path',
+			mode: 'add',
+			inverted: false,
+			feather: 0,
+			expansion: 0,
+			opacity: 1,
+			points: [
+				{ x: 0.2, y: 0.2 },
+				{ x: 0.8, y: 0.2 },
+				{ x: 0.5, y: 0.8 }
+			],
+			shape: shapeAt0,
+			properties: {
+				shape: {
+					keyframes: [
+						{ time: 0, value: shapeAt0, interpolation: 'linear' },
+						{ time: 1_000_000, value: shapeAt1, interpolation: 'linear' }
+					]
+				}
+			}
+		};
+
+		const at0 = evaluateMask(mask, 0);
+		expect(at0.points).toBeDefined();
+		expect(at0.points![0]!.x).toBeCloseTo(0.2);
+		expect(at0.points![0]!.y).toBeCloseTo(0.2);
+
+		const atMid = evaluateMask(mask, 500_000);
+		expect(atMid.points).toBeDefined();
+		expect(atMid.points![0]!.x).toBeCloseTo(0.3); // midway between 0.2 and 0.4
+		expect(atMid.points![0]!.y).toBeCloseTo(0.3); // midway between 0.2 and 0.4
+		expect(atMid.points![1]!.x).toBeCloseTo(0.85); // midway between 0.8 and 0.9
+
+		const atEnd = evaluateMask(mask, 1_000_000);
+		expect(atEnd.points).toBeDefined();
+		expect(atEnd.points![0]!.x).toBeCloseTo(0.4);
+		expect(atEnd.points![0]!.y).toBeCloseTo(0.4);
+		expect(atEnd.points![2]!.x).toBeCloseTo(0.6);
+	});
 });
 
 describe('CPU Matte Oracle', () => {

@@ -3,6 +3,7 @@ import {
 	hasKeyframeAt,
 	isAnimated,
 	nextKeyframeTime,
+	pointsToPathShape,
 	prevKeyframeTime,
 	propertyCurve,
 	snapLocalTime,
@@ -382,26 +383,18 @@ export default function MasksSection({
 
 											const handleToggleShapeAnimation = () => {
 												if (!isShapeAnimated) {
-													// Initialize shape keyframe from current mask shape/points
-													let coords: number[] = [];
-													if (mask.points && mask.points.length > 0) {
-														for (const pt of mask.points) {
-															coords.push(
-																pt.x,
-																pt.y,
-																pt.inHandle?.x ?? pt.x,
-																pt.inHandle?.y ?? pt.y,
-																pt.outHandle?.x ?? pt.x,
-																pt.outHandle?.y ?? pt.y
-															);
-														}
-													} else if (mask.shape) {
-														coords = [...mask.shape];
-													}
+													const coords =
+														mask.type === 'path' && mask.points && mask.points.length > 0
+															? pointsToPathShape(mask.points)
+															: mask.shape
+																? [...mask.shape]
+																: [];
 													store.getState().enableAnimation(clip.id, shapePropId);
-													store
-														.getState()
-														.setProperty(clip.id, shapePropId, coords, { autoKey: true });
+													if (coords.length > 0) {
+														store
+															.getState()
+															.setProperty(clip.id, shapePropId, coords, { autoKey: true });
+													}
 												} else {
 													store
 														.getState()
