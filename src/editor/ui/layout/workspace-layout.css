@@ -228,11 +228,18 @@
 }
 
 .layout-header-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	min-height: 24px;
+	width: 24px;
+	height: 24px;
 	background: transparent;
 	border: none;
 	color: var(--color-mute, #888);
 	cursor: pointer;
-	padding: 2px 6px;
+	padding: 0;
 	border-radius: 4px;
 	font-size: 11px;
 	line-height: 1;
@@ -545,7 +552,8 @@
 	color: #94a3b8;
 	cursor: pointer;
 	padding: 0 6px;
-	height: 100%;
+	min-width: 24px;
+	min-height: 24px;
 	font-size: 13px;
 	display: inline-flex;
 	align-items: center;
