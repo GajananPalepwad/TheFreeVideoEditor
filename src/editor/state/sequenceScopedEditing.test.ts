@@ -514,12 +514,10 @@ describe('transition edits inside a template sequence', () => {
 		const target = innerClip(store, sequenceId);
 		const rootBefore = rootClips(store);
 
-		const id = store
-			.getState()
-			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
-				kind: 'head',
-				clipId: target.id
-			});
+		const id = store.getState().addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+			kind: 'head',
+			clipId: target.id
+		});
 
 		expect(id).not.toBeNull();
 		expect(trackOf(store, sequenceId, target).transitions?.map((t) => t.id)).toEqual([id]);
@@ -530,12 +528,10 @@ describe('transition edits inside a template sequence', () => {
 	it('updateTransition and removeTransition change the nested transition', async () => {
 		const { store, sequenceId } = await openTemplate();
 		const target = innerClip(store, sequenceId);
-		const id = store
-			.getState()
-			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
-				kind: 'head',
-				clipId: target.id
-			})!;
+		const id = store.getState().addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+			kind: 'head',
+			clipId: target.id
+		})!;
 
 		expect(store.getState().updateTransition(id, { duration: 400_000 })).toBe(true);
 		expect(trackOf(store, sequenceId, target).transitions![0]!.duration).toBe(400_000);

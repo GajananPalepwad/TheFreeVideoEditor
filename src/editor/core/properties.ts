@@ -839,7 +839,11 @@ function gradientFill(clip: Clip, localTime: Time): GradientColor {
 }
 
 /** What a gradient property is when the clip does not animate it: the value its gradient has. */
-function gradientSourceValue(clip: Clip, id: PropertyId, localTime: Time): PropertyValue | undefined {
+function gradientSourceValue(
+	clip: Clip,
+	id: PropertyId,
+	localTime: Time
+): PropertyValue | undefined {
 	if (!id.startsWith('gradient.')) return undefined;
 	const fields = gradientFieldsOf(clip);
 	if (!fields?.gradientType || fields.gradientType === 'none') return undefined;

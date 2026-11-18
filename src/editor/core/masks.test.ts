@@ -492,7 +492,11 @@ describe('Mask Keyframing, Geometry & Split Continuity (Gate L Verification)', (
 		});
 
 		// Mask rotated 30 degrees
-		const cx = 0.5, cy = 0.5, w = 0.4, h = 0.3, rotDeg = 30;
+		const cx = 0.5,
+			cy = 0.5,
+			w = 0.4,
+			h = 0.3,
+			rotDeg = 30;
 		const p0 = maskLocalToMonitor(-w / 2, -h / 2, cx, cy, rotDeg, aspect, toMonitor);
 		const p1 = maskLocalToMonitor(+w / 2, -h / 2, cx, cy, rotDeg, aspect, toMonitor);
 		const p2 = maskLocalToMonitor(+w / 2, +h / 2, cx, cy, rotDeg, aspect, toMonitor);

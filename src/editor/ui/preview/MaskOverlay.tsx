@@ -164,14 +164,8 @@ export function getClipSourceDimensions(
 	}
 	if (src && 'type' in src && src.type === 'shape') {
 		const shapeSrc = src as { width?: number; height?: number };
-		const w =
-			(readProperty(clip, 'shape.width', localTime) as number) ??
-			shapeSrc.width ??
-			300;
-		const h =
-			(readProperty(clip, 'shape.height', localTime) as number) ??
-			shapeSrc.height ??
-			200;
+		const w = (readProperty(clip, 'shape.width', localTime) as number) ?? shapeSrc.width ?? 300;
+		const h = (readProperty(clip, 'shape.height', localTime) as number) ?? shapeSrc.height ?? 200;
 		return { width: w, height: h };
 	}
 	if (src && 'type' in src && src.type === 'sequence') {
@@ -607,7 +601,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 				const pMouseLayer = currentNorm;
 				const dxPix = (pMouseLayer.x - origCx) * sourceWidth;
 				const dyPix = (pMouseLayer.y - origCy) * sourceHeight;
-				let angleDeg = ((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360 + 360) % 360;
+				let angleDeg = (((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360) + 360) % 360;
 				if (shiftKey) {
 					angleDeg = Math.round(angleDeg / 15) * 15;
 				}
@@ -679,7 +673,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 				const pMouseLayer = currentNorm;
 				const dxPix = (pMouseLayer.x - origCx) * sourceWidth;
 				const dyPix = (pMouseLayer.y - origCy) * sourceHeight;
-				let angleDeg = ((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360 + 360) % 360;
+				let angleDeg = (((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360) + 360) % 360;
 				if (shiftKey) {
 					angleDeg = Math.round(angleDeg / 15) * 15;
 				}
@@ -932,10 +926,42 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 						if (isSelected && mask.feather > 0) {
 							const fW = (mask.feather / sourceWidth) * 2;
 							const fH = (mask.feather / sourceHeight) * 2;
-							f0 = maskLocalToMonitor(-(w + fW) / 2, -(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f1 = maskLocalToMonitor(+(w + fW) / 2, -(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f2 = maskLocalToMonitor(+(w + fW) / 2, +(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f3 = maskLocalToMonitor(-(w + fW) / 2, +(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
+							f0 = maskLocalToMonitor(
+								-(w + fW) / 2,
+								-(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f1 = maskLocalToMonitor(
+								+(w + fW) / 2,
+								-(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f2 = maskLocalToMonitor(
+								+(w + fW) / 2,
+								+(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f3 = maskLocalToMonitor(
+								-(w + fW) / 2,
+								+(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
 						}
 
 						return (
@@ -1396,7 +1422,9 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 						}
 
 						const maskShapePropId = `mask:${mask.id}:shape` as PropertyId;
-						const maskShapeCurve = selectedClip ? propertyCurve(selectedClip, maskShapePropId) : null;
+						const maskShapeCurve = selectedClip
+							? propertyCurve(selectedClip, maskShapePropId)
+							: null;
 						const maskShapeAnimated = Boolean(maskShapeCurve && isAnimated(maskShapeCurve));
 
 						return (

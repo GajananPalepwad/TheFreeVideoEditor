@@ -102,7 +102,9 @@ export function evaluateMask(
 
 	const points =
 		mask.type === 'path'
-			? (shapeCurve ? pathShapeToPoints(shape) : (mask.points ?? pathShapeToPoints(shape)))
+			? shapeCurve
+				? pathShapeToPoints(shape)
+				: (mask.points ?? pathShapeToPoints(shape))
 			: undefined;
 
 	return {

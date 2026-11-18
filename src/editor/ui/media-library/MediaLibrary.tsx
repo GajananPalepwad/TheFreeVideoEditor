@@ -1473,7 +1473,8 @@ export default function MediaLibrary({
 								<span className="dialog-eyebrow">RELINK MEDIA</span>
 								<h2 id="media-relink-title">Relink Missing Asset</h2>
 								<p className="dialog-description">
-									Select the original or replacement media file to reconnect it to your timeline and clips.
+									Select the original or replacement media file to reconnect it to your timeline and
+									clips.
 								</p>
 							</div>
 							<button
@@ -1517,9 +1518,7 @@ export default function MediaLibrary({
 								)}
 								<span className="media-relink-meta-item">
 									<span className="media-relink-meta-label">Original Size:</span>
-									<span className="media-relink-meta-value">
-										{formatBytes(pendingRelink.size)}
-									</span>
+									<span className="media-relink-meta-value">{formatBytes(pendingRelink.size)}</span>
 								</span>
 							</div>
 						</div>
@@ -1588,9 +1587,7 @@ export default function MediaLibrary({
 								<span className="media-relink-drop-primary">
 									<strong>Choose file</strong> or drag &amp; drop replacement
 								</span>
-								<span className="media-relink-drop-hint">
-									Matches video, audio, or image files
-								</span>
+								<span className="media-relink-drop-hint">Matches video, audio, or image files</span>
 							</div>
 						</div>
 
