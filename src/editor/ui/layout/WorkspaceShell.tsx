@@ -641,9 +641,9 @@ function StackRenderer({
 						panelId === 'timeline'
 							? 'timeline-title'
 							: panelId === 'media'
-								? 'project-panel-title'
+								? 'project-panel-heading'
 								: panelId === 'inspector'
-									? 'inspector-title'
+									? 'inspector-heading'
 									: undefined;
 
 					return (
@@ -669,12 +669,12 @@ function StackRenderer({
 								</h2>
 							)}
 							{panelId === 'media' && (
-								<h2 id="project-panel-title" className="sr-only">
+								<h2 id="project-panel-heading" className="sr-only">
 									Project
 								</h2>
 							)}
 							{panelId === 'inspector' && (
-								<h2 id="inspector-title" className="sr-only">
+								<h2 id="inspector-heading" className="sr-only">
 									Properties
 								</h2>
 							)}

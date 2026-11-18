@@ -225,7 +225,7 @@ function TrackHeader({
 		<div
 			className={`timeline-track-header track-${track.kind}${selected ? 'is-selected' : ''}${isDragOver ? 'is-track-drag-over' : ''}`}
 			draggable
-			role="group"
+			role="rowheader"
 			tabIndex={0}
 			aria-label={`${track.name} track controls. Use Alt+Arrow Up or Alt+Arrow Down to reorder.`}
 			data-track-header-id={track.id}
@@ -2969,7 +2969,10 @@ function ActiveTimeline({ project }: { project: Project }) {
 										role="row"
 										style={{ '--track-height': '45px', zIndex: 100 } as CSSProperties}
 									>
-										<div className={`timeline-track-header track-${drag.createTrackKind}`}>
+										<div
+											className={`timeline-track-header track-${drag.createTrackKind}`}
+											role="rowheader"
+										>
 											<span className="track-kind is-new-badge" aria-hidden="true">
 												{drag.createTrackKind === 'audio' ? 'A+' : 'V+'}
 											</span>
@@ -3076,412 +3079,417 @@ function ActiveTimeline({ project }: { project: Project }) {
 								) : null;
 
 							return (
-								<div
-									className="timeline-track-rows"
-									role="grid"
-									aria-label="Project timeline tracks"
-								>
-									{drag?.createTrackKind === 'video' && newTrackPreviewRow}
-									{activeProject.tracks.map((track, index) => {
-										const previewPositions = dragPositionsByTrack.get(track.id) ?? [];
-										return (
-											<div
-												className={`timeline-track-row track-${track.kind}`}
-												role="row"
-												key={track.id}
-												style={
-													{
-														'--track-height': `${track.height ?? 45}px`
-													} as CSSProperties
-												}
-											>
-												<TrackHeader
-													track={track}
-													index={index}
-													selected={selection.trackId === track.id}
-													onSelect={() => store.getState().selectTrack(track.id)}
-													onRename={renameTimelineTrack}
-													onRemove={handleTrackRemoval}
-													onFlag={setTimelineTrackFlags}
-													onReorder={reorderTimelineTrack}
-													isRecording={
-														voiceover.recordingTrackId === track.id &&
-														(voiceover.phase === 'recording' ||
-															voiceover.phase === 'countdown' ||
-															voiceover.phase === 'saving')
-													}
-													isRecordingOther={
-														voiceover.recordingTrackId !== null &&
-														voiceover.recordingTrackId !== track.id &&
-														voiceover.phase !== 'idle'
-													}
-													onToggleRecord={(trackId) => {
-														if (
-															voiceover.recordingTrackId === trackId &&
-															(voiceover.phase === 'recording' || voiceover.phase === 'countdown')
-														) {
-															void voiceoverRecorder.stopRecording();
-														} else {
-															void voiceoverRecorder.startRecording(trackId);
-														}
-													}}
-												/>
+								<>
+									<div
+										className="timeline-track-rows"
+										role="grid"
+										aria-label="Project timeline tracks"
+									>
+										{drag?.createTrackKind === 'video' && newTrackPreviewRow}
+										{activeProject.tracks.map((track, index) => {
+											const previewPositions = dragPositionsByTrack.get(track.id) ?? [];
+											return (
 												<div
-													className={`timeline-track-lane ${drag?.targetTrackId === track.id && !drag.allowed ? 'is-invalid-drop' : ''}`}
-													data-track-lane={track.id}
-													role="gridcell"
-													aria-label={`${track.name} track lane`}
-													tabIndex={0}
-													onPointerDown={(event) => {
-														if (
-															(event.target as HTMLElement).closest(
-																'.timeline-clip, .caption-segment-view, .transition-block, .timeline-gap'
-															)
-														)
-															return;
-														store.getState().selectTrack(track.id);
-													}}
-													onContextMenu={(event) => openLaneMenu(event, track.id)}
-													onKeyDown={(event) => handleLaneKeyDown(event, track)}
-													onDragOver={(event) => handleTrackDragOver(event, track)}
-													onDrop={(event) => handleTrackDrop(event, track)}
+													className={`timeline-track-row track-${track.kind}`}
+													role="row"
+													key={track.id}
+													style={
+														{
+															'--track-height': `${track.height ?? 45}px`
+														} as CSSProperties
+													}
 												>
-													{track.kind === 'caption' ? (
-														<>
-															{(track.captions ?? []).length === 0 && (
-																<span className="timeline-empty-track">
-																	No captions yet. Click Caption Layer or auto-generate.
-																</span>
-															)}
-															{(track.captions ?? []).map((caption) => {
-																const isSelected = selection.captionId === caption.id;
-																return (
-																	<CaptionSegmentView
-																		key={caption.id}
-																		segment={caption}
-																		track={track}
-																		pixelsPerSecond={pixelsPerSecond}
-																		selected={isSelected}
-																		onSelect={() => {
-																			store.getState().selectCaption(track.id, caption.id);
-																		}}
-																	/>
-																);
-															})}
-														</>
-													) : (
-														<>
-															{track.clips.length === 0 && (
-																<span className="timeline-empty-track">
-																	Drop compatible media or press Enter to add selection
-																</span>
-															)}
-															{/* Gaps between clips for 1-click selection and ripple delete */}
-															{(() => {
-																const gaps: { start: Time; end: Time }[] = [];
-																const sortedClips = [...track.clips].sort(
-																	(a, b) => a.start - b.start
-																);
-																if (sortedClips.length > 0) {
-																	if (sortedClips[0]!.start > 0) {
-																		gaps.push({ start: 0, end: sortedClips[0]!.start });
-																	}
-																	for (let i = 0; i < sortedClips.length - 1; i++) {
-																		const curEnd = sortedClips[i]!.start + sortedClips[i]!.duration;
-																		const nextStart = sortedClips[i + 1]!.start;
-																		if (nextStart > curEnd) {
-																			gaps.push({ start: curEnd, end: nextStart });
-																		}
-																	}
-																}
-																return gaps.map((gap) => {
-																	const isGapSelected =
-																		selection.gap?.trackId === track.id &&
-																		selection.gap.start === gap.start &&
-																		selection.gap.end === gap.end;
-
-																	const gapLeft = timeToPixels(gap.start, pixelsPerSecond);
-																	const gapWidth = timeToPixels(
-																		gap.end - gap.start,
-																		pixelsPerSecond
-																	);
-																	if (gapWidth < 1) return null;
-
-																	const durationSec = ((gap.end - gap.start) / 1_000_000).toFixed(
-																		2
-																	);
-
-																	return (
-																		<div
-																			key={`gap-${gap.start}-${gap.end}`}
-																			className={`timeline-gap ${isGapSelected ? 'is-selected' : ''}`}
-																			style={{
-																				left: `${gapLeft}px`,
-																				width: `${gapWidth}px`
-																			}}
-																			data-gap-start={gap.start}
-																			data-gap-end={gap.end}
-																			tabIndex={0}
-																			title={`Empty space (${durationSec}s) - Click to select, Delete or Ripple to remove`}
-																			onClick={(e) => {
-																				if (Date.now() < suppressClickUntil.current) {
-																					e.stopPropagation();
-																					return;
-																				}
-																				e.stopPropagation();
-																				store.getState().selectGap(track.id, gap.start, gap.end);
-																				setPlayhead(pointerTime(e.clientX));
-																			}}
-																			onKeyDown={(e) => {
-																				if (e.key === 'Delete' || e.key === 'Backspace') {
-																					e.preventDefault();
-																					e.stopPropagation();
-																					store
-																						.getState()
-																						.rippleDeleteGap(track.id, gap.start, gap.end);
-																				} else if (e.key === 'Escape') {
-																					e.preventDefault();
-																					e.stopPropagation();
-																					store.getState().clearSelection();
-																				}
-																			}}
-																			onContextMenu={(e) => {
-																				openGapMenu(e, track.id, gap.start, gap.end);
-																			}}
-																		>
-																			{isGapSelected && (
-																				<div className="timeline-gap-selected-indicator">
-																					{gapWidth >= 70 && (
-																						<button
-																							type="button"
-																							className="timeline-gap-ripple-btn"
-																							title="Ripple Delete Gap"
-																							onClick={(e) => {
-																								e.stopPropagation();
-																								store
-																									.getState()
-																									.rippleDeleteGap(track.id, gap.start, gap.end);
-																							}}
-																						>
-																							<svg
-																								viewBox="0 0 16 16"
-																								width="12"
-																								height="12"
-																								fill="currentColor"
-																							>
-																								<path d="M2.5 1a1 1 0 0 0-1 1v1h11V2a1 1 0 0 0-1-1h-9zm10 3H1.5v8a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V4zm-7 2.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5zm3 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5z" />
-																								<path d="M14 6l2 2-2 2V6z" />
-																							</svg>
-																							<span>Ripple Delete</span>
-																						</button>
-																					)}
-																				</div>
-																			)}
-																		</div>
-																	);
-																});
-															})()}
-															{track.clips.map((clip) => {
-																const asset = clip.assetId
-																	? activeProject.assets[clip.assetId]
-																	: undefined;
-																if (!asset && (!clip.source || clip.source.type === 'asset'))
-																	return null;
-																const position = drag?.preview.find(
-																	(item) => item.clipId === clip.id
-																);
-																if (position && position.trackId !== track.id) return null;
-																const clipStart = position?.start ?? clip.start;
-																const clipDuration = position?.duration ?? clip.duration;
-																if (
-																	!intersectsPixelRange(
-																		timeToPixels(clipStart, pixelsPerSecond),
-																		timeToPixels(clipDuration, pixelsPerSecond),
-																		visibleClipRange
-																	)
-																) {
-																	return null;
-																}
-																const isSelected = selection.clipIds.includes(clip.id);
-																const displayedClip = position
-																	? {
-																			...clip,
-																			start: position.start,
-																			duration: position.duration,
-																			sourceIn: position.sourceIn,
-																			sourceOut: position.sourceOut
-																		}
-																	: clip;
-																return (
-																	<ClipView
-																		key={clip.id}
-																		clip={displayedClip}
-																		asset={asset}
-																		track={track}
-																		project={activeProject}
-																		pixelsPerSecond={pixelsPerSecond}
-																		selected={isSelected}
-																		tabIndex={clip.id === firstTabStopClipId ? 0 : -1}
-																		isLifted={liftedClipId === clip.id}
-																		onPointerDown={beginClipDrag}
-																		onKeyboardTrim={handleKeyboardTrim}
-																		onSelect={handleClipSelect}
-																		onContextMenu={openClipMenu}
-																	/>
-																);
-															})}
-															{voiceover.recordingTrackId === track.id &&
-																(voiceover.phase === 'recording' ||
-																	voiceover.phase === 'saving') && (
-																	<RecordingBlock
-																		startTime={voiceover.recordingStartTime ?? 0}
-																		duration={voiceover.elapsedDuration}
-																		pixelsPerSecond={pixelsPerSecond}
-																	/>
-																)}
-														</>
-													)}
-													{isTransitionsEnabled() &&
-														(track.transitions ?? []).map((tr) => (
-															<TransitionBlock
-																key={tr.id}
-																transition={tr}
-																track={track}
-																pixelsPerSecond={pixelsPerSecond}
-																selected={selection.transitionId === tr.id}
-																onSelect={(id) => store.getState().selectTransition(id)}
-															/>
-														))}
-													{previewPositions.map((position) => {
-														let sourceClip: Clip | undefined;
-														let sourceTrack: Track | undefined;
-														for (const row of activeProject.tracks) {
-															const found = row.clips.find((c) => c.id === position.clipId);
-															if (found) {
-																sourceClip = found;
-																sourceTrack = row;
-																break;
+													<TrackHeader
+														track={track}
+														index={index}
+														selected={selection.trackId === track.id}
+														onSelect={() => store.getState().selectTrack(track.id)}
+														onRename={renameTimelineTrack}
+														onRemove={handleTrackRemoval}
+														onFlag={setTimelineTrackFlags}
+														onReorder={reorderTimelineTrack}
+														isRecording={
+															voiceover.recordingTrackId === track.id &&
+															(voiceover.phase === 'recording' ||
+																voiceover.phase === 'countdown' ||
+																voiceover.phase === 'saving')
+														}
+														isRecordingOther={
+															voiceover.recordingTrackId !== null &&
+															voiceover.recordingTrackId !== track.id &&
+															voiceover.phase !== 'idle'
+														}
+														onToggleRecord={(trackId) => {
+															if (
+																voiceover.recordingTrackId === trackId &&
+																(voiceover.phase === 'recording' || voiceover.phase === 'countdown')
+															) {
+																void voiceoverRecorder.stopRecording();
+															} else {
+																void voiceoverRecorder.startRecording(trackId);
 															}
-														}
-														if (sourceTrack?.id === position.trackId) {
-															return null;
-														}
-														const assetId = drag?.assetId ?? sourceClip?.assetId;
-														const asset = assetId ? activeProject.assets[assetId] : undefined;
-														if (
-															!asset &&
-															(!sourceClip?.source || sourceClip.source.type === 'asset') &&
-															!drag?.graphicTemplateId &&
-															!drag?.shapeConfig
-														) {
-															return null;
-														}
-														const ghostClip: Clip = sourceClip
-															? {
-																	...sourceClip,
-																	start: position.start,
-																	duration: position.duration,
-																	sourceIn: position.sourceIn,
-																	sourceOut: position.sourceOut
+														}}
+													/>
+													<div
+														className={`timeline-track-lane ${drag?.targetTrackId === track.id && !drag.allowed ? 'is-invalid-drop' : ''}`}
+														data-track-lane={track.id}
+														role="gridcell"
+														aria-label={`${track.name} track lane`}
+														tabIndex={0}
+														onPointerDown={(event) => {
+															if (
+																(event.target as HTMLElement).closest(
+																	'.timeline-clip, .caption-segment-view, .transition-block, .timeline-gap'
+																)
+															)
+																return;
+															store.getState().selectTrack(track.id);
+														}}
+														onContextMenu={(event) => openLaneMenu(event, track.id)}
+														onKeyDown={(event) => handleLaneKeyDown(event, track)}
+														onDragOver={(event) => handleTrackDragOver(event, track)}
+														onDrop={(event) => handleTrackDrop(event, track)}
+													>
+														{track.kind === 'caption' ? (
+															<>
+																{(track.captions ?? []).length === 0 && (
+																	<span className="timeline-empty-track">
+																		No captions yet. Click Caption Layer or auto-generate.
+																	</span>
+																)}
+																{(track.captions ?? []).map((caption) => {
+																	const isSelected = selection.captionId === caption.id;
+																	return (
+																		<CaptionSegmentView
+																			key={caption.id}
+																			segment={caption}
+																			track={track}
+																			pixelsPerSecond={pixelsPerSecond}
+																			selected={isSelected}
+																			onSelect={() => {
+																				store.getState().selectCaption(track.id, caption.id);
+																			}}
+																		/>
+																	);
+																})}
+															</>
+														) : (
+															<>
+																{track.clips.length === 0 && (
+																	<span className="timeline-empty-track">
+																		Drop compatible media or press Enter to add selection
+																	</span>
+																)}
+																{/* Gaps between clips for 1-click selection and ripple delete */}
+																{(() => {
+																	const gaps: { start: Time; end: Time }[] = [];
+																	const sortedClips = [...track.clips].sort(
+																		(a, b) => a.start - b.start
+																	);
+																	if (sortedClips.length > 0) {
+																		if (sortedClips[0]!.start > 0) {
+																			gaps.push({ start: 0, end: sortedClips[0]!.start });
+																		}
+																		for (let i = 0; i < sortedClips.length - 1; i++) {
+																			const curEnd =
+																				sortedClips[i]!.start + sortedClips[i]!.duration;
+																			const nextStart = sortedClips[i + 1]!.start;
+																			if (nextStart > curEnd) {
+																				gaps.push({ start: curEnd, end: nextStart });
+																			}
+																		}
+																	}
+																	return gaps.map((gap) => {
+																		const isGapSelected =
+																			selection.gap?.trackId === track.id &&
+																			selection.gap.start === gap.start &&
+																			selection.gap.end === gap.end;
+
+																		const gapLeft = timeToPixels(gap.start, pixelsPerSecond);
+																		const gapWidth = timeToPixels(
+																			gap.end - gap.start,
+																			pixelsPerSecond
+																		);
+																		if (gapWidth < 1) return null;
+
+																		const durationSec = ((gap.end - gap.start) / 1_000_000).toFixed(
+																			2
+																		);
+
+																		return (
+																			<div
+																				key={`gap-${gap.start}-${gap.end}`}
+																				className={`timeline-gap ${isGapSelected ? 'is-selected' : ''}`}
+																				style={{
+																					left: `${gapLeft}px`,
+																					width: `${gapWidth}px`
+																				}}
+																				data-gap-start={gap.start}
+																				data-gap-end={gap.end}
+																				tabIndex={0}
+																				title={`Empty space (${durationSec}s) - Click to select, Delete or Ripple to remove`}
+																				onClick={(e) => {
+																					if (Date.now() < suppressClickUntil.current) {
+																						e.stopPropagation();
+																						return;
+																					}
+																					e.stopPropagation();
+																					store.getState().selectGap(track.id, gap.start, gap.end);
+																					setPlayhead(pointerTime(e.clientX));
+																				}}
+																				onKeyDown={(e) => {
+																					if (e.key === 'Delete' || e.key === 'Backspace') {
+																						e.preventDefault();
+																						e.stopPropagation();
+																						store
+																							.getState()
+																							.rippleDeleteGap(track.id, gap.start, gap.end);
+																					} else if (e.key === 'Escape') {
+																						e.preventDefault();
+																						e.stopPropagation();
+																						store.getState().clearSelection();
+																					}
+																				}}
+																				onContextMenu={(e) => {
+																					openGapMenu(e, track.id, gap.start, gap.end);
+																				}}
+																			>
+																				{isGapSelected && (
+																					<div className="timeline-gap-selected-indicator">
+																						{gapWidth >= 70 && (
+																							<button
+																								type="button"
+																								className="timeline-gap-ripple-btn"
+																								title="Ripple Delete Gap"
+																								onClick={(e) => {
+																									e.stopPropagation();
+																									store
+																										.getState()
+																										.rippleDeleteGap(track.id, gap.start, gap.end);
+																								}}
+																							>
+																								<svg
+																									viewBox="0 0 16 16"
+																									width="12"
+																									height="12"
+																									fill="currentColor"
+																								>
+																									<path d="M2.5 1a1 1 0 0 0-1 1v1h11V2a1 1 0 0 0-1-1h-9zm10 3H1.5v8a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V4zm-7 2.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5zm3 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5z" />
+																									<path d="M14 6l2 2-2 2V6z" />
+																								</svg>
+																								<span>Ripple Delete</span>
+																							</button>
+																						)}
+																					</div>
+																				)}
+																			</div>
+																		);
+																	});
+																})()}
+																{track.clips.map((clip) => {
+																	const asset = clip.assetId
+																		? activeProject.assets[clip.assetId]
+																		: undefined;
+																	if (!asset && (!clip.source || clip.source.type === 'asset'))
+																		return null;
+																	const position = drag?.preview.find(
+																		(item) => item.clipId === clip.id
+																	);
+																	if (position && position.trackId !== track.id) return null;
+																	const clipStart = position?.start ?? clip.start;
+																	const clipDuration = position?.duration ?? clip.duration;
+																	if (
+																		!intersectsPixelRange(
+																			timeToPixels(clipStart, pixelsPerSecond),
+																			timeToPixels(clipDuration, pixelsPerSecond),
+																			visibleClipRange
+																		)
+																	) {
+																		return null;
+																	}
+																	const isSelected = selection.clipIds.includes(clip.id);
+																	const displayedClip = position
+																		? {
+																				...clip,
+																				start: position.start,
+																				duration: position.duration,
+																				sourceIn: position.sourceIn,
+																				sourceOut: position.sourceOut
+																			}
+																		: clip;
+																	return (
+																		<ClipView
+																			key={clip.id}
+																			clip={displayedClip}
+																			asset={asset}
+																			track={track}
+																			project={activeProject}
+																			pixelsPerSecond={pixelsPerSecond}
+																			selected={isSelected}
+																			tabIndex={clip.id === firstTabStopClipId ? 0 : -1}
+																			isLifted={liftedClipId === clip.id}
+																			onPointerDown={beginClipDrag}
+																			onKeyboardTrim={handleKeyboardTrim}
+																			onSelect={handleClipSelect}
+																			onContextMenu={openClipMenu}
+																		/>
+																	);
+																})}
+																{voiceover.recordingTrackId === track.id &&
+																	(voiceover.phase === 'recording' ||
+																		voiceover.phase === 'saving') && (
+																		<RecordingBlock
+																			startTime={voiceover.recordingStartTime ?? 0}
+																			duration={voiceover.elapsedDuration}
+																			pixelsPerSecond={pixelsPerSecond}
+																		/>
+																	)}
+															</>
+														)}
+														{isTransitionsEnabled() &&
+															(track.transitions ?? []).map((tr) => (
+																<TransitionBlock
+																	key={tr.id}
+																	transition={tr}
+																	track={track}
+																	pixelsPerSecond={pixelsPerSecond}
+																	selected={selection.transitionId === tr.id}
+																	onSelect={(id) => store.getState().selectTransition(id)}
+																/>
+															))}
+														{previewPositions.map((position) => {
+															let sourceClip: Clip | undefined;
+															let sourceTrack: Track | undefined;
+															for (const row of activeProject.tracks) {
+																const found = row.clips.find((c) => c.id === position.clipId);
+																if (found) {
+																	sourceClip = found;
+																	sourceTrack = row;
+																	break;
 																}
-															: drag?.shapeConfig
-																? createShapeClip(
-																		position.start,
-																		position.duration,
-																		drag.shapeConfig
-																	)
-																: drag?.graphicTemplateId
-																	? ghostTemplateClip(drag, position.start, position.duration)
-																	: {
-																			id: position.clipId,
-																			assetId: asset?.id,
-																			start: position.start,
-																			duration: position.duration,
-																			sourceIn: position.sourceIn,
-																			sourceOut: position.sourceOut,
-																			speed: 1,
-																			volume: 1
-																		};
-														return (
-															<ClipView
-																key={`ghost-${position.clipId}`}
-																clip={ghostClip}
-																asset={asset}
-																track={track}
-																project={activeProject}
-																pixelsPerSecond={pixelsPerSecond}
-																selected={false}
-																tabIndex={-1}
-																ghost
-																onPointerDown={() => undefined}
-																onKeyboardTrim={() => undefined}
-																onSelect={() => undefined}
-																onContextMenu={() => undefined}
-															/>
-														);
-													})}
+															}
+															if (sourceTrack?.id === position.trackId) {
+																return null;
+															}
+															const assetId = drag?.assetId ?? sourceClip?.assetId;
+															const asset = assetId ? activeProject.assets[assetId] : undefined;
+															if (
+																!asset &&
+																(!sourceClip?.source || sourceClip.source.type === 'asset') &&
+																!drag?.graphicTemplateId &&
+																!drag?.shapeConfig
+															) {
+																return null;
+															}
+															const ghostClip: Clip = sourceClip
+																? {
+																		...sourceClip,
+																		start: position.start,
+																		duration: position.duration,
+																		sourceIn: position.sourceIn,
+																		sourceOut: position.sourceOut
+																	}
+																: drag?.shapeConfig
+																	? createShapeClip(
+																			position.start,
+																			position.duration,
+																			drag.shapeConfig
+																		)
+																	: drag?.graphicTemplateId
+																		? ghostTemplateClip(drag, position.start, position.duration)
+																		: {
+																				id: position.clipId,
+																				assetId: asset?.id,
+																				start: position.start,
+																				duration: position.duration,
+																				sourceIn: position.sourceIn,
+																				sourceOut: position.sourceOut,
+																				speed: 1,
+																				volume: 1
+																			};
+															return (
+																<ClipView
+																	key={`ghost-${position.clipId}`}
+																	clip={ghostClip}
+																	asset={asset}
+																	track={track}
+																	project={activeProject}
+																	pixelsPerSecond={pixelsPerSecond}
+																	selected={false}
+																	tabIndex={-1}
+																	ghost
+																	onPointerDown={() => undefined}
+																	onKeyboardTrim={() => undefined}
+																	onSelect={() => undefined}
+																	onContextMenu={() => undefined}
+																/>
+															);
+														})}
+													</div>
+													<div role="gridcell" style={{ display: 'contents' }}>
+														<button
+															className="timeline-track-resize-handle"
+															type="button"
+															role="separator"
+															aria-label={`Resize ${track.name} track height`}
+															aria-orientation="horizontal"
+															aria-valuemin={48}
+															aria-valuemax={240}
+															aria-valuenow={track.height ?? 80}
+															onPointerDown={(event) => {
+																event.preventDefault();
+																event.currentTarget.setPointerCapture(event.pointerId);
+																trackResize.current = {
+																	trackId: track.id,
+																	pointerId: event.pointerId,
+																	startY: event.clientY,
+																	startHeight: track.height ?? 80
+																};
+															}}
+															onPointerMove={(event) => {
+																const active = trackResize.current;
+																if (
+																	!active ||
+																	active.trackId !== track.id ||
+																	active.pointerId !== event.pointerId
+																) {
+																	return;
+																}
+																setTrackHeight(
+																	track.id,
+																	active.startHeight + event.clientY - active.startY
+																);
+															}}
+															onPointerUp={() => {
+																trackResize.current = null;
+															}}
+															onPointerCancel={() => {
+																trackResize.current = null;
+															}}
+															onKeyDown={(event) => {
+																const step = event.shiftKey ? 24 : 8;
+																const current = track.height ?? 80;
+																if (event.key === 'ArrowUp') {
+																	event.preventDefault();
+																	setTrackHeight(track.id, current + step);
+																} else if (event.key === 'ArrowDown') {
+																	event.preventDefault();
+																	setTrackHeight(track.id, current - step);
+																} else if (event.key === 'Home') {
+																	event.preventDefault();
+																	setTrackHeight(track.id, 48);
+																} else if (event.key === 'End') {
+																	event.preventDefault();
+																	setTrackHeight(track.id, 240);
+																}
+															}}
+														/>
+													</div>
 												</div>
-												<button
-													className="timeline-track-resize-handle"
-													type="button"
-													role="separator"
-													aria-label={`Resize ${track.name} track height`}
-													aria-orientation="horizontal"
-													aria-valuemin={48}
-													aria-valuemax={240}
-													aria-valuenow={track.height ?? 80}
-													onPointerDown={(event) => {
-														event.preventDefault();
-														event.currentTarget.setPointerCapture(event.pointerId);
-														trackResize.current = {
-															trackId: track.id,
-															pointerId: event.pointerId,
-															startY: event.clientY,
-															startHeight: track.height ?? 80
-														};
-													}}
-													onPointerMove={(event) => {
-														const active = trackResize.current;
-														if (
-															!active ||
-															active.trackId !== track.id ||
-															active.pointerId !== event.pointerId
-														) {
-															return;
-														}
-														setTrackHeight(
-															track.id,
-															active.startHeight + event.clientY - active.startY
-														);
-													}}
-													onPointerUp={() => {
-														trackResize.current = null;
-													}}
-													onPointerCancel={() => {
-														trackResize.current = null;
-													}}
-													onKeyDown={(event) => {
-														const step = event.shiftKey ? 24 : 8;
-														const current = track.height ?? 80;
-														if (event.key === 'ArrowUp') {
-															event.preventDefault();
-															setTrackHeight(track.id, current + step);
-														} else if (event.key === 'ArrowDown') {
-															event.preventDefault();
-															setTrackHeight(track.id, current - step);
-														} else if (event.key === 'Home') {
-															event.preventDefault();
-															setTrackHeight(track.id, 48);
-														} else if (event.key === 'End') {
-															event.preventDefault();
-															setTrackHeight(track.id, 240);
-														}
-													}}
-												/>
-											</div>
-										);
-									})}
-									{drag?.createTrackKind === 'audio' && newTrackPreviewRow}
+											);
+										})}
+										{drag?.createTrackKind === 'audio' && newTrackPreviewRow}
+									</div>
 									<div
 										className={`timeline-new-track-drop ${drag?.createTrackKind ? 'is-active' : ''}`}
 										role="group"
@@ -3493,7 +3501,7 @@ function ActiveTimeline({ project }: { project: Project }) {
 											? `Release to create a new ${drag.createTrackKind} track`
 											: 'Drop media or drag clips outside tracks to create a new track'}
 									</div>
-								</div>
+								</>
 							);
 						})()}
 						{marquee && (

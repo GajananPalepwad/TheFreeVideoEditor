@@ -619,6 +619,13 @@
 	flex: 0 0 auto;
 }
 
+.workspace-tabs-list {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	flex-shrink: 0;
+}
+
 .workspace-bar-right {
 	display: flex;
 	align-items: center;
@@ -2337,6 +2344,10 @@
 
 	.workspace-bar-center::-webkit-scrollbar {
 		display: none;
+	}
+
+	.workspace-tabs-list {
+		gap: 4px;
 	}
 
 	.workspace-tab {
