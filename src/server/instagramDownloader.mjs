@@ -82,6 +82,73 @@ export function clearInstagramCache() {
 	mediaDetailsCache.clear();
 }
 
+export function decodeSnapApp(args) {
+	const [h, , n, t, e] = args;
+	const tNum = Number(t);
+	const eNum = Number(e);
+	function decode(d, baseSrc, baseDst) {
+		const g = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/'.split('');
+		const hArr = g.slice(0, baseSrc);
+		const iArr = g.slice(0, baseDst);
+		let j = d
+			.split('')
+			.reverse()
+			.reduce((a, b, c) => {
+				const idx = hArr.indexOf(b);
+				if (idx !== -1) return a + idx * Math.pow(baseSrc, c);
+				return a;
+			}, 0);
+		let k = '';
+		let remaining = j;
+		while (remaining > 0) {
+			k = iArr[remaining % baseDst] + k;
+			remaining = Math.floor(remaining / baseDst);
+		}
+		return k || '0';
+	}
+	let result = '';
+	for (let i = 0, len = h.length; i < len;) {
+		let s = '';
+		while (i < len && h[i] !== n[eNum]) {
+			s += h[i];
+			i++;
+		}
+		i++;
+		for (let j = 0; j < n.length; j++) {
+			s = s.replace(new RegExp(n[j], 'g'), j.toString());
+		}
+		result += String.fromCharCode(Number(decode(s, eNum, 10)) - tNum);
+	}
+	try {
+		const bytes = new Uint8Array(result.split('').map((char) => char.charCodeAt(0)));
+		return new TextDecoder('utf-8').decode(bytes);
+	} catch {
+		return result;
+	}
+}
+
+export function getEncodedSnapApp(data) {
+	if (!data || typeof data !== 'string') return null;
+	const splitA = data.split('decodeURIComponent(escape(r))}(');
+	if (splitA.length < 2) return null;
+	const splitB = splitA[1].split('))');
+	if (splitB.length < 1) return null;
+	return splitB[0].split(',').map((v) => v.replace(/"/g, '').trim());
+}
+
+export function decodeBase64Json(b64) {
+	try {
+		let normalized = b64.replace(/-/g, '+').replace(/_/g, '/');
+		while (normalized.length % 4) {
+			normalized += '=';
+		}
+		const text = Buffer.from(normalized, 'base64').toString('utf-8');
+		return JSON.parse(text);
+	} catch {
+		return null;
+	}
+}
+
 export async function fetchInstagramDetails(shortcode, targetUrl) {
 	// 0. Return cached details if available
 	const cached = getCachedInstagramDetails(shortcode);
@@ -89,68 +156,111 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 		return cached;
 	}
 
-	// 1. Try Polaris GraphQL query (fast, direct, anonymous for public reels and posts)
+	const canonicalUrl = getCanonicalInstagramUrl(shortcode, targetUrl);
+
+	// 1. Official Instagram oEmbed metadata
+	let title = 'Instagram Reel';
+	let uploader = '';
+	let thumbnail = '';
 	try {
-		const variables = JSON.stringify({ shortcode });
-		const encoded_variables = encodeURIComponent(variables);
-		const payload = `av=0&__d=www&__user=0&__a=1&__req=u&__hs=20371.HYP%3Ainstagram_web_pkg.2.1...0&dpr=1&__ccg=GOOD&__rev=1028249517&__s=ywybjm%3Aq4co81%3Adplvd8&__hsi=7559456450740095677&__dyn=7xeUjG1mxu1syUbFp41twpUnwgU7SbzEdF8aUco2qwJw5ux609vCwjE1EE2Cw8G11wBz81s8hwGxu786a3a1YwBgao6C0Mo2swtUd8-U2zxe2GewGw9a361qw8Xxm16wa-0raazo7u3C2u2J0bS1LwTwKG0WE8oC1Iwqo5p0OwUQp1yU426V89F8uwm8jwhUaE4e1tyVrx60gm5oswFwtF85i5E&__csr=geIAaiFliZllsBav4trBuTJ-KJ5WhnQyAnxeEWpBCC-hJADG9AgG4qpQ8zat5BypWy9eaRgBaJ2Xx2p6WgymmGDzQjJo8JJ4iKi8xObCjx50FzLF4-8DiwxDyGqoydV-ESQ9DLAB_GdDzFEsyUSeG8xmF9oymWyqyVFF84q5ooHohwuE5a0CU01kUUb81CE12E5V08m0WFA0ei80n2bLwjp42TOw2J-0rq04tUKp06PwEhy1u1ig4Dgy9wdW0D8n80rl0UxGtw53hEx2E1yPUy7U1J9Q0JFvc0cXwpyG4B6B2US01IAw2Bo0K215w0YEwj8&__hsdp=gaQbh9gple4i4WuA2XCG7RVt5m8DxGU4K32awCF0GBcq1AyH40uWxe3AwboK5-0FE8UbkkU4-4o11XwQCyE9UswZweC4U6iq6UOewJyEhwBwjQ2259o1oE1E85u0km5Unw7Pwaau1CwMwkEeU1v82ew2rA0LoW0W8aO0Ewc6&__hblp=0nE20wpGx6vxy2i1ryE9Gg6q1hwkE9WwkocUso4O2vDyof98K7o4-48hDwyLBx61HwkGg8VoGqawDxCGBwQxG6S0I8jwywXBCxKczEqxaax62m1FDxim1nw4axq0oC362m0iu7ohBxu11wEwfm0AE421xDwhEvwxzEvG2-3K0nO0zE1MUK0DA1DwgEizEW0Qp-2Awa8nxyi1fwRBwFwau68bE&__comet_req=7&lsd=AdGtgRvhyjc&jazoest=21085&__spin_r=1028249517&__spin_b=trunk&__spin_t=1760073111&__crn=comet.igweb.PolarisLoggedOutDesktopPostRouteNext&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=PolarisPostRootQuery&server_timestamps=true&variables=${encoded_variables}&doc_id=24368985919464652`;
+		const oembedRes = await fetch(
+			`https://www.instagram.com/api/v1/oembed/?url=${encodeURIComponent(`https://www.instagram.com/p/${shortcode}/`)}`,
+			{
+				headers: {
+					'User-Agent':
+						'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+				},
+				signal: AbortSignal.timeout(3000)
+			}
+		);
+		if (oembedRes.ok) {
+			const oembed = await oembedRes.json();
+			if (oembed.title) title = oembed.title;
+			if (oembed.author_name) uploader = oembed.author_name;
+			if (oembed.thumbnail_url) thumbnail = oembed.thumbnail_url;
+		}
+	} catch {
+		// proceed
+	}
 
-		const headers = {
-			accept: '*/*',
-			'content-type': 'application/x-www-form-urlencoded',
-			'user-agent':
-				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-			'x-csrftoken': 'YuvV-QRvpR2Ggzgk0cTg1T',
-			'x-ig-app-id': '936619743392459',
-			Cookie: 'csrftoken=YuvV-QRvpR2Ggzgk0cTg1T; mid=aOia4gALAAHSq3em2E34YEIFkMCC'
-		};
-
-		const res = await fetch('https://www.instagram.com/graphql/query', {
+	// 2. SnapSave stream extraction
+	const videoVersions = [];
+	try {
+		const formData = new URLSearchParams();
+		formData.append('url', canonicalUrl);
+		const snapRes = await fetch('https://snapsave.app/action.php?lang=en', {
 			method: 'POST',
-			headers,
-			body: payload
+			headers: {
+				accept: '*/*',
+				'content-type': 'application/x-www-form-urlencoded',
+				origin: 'https://snapsave.app',
+				referer: 'https://snapsave.app/',
+				'user-agent':
+					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+			},
+			body: formData.toString(),
+			signal: AbortSignal.timeout(4000)
 		});
-
-		if (res.ok) {
-			const json = await res.json();
-			const items = json?.data?.xdt_api__v1__media__shortcode__web_info?.items;
-			if (items && items.length > 0) {
-				const item = items[0];
-				const caption = item.caption?.text?.trim() || '';
-				const uploader = item.user?.username || item.user?.full_name || '';
-				const duration = item.video_duration || 0;
-				const videoVersions = item.video_versions || [];
-				const imageCandidates = item.image_versions2?.candidates || [];
-				const isVideo = videoVersions.length > 0;
-
-				const thumbnail =
-					(imageCandidates.length > 0 ? imageCandidates[0].url : '') ||
-					(videoVersions.length > 0 ? videoVersions[0].url : '');
-
-				const title = caption.slice(0, 80) || (isVideo ? 'Instagram Reel' : 'Instagram Photo');
-
-				const availableHeights = Array.from(
-					new Set(videoVersions.map((v) => v.height).filter((h) => typeof h === 'number' && h > 0))
-				).sort((a, b) => b - a);
-
-				const details = {
-					id: shortcode,
-					title,
-					uploader,
-					duration,
-					thumbnail,
-					mediaType: isVideo ? 'video' : 'image',
-					videoVersions,
-					imageCandidates,
-					availableQualities: availableHeights
-				};
-
-				setCachedInstagramDetails(shortcode, details);
-				return details;
+		if (snapRes.ok) {
+			const text = await snapRes.text();
+			let unescaped = text;
+			const encoded = getEncodedSnapApp(text);
+			if (encoded) {
+				try {
+					const decoded = decodeSnapApp(encoded);
+					if (decoded) unescaped = decoded.replace(/\\"/g, '"').replace(/\\/g, '');
+				} catch {
+					unescaped = text;
+				}
+			}
+			const tokenMatches =
+				unescaped.match(/https:\/\/d\.rapidcdn\.app\/v2\?token=([A-Za-z0-9_.-]+)/g) || [];
+			for (const tokenUrl of tokenMatches) {
+				const token = tokenUrl.split('token=')[1];
+				const payload = decodeBase64Json(token.split('.')[1]);
+				if (payload?.url) {
+					videoVersions.push({
+						url: payload.url,
+						backupUrl: tokenUrl,
+						width: 1080,
+						height: 1920
+					});
+				} else {
+					videoVersions.push({ url: tokenUrl, backupUrl: tokenUrl });
+				}
+			}
+			if (videoVersions.length === 0) {
+				const directMp4 = unescaped.match(/https:\/\/[^"' <>\n\r]+\.mp4[^"' <>\n\r]*/g) || [];
+				for (const dm of directMp4) {
+					videoVersions.push({ url: dm });
+				}
+			}
+			if (!thumbnail) {
+				const thumbMatch = unescaped.match(/src="([^"]+)"/);
+				if (thumbMatch && thumbMatch[1].startsWith('http')) {
+					thumbnail = thumbMatch[1];
+				}
 			}
 		}
 	} catch {
-		// proceed to yt-dlp fallback
+		// proceed
+	}
+
+	if (videoVersions.length > 0) {
+		const isVideo = true;
+		const details = {
+			id: shortcode,
+			title,
+			uploader,
+			duration: 0,
+			thumbnail: thumbnail || videoVersions[0].url,
+			mediaType: isVideo ? 'video' : 'image',
+			videoVersions,
+			imageCandidates: thumbnail ? [{ url: thumbnail }] : [],
+			availableQualities: [1080, 720, 480]
+		};
+		setCachedInstagramDetails(shortcode, details);
+		return details;
 	}
 
 	// 2. Fallback to yt-dlp
