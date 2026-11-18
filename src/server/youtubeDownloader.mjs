@@ -257,9 +257,10 @@ export async function handleYoutubeDownload(req, res) {
 export function youtubeDownloadPlugin() {
 	const middleware = (req, res, next) => {
 		const parsedUrl = new URL(req.url || '/', 'http://localhost');
-		if (parsedUrl.pathname === '/api/youtube-info') {
+		const pathname = (parsedUrl.pathname || '').replace(/\/+$/, '');
+		if (pathname === '/api/youtube-info') {
 			void handleYoutubeInfo(req, res);
-		} else if (parsedUrl.pathname === '/api/download-youtube') {
+		} else if (pathname === '/api/download-youtube') {
 			void handleYoutubeDownload(req, res);
 		} else {
 			next();
@@ -269,10 +270,22 @@ export function youtubeDownloadPlugin() {
 	return {
 		name: 'vite-plugin-youtube-downloader',
 		configureServer(server) {
-			server.middlewares.use(middleware);
+			return () => {
+				if (Array.isArray(server.middlewares?.stack)) {
+					server.middlewares.stack.unshift({ route: '', handle: middleware });
+				} else {
+					server.middlewares.use(middleware);
+				}
+			};
 		},
 		configurePreviewServer(server) {
-			server.middlewares.use(middleware);
+			return () => {
+				if (Array.isArray(server.middlewares?.stack)) {
+					server.middlewares.stack.unshift({ route: '', handle: middleware });
+				} else {
+					server.middlewares.use(middleware);
+				}
+			};
 		}
 	};
 }

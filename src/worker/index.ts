@@ -33,7 +33,9 @@ export function extractShortcode(url: string | null | undefined): string | null 
 
 export function extractYoutubeId(url: string | null | undefined): string | null {
 	if (!url || typeof url !== 'string') return null;
-	const match = url.trim().match(/(?:watch\?v=|shorts\/|embed\/|v\/|live\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+	const match = url
+		.trim()
+		.match(/(?:watch\?v=|shorts\/|embed\/|v\/|live\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
 	return match ? match[1] : null;
 }
 
@@ -52,7 +54,8 @@ function corsHeaders(): Record<string, string> {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 		'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-		'Access-Control-Expose-Headers': 'Content-Length, Content-Disposition, X-Video-Title, X-File-Type'
+		'Access-Control-Expose-Headers':
+			'Content-Length, Content-Disposition, X-Video-Title, X-File-Type'
 	};
 }
 
@@ -170,9 +173,7 @@ async function fetchInstagramDetails(shortcode: string): Promise<InstagramDetail
 
 	const availableHeights = Array.from(
 		new Set(
-			videoVersions
-				.map((v) => v.height)
-				.filter((h): h is number => typeof h === 'number' && h > 0)
+			videoVersions.map((v) => v.height).filter((h): h is number => typeof h === 'number' && h > 0)
 		)
 	).sort((a, b) => b - a);
 
@@ -480,7 +481,10 @@ export async function handleYoutubeDownload(request: Request): Promise<Response>
 					if (quality && quality !== 'best') {
 						const targetHeight = parseInt(quality, 10);
 						const matched = validStreams.find((s) => {
-							const h = parseInt((s.qualityLabel || s.resolution || '0').replace(/[^0-9]/g, ''), 10);
+							const h = parseInt(
+								(s.qualityLabel || s.resolution || '0').replace(/[^0-9]/g, ''),
+								10
+							);
 							return h > 0 && h <= targetHeight;
 						});
 						if (matched) selectedStream = matched;
@@ -545,9 +549,7 @@ export function getCanonicalRedirect(url: URL): string | null {
 	let pathname = url.pathname;
 
 	const isLocal =
-		hostname === 'localhost' ||
-		hostname === '127.0.0.1' ||
-		hostname.endsWith('.local');
+		hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local');
 
 	// Enforce HTTPS
 	if (protocol === 'http:' && !isLocal) {
@@ -604,16 +606,17 @@ export default {
 		}
 
 		// Cloudflare Workers Native API Routing
-		if (url.pathname === '/api/youtube-info') {
+		const pathname = url.pathname.replace(/\/+$/, '') || '/';
+		if (pathname === '/api/youtube-info') {
 			return handleYoutubeInfo(request);
 		}
-		if (url.pathname === '/api/download-youtube') {
+		if (pathname === '/api/download-youtube') {
 			return handleYoutubeDownload(request);
 		}
-		if (url.pathname === '/api/instagram-info') {
+		if (pathname === '/api/instagram-info') {
 			return handleInstagramInfo(request);
 		}
-		if (url.pathname === '/api/download-instagram') {
+		if (pathname === '/api/download-instagram') {
 			return handleInstagramDownload(request);
 		}
 
@@ -621,4 +624,3 @@ export default {
 		return env.ASSETS.fetch(request);
 	}
 };
-

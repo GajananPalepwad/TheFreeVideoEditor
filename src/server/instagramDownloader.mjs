@@ -19,6 +19,14 @@ export function extractShortcode(url) {
 	return match ? match[1] : null;
 }
 
+export function getCanonicalInstagramUrl(shortcode, url = '') {
+	if (!shortcode) return '';
+	const isPhotoPost = Boolean(url && /(?:\/p\/|\/share\/p\/)/i.test(url));
+	return isPhotoPost
+		? `https://www.instagram.com/p/${shortcode}/`
+		: `https://www.instagram.com/reel/${shortcode}/`;
+}
+
 function sanitizeFilename(name) {
 	if (!name || typeof name !== 'string') return 'instagram_media';
 	const singleLine = name.replace(/[\r\n\t]+/g, ' ').trim();
@@ -147,7 +155,8 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 
 	// 2. Fallback to yt-dlp
 	try {
-		const info = await youtubedl(targetUrl, {
+		const canonicalUrl = getCanonicalInstagramUrl(shortcode, targetUrl);
+		const info = await youtubedl(canonicalUrl, {
 			dumpSingleJson: true,
 			noWarnings: true,
 			ffmpegLocation: ffmpeg.path
@@ -159,6 +168,11 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 			)
 		).sort((a, b) => b - a);
 
+		// Filter out audio-only formats
+		const videoFormats = (info.formats || []).filter(
+			(f) => f.vcodec !== 'none' && f.resolution !== 'audio only' && f.ext !== 'm4a' && f.url
+		);
+
 		const details = {
 			id: info.id || shortcode,
 			title: info.title || 'Instagram Media',
@@ -167,7 +181,7 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 			thumbnail: info.thumbnail || '',
 			mediaType: 'video',
 			availableQualities: availableHeights,
-			videoVersions: (info.formats || []).map((f) => ({
+			videoVersions: videoFormats.map((f) => ({
 				url: f.url,
 				width: f.width,
 				height: f.height
@@ -177,10 +191,15 @@ export async function fetchInstagramDetails(shortcode, targetUrl) {
 
 		setCachedInstagramDetails(shortcode, details);
 		return details;
-	} catch {
-		throw new Error(
-			'Failed to fetch Instagram media details. Please make sure the post or reel is public and the URL is valid.'
-		);
+	} catch (err) {
+		const rawErr = (err && (err.stderr || err.message)) || '';
+		let cleanErr =
+			'Failed to fetch Instagram media details. Please make sure the post or reel is public and the URL is valid.';
+		if (rawErr.includes('Instagram API is not granting access') || rawErr.includes('login')) {
+			cleanErr =
+				'Instagram is requesting authentication for this content. Please verify that this reel is public.';
+		}
+		throw new Error(cleanErr);
 	}
 }
 
@@ -233,15 +252,24 @@ export async function handleInstagramInfo(req, res) {
 }
 
 export async function handleInstagramDownload(req, res) {
-	const tempFilesToClean = [];
+	let tempBase = null;
 
 	const cleanup = () => {
-		for (const file of tempFilesToClean) {
-			try {
-				if (fs.existsSync(file)) fs.unlinkSync(file);
-			} catch {
-				// ignore cleanup error
+		if (!tempBase) return;
+		try {
+			const dir = path.dirname(tempBase);
+			const base = path.basename(tempBase);
+			const files = fs.readdirSync(dir).filter((f) => f.startsWith(base));
+			for (const f of files) {
+				try {
+					const p = path.join(dir, f);
+					if (fs.existsSync(p)) fs.unlinkSync(p);
+				} catch {
+					// ignore cleanup error
+				}
 			}
+		} catch {
+			// ignore cleanup error
 		}
 	};
 
@@ -311,128 +339,127 @@ export async function handleInstagramDownload(req, res) {
 			return;
 		}
 
-		// Video / Reel download
-		const versions = details.videoVersions || [];
-		if (!versions.length) {
-			throw new Error('No video stream found for this Instagram reel/post.');
-		}
-
-		// Select best matching video stream
-		let selectedVersion = versions[0];
-		if (quality && quality !== 'best') {
-			const targetHeight = parseInt(quality, 10);
-			const matched = versions.find((v) => v.height && v.height <= targetHeight);
-			if (matched) selectedVersion = matched;
-		}
-		const videoStreamUrl = selectedVersion.url;
-
+		// Video / Reel download using yt-dlp + ffmpeg
 		const tempId = `ig_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+		tempBase = path.join(os.tmpdir(), tempId);
+		const outPattern = `${tempBase}.%(ext)s`;
+
+		const qualityMap = {
+			1080: { height: 1920, width: 1080 },
+			720: { height: 1280, width: 720 },
+			480: { height: 854, width: 480 },
+			360: { height: 640, width: 360 }
+		};
+
+		const limits = quality && quality !== 'best' && qualityMap[quality];
+		const hFilter = limits ? `[height<=${limits.height}]` : '';
+		const wFilter = limits ? `[width<=${limits.width}]` : '';
+
+		let dlFormat = '';
+		let mergeFormat = undefined;
+		let extractAudio = undefined;
+		let audioFormat = undefined;
+		let ext = 'mp4';
+		let contentType = 'video/mp4';
 
 		if (formatType === 'audio') {
-			// Transcode to MP3 using ffmpeg
-			const tempMp3 = path.join(os.tmpdir(), `${tempId}.mp3`);
-			tempFilesToClean.push(tempMp3);
-
-			await new Promise((resolve, reject) => {
-				const proc = spawn(ffmpeg.path, [
-					'-i',
-					videoStreamUrl,
-					'-vn',
-					'-acodec',
-					'libmp3lame',
-					'-b:a',
-					'192k',
-					'-y',
-					tempMp3
-				]);
-				proc.on('close', (code) => {
-					if (code === 0) resolve();
-					else reject(new Error(`FFmpeg audio extraction failed with code ${code}`));
-				});
-				proc.on('error', reject);
-			});
-
-			const mp3Buffer = fs.readFileSync(tempMp3);
-			cleanup();
-
-			const encodedTitle = encodeURIComponent(`${safeTitle}.mp3`);
-
-			res.statusCode = 200;
-			res.setHeader('Content-Type', 'audio/mpeg');
-			res.setHeader('Content-Length', mp3Buffer.length);
-			res.setHeader(
-				'Content-Disposition',
-				`attachment; filename="${asciiFilename}.mp3"; filename*=UTF-8''${encodedTitle}`
-			);
-			res.setHeader('X-Video-Title', encodeURIComponent(safeTitle));
-			res.setHeader('X-File-Type', 'mp3');
-			res.end(mp3Buffer);
-			return;
+			dlFormat = 'bestaudio/best';
+			extractAudio = true;
+			audioFormat = 'mp3';
+			ext = 'mp3';
+			contentType = 'audio/mpeg';
+		} else if (formatType === 'video_only') {
+			dlFormat = limits
+				? `bestvideo${wFilter}[ext=mp4]/bestvideo${hFilter}[ext=mp4]/bestvideo${hFilter}/bestvideo/best`
+				: 'bestvideo[ext=mp4]/bestvideo/best';
+			ext = 'mp4';
+			contentType = 'video/mp4';
+		} else {
+			// Standard Video + Audio in user's requested quality (or best available)
+			dlFormat = limits
+				? `bestvideo${wFilter}[ext=mp4]+bestaudio[ext=m4a]/bestvideo${hFilter}[ext=mp4]+bestaudio/bestvideo${hFilter}+bestaudio/best${hFilter}[ext=mp4]/best`
+				: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best';
+			mergeFormat = 'mp4';
+			ext = 'mp4';
+			contentType = 'video/mp4';
 		}
 
-		if (formatType === 'video_only') {
-			// Strip audio using ffmpeg
-			const tempMp4 = path.join(os.tmpdir(), `${tempId}_video.mp4`);
-			tempFilesToClean.push(tempMp4);
+		const dlOptions = {
+			output: outPattern,
+			format: dlFormat,
+			ffmpegLocation: ffmpeg.path,
+			noWarnings: true
+		};
 
-			await new Promise((resolve, reject) => {
-				const proc = spawn(ffmpeg.path, [
-					'-i',
-					videoStreamUrl,
-					'-c:v',
-					'copy',
-					'-an',
-					'-y',
-					tempMp4
-				]);
-				proc.on('close', (code) => {
-					if (code === 0) resolve();
-					else reject(new Error(`FFmpeg video copy failed with code ${code}`));
-				});
-				proc.on('error', reject);
-			});
-
-			const videoBuffer = fs.readFileSync(tempMp4);
-			cleanup();
-
-			const encodedTitle = encodeURIComponent(`${safeTitle}.mp4`);
-
-			res.statusCode = 200;
-			res.setHeader('Content-Type', 'video/mp4');
-			res.setHeader('Content-Length', videoBuffer.length);
-			res.setHeader(
-				'Content-Disposition',
-				`attachment; filename="${asciiFilename}.mp4"; filename*=UTF-8''${encodedTitle}`
-			);
-			res.setHeader('X-Video-Title', encodeURIComponent(safeTitle));
-			res.setHeader('X-File-Type', 'mp4');
-			res.end(videoBuffer);
-			return;
+		if (mergeFormat) {
+			dlOptions.mergeOutputFormat = mergeFormat;
+		}
+		if (extractAudio) {
+			dlOptions.extractAudio = true;
+			dlOptions.audioFormat = audioFormat;
 		}
 
-		// Standard Video + Audio: Direct in-memory buffer transfer from CDN stream
-		const vidFetch = await fetch(videoStreamUrl);
-		if (!vidFetch.ok) {
-			throw new Error(`Failed to fetch video stream from CDN: ${vidFetch.statusText}`);
+		try {
+			const canonicalUrl = getCanonicalInstagramUrl(shortcode, targetUrl);
+			await youtubedl(canonicalUrl, dlOptions);
+		} catch (ytdlErr) {
+			// If yt-dlp download failed, check if we have a direct progressive video URL from details
+			const progressive = (details.videoVersions || []).find((v) => v.url);
+			if (progressive && formatType !== 'audio') {
+				const vidFetch = await fetch(progressive.url);
+				if (vidFetch.ok) {
+					const arrayBuf = await vidFetch.arrayBuffer();
+					const buffer = Buffer.from(arrayBuf);
+					const encodedTitle = encodeURIComponent(`${safeTitle}.mp4`);
+					res.statusCode = 200;
+					res.setHeader('Content-Type', 'video/mp4');
+					res.setHeader('Content-Length', buffer.length);
+					res.setHeader(
+						'Content-Disposition',
+						`attachment; filename="${asciiFilename}.mp4"; filename*=UTF-8''${encodedTitle}`
+					);
+					res.setHeader('X-Video-Title', encodeURIComponent(safeTitle));
+					res.setHeader('X-File-Type', 'mp4');
+					res.end(buffer);
+					return;
+				}
+			}
+			throw ytdlErr;
 		}
-		const arrayBuf = await vidFetch.arrayBuffer();
-		const buffer = Buffer.from(arrayBuf);
 
-		const encodedTitle = encodeURIComponent(`${safeTitle}.mp4`);
+		// Find the generated file
+		const files = fs.readdirSync(os.tmpdir()).filter((f) => f.startsWith(tempId));
+		if (!files.length) {
+			throw new Error('Downloaded file could not be found on server.');
+		}
+
+		const targetFile = path.join(os.tmpdir(), files[0]);
+		const stat = fs.statSync(targetFile);
+		const encodedTitle = encodeURIComponent(`${safeTitle}.${ext}`);
 
 		res.statusCode = 200;
-		res.setHeader('Content-Type', 'video/mp4');
-		res.setHeader('Content-Length', buffer.length);
+		res.setHeader('Content-Type', contentType);
+		res.setHeader('Content-Length', stat.size);
 		res.setHeader(
 			'Content-Disposition',
-			`attachment; filename="${asciiFilename}.mp4"; filename*=UTF-8''${encodedTitle}`
+			`attachment; filename="${asciiFilename}.${ext}"; filename*=UTF-8''${encodedTitle}`
 		);
 		res.setHeader('X-Video-Title', encodeURIComponent(safeTitle));
-		res.setHeader('X-File-Type', 'mp4');
-		res.end(buffer);
+		res.setHeader('X-File-Type', ext);
+
+		const readStream = fs.createReadStream(targetFile);
+		readStream.pipe(res);
+
+		res.on('finish', () => {
+			cleanup();
+		});
+		res.on('close', () => {
+			cleanup();
+		});
 	} catch (err) {
 		cleanup();
-		const message = (err && err.message) || 'Instagram download failed.';
+		const rawErr = (err && (err.stderr || err.message)) || 'Instagram download failed.';
+		const cleanErr = rawErr.replace(/ERROR:\s*(\[[^\]]+\]\s*)?/i, '').split('\n')[0] || rawErr;
 		if (!res.headersSent) {
 			try {
 				res.removeHeader('Content-Length');
@@ -444,7 +471,7 @@ export async function handleInstagramDownload(req, res) {
 			}
 			res.statusCode = 400;
 			res.setHeader('Content-Type', 'application/json');
-			res.end(JSON.stringify({ error: message }));
+			res.end(JSON.stringify({ error: cleanErr }));
 		}
 	}
 }
@@ -452,9 +479,10 @@ export async function handleInstagramDownload(req, res) {
 export function instagramDownloadPlugin() {
 	const middleware = (req, res, next) => {
 		const parsedUrl = new URL(req.url || '/', 'http://localhost');
-		if (parsedUrl.pathname === '/api/instagram-info') {
+		const pathname = (parsedUrl.pathname || '').replace(/\/+$/, '');
+		if (pathname === '/api/instagram-info') {
 			void handleInstagramInfo(req, res);
-		} else if (parsedUrl.pathname === '/api/download-instagram') {
+		} else if (pathname === '/api/download-instagram') {
 			void handleInstagramDownload(req, res);
 		} else {
 			next();
@@ -464,10 +492,22 @@ export function instagramDownloadPlugin() {
 	return {
 		name: 'vite-plugin-instagram-downloader',
 		configureServer(server) {
-			server.middlewares.use(middleware);
+			return () => {
+				if (Array.isArray(server.middlewares?.stack)) {
+					server.middlewares.stack.unshift({ route: '', handle: middleware });
+				} else {
+					server.middlewares.use(middleware);
+				}
+			};
 		},
 		configurePreviewServer(server) {
-			server.middlewares.use(middleware);
+			return () => {
+				if (Array.isArray(server.middlewares?.stack)) {
+					server.middlewares.stack.unshift({ route: '', handle: middleware });
+				} else {
+					server.middlewares.use(middleware);
+				}
+			};
 		}
 	};
 }

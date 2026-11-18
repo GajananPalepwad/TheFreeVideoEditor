@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import worker, {
-	isYoutubeUrl,
-	isInstagramUrl,
-	extractShortcode,
-	extractYoutubeId
-} from './index';
+import worker, { isYoutubeUrl, isInstagramUrl, extractShortcode, extractYoutubeId } from './index';
 
 describe('Cloudflare Worker API', () => {
 	describe('URL validators & parsers', () => {
@@ -33,7 +28,9 @@ describe('Cloudflare Worker API', () => {
 
 		it('extracts Instagram shortcodes', () => {
 			expect(extractShortcode('https://www.instagram.com/reel/DehR-cGhfPv/')).toBe('DehR-cGhfPv');
-			expect(extractShortcode('https://www.instagram.com/p/DZxvMgyH8yR/?igsh=123')).toBe('DZxvMgyH8yR');
+			expect(extractShortcode('https://www.instagram.com/p/DZxvMgyH8yR/?igsh=123')).toBe(
+				'DZxvMgyH8yR'
+			);
 			expect(extractShortcode('invalid')).toBeNull();
 		});
 	});
@@ -84,6 +81,13 @@ describe('Cloudflare Worker API', () => {
 			expect(res.status).toBe(400);
 			const data = (await res.json()) as { error: string };
 			expect(data.error).toContain('Please enter a valid Instagram Reel or Post link');
+
+			// Also verifies endpoint works when invoked with trailing slash
+			const reqWithSlash = new Request(
+				'https://thefreevideoeditor.com/api/instagram-info/?url=not-valid'
+			);
+			const resWithSlash = await worker.fetch(reqWithSlash, mockEnv);
+			expect(resWithSlash.status).toBe(400);
 		});
 
 		it('returns 400 for invalid Instagram download request', async () => {
@@ -96,6 +100,15 @@ describe('Cloudflare Worker API', () => {
 			expect(res.status).toBe(400);
 			const data = (await res.json()) as { error: string };
 			expect(data.error).toContain('Please enter a valid Instagram Reel or Post link');
+
+			// Also verifies endpoint works when invoked with trailing slash
+			const reqWithSlash = new Request('https://thefreevideoeditor.com/api/download-instagram/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url: 'https://not-instagram.com' })
+			});
+			const resWithSlash = await worker.fetch(reqWithSlash, mockEnv);
+			expect(resWithSlash.status).toBe(400);
 		});
 
 		it('redirects HTTP requests to HTTPS with 301', async () => {
@@ -123,7 +136,9 @@ describe('Cloudflare Worker API', () => {
 			const req = new Request('http://www.thefreevideoeditor.com/guides/?category=export');
 			const res = await worker.fetch(req, mockEnv);
 			expect(res.status).toBe(301);
-			expect(res.headers.get('Location')).toBe('https://thefreevideoeditor.com/guides/?category=export');
+			expect(res.headers.get('Location')).toBe(
+				'https://thefreevideoeditor.com/guides/?category=export'
+			);
 		});
 
 		it('does not redirect static assets or API routes', async () => {
@@ -145,4 +160,3 @@ describe('Cloudflare Worker API', () => {
 		});
 	});
 });
-
