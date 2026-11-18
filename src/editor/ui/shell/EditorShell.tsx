@@ -1819,58 +1819,60 @@ function EditorShell() {
 					</div>
 				</div>
 
-				<nav className="workspace-bar" aria-label="Workspace layout" role="tablist">
+				<nav className="workspace-bar" aria-label="Workspace layout">
 					<div className="workspace-bar-left" aria-hidden="true" />
 					<div className="workspace-bar-center">
-						{workspaces.order.map((wsId, idx) => {
-							const customWs = workspaces.custom.find((c) => c.id === wsId);
-							const nameMap: Record<string, string> = {
-								assembly: 'Assembly',
-								ai: 'AI',
-								editing: 'Editing',
-								color: 'Color',
-								effects: 'Effects',
-								audio: 'Audio',
-								graphics: 'Graphics'
-							};
-							const name = customWs ? customWs.name : (nameMap[wsId] ?? wsId);
-							const isActive = wsId === activeWorkspaceId;
+						<div className="workspace-tabs-list" role="tablist" aria-label="Workspaces">
+							{workspaces.order.map((wsId, idx) => {
+								const customWs = workspaces.custom.find((c) => c.id === wsId);
+								const nameMap: Record<string, string> = {
+									assembly: 'Assembly',
+									ai: 'AI',
+									editing: 'Editing',
+									color: 'Color',
+									effects: 'Effects',
+									audio: 'Audio',
+									graphics: 'Graphics'
+								};
+								const name = customWs ? customWs.name : (nameMap[wsId] ?? wsId);
+								const isActive = wsId === activeWorkspaceId;
 
-							return (
-								<button
-									key={wsId}
-									type="button"
-									role="tab"
-									aria-selected={isActive}
-									data-active={isActive ? 'true' : undefined}
-									className={`workspace-tab ${isActive ? 'is-active' : ''}`}
-									tabIndex={isActive ? 0 : -1}
-									onClick={() => switchWorkspace(wsId)}
-									onKeyDown={(e) => {
-										if (e.key === 'ArrowRight') {
-											e.preventDefault();
-											const next = workspaces.order[(idx + 1) % workspaces.order.length]!;
-											switchWorkspace(next);
-										} else if (e.key === 'ArrowLeft') {
-											e.preventDefault();
-											const prev =
-												workspaces.order[
-													(idx - 1 + workspaces.order.length) % workspaces.order.length
-												]!;
-											switchWorkspace(prev);
-										} else if (e.key === 'Home') {
-											e.preventDefault();
-											switchWorkspace(workspaces.order[0]!);
-										} else if (e.key === 'End') {
-											e.preventDefault();
-											switchWorkspace(workspaces.order[workspaces.order.length - 1]!);
-										}
-									}}
-								>
-									{name}
-								</button>
-							);
-						})}
+								return (
+									<button
+										key={wsId}
+										type="button"
+										role="tab"
+										aria-selected={isActive}
+										data-active={isActive ? 'true' : undefined}
+										className={`workspace-tab ${isActive ? 'is-active' : ''}`}
+										tabIndex={isActive ? 0 : -1}
+										onClick={() => switchWorkspace(wsId)}
+										onKeyDown={(e) => {
+											if (e.key === 'ArrowRight') {
+												e.preventDefault();
+												const next = workspaces.order[(idx + 1) % workspaces.order.length]!;
+												switchWorkspace(next);
+											} else if (e.key === 'ArrowLeft') {
+												e.preventDefault();
+												const prev =
+													workspaces.order[
+														(idx - 1 + workspaces.order.length) % workspaces.order.length
+													]!;
+												switchWorkspace(prev);
+											} else if (e.key === 'Home') {
+												e.preventDefault();
+												switchWorkspace(workspaces.order[0]!);
+											} else if (e.key === 'End') {
+												e.preventDefault();
+												switchWorkspace(workspaces.order[workspaces.order.length - 1]!);
+											}
+										}}
+									>
+										{name}
+									</button>
+								);
+							})}
+						</div>
 						<div
 							ref={workspaceOverflowRef}
 							style={{ position: 'relative', display: 'flex', alignItems: 'center' }}

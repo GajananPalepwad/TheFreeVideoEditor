@@ -139,7 +139,7 @@ export function TimelineTools({
 	onAddShape
 }: TimelineToolsProps) {
 	return (
-		<aside
+		<div
 			className="timeline-toolstrip"
 			role="toolbar"
 			aria-label="Timeline editing tools"
@@ -191,7 +191,7 @@ export function TimelineTools({
 					</button>
 				);
 			})}
-		</aside>
+		</div>
 	);
 }
 
