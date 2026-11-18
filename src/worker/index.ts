@@ -70,32 +70,90 @@ function jsonResponse(data: unknown, status = 200): Response {
 }
 
 // In-memory cache for Instagram details on warm isolates
-interface InstagramMediaItem {
-	caption?: { text?: string };
-	user?: { username?: string; full_name?: string };
-	video_duration?: number;
-	video_versions?: Array<{ url: string; width?: number; height?: number }>;
-	image_versions2?: { candidates?: Array<{ url: string; width?: number; height?: number }> };
-}
-
-interface InstagramGraphQLResponse {
-	data?: {
-		xdt_api__v1__media__shortcode__web_info?: {
-			items?: InstagramMediaItem[];
-		};
-	};
-}
-
-interface InstagramDetails {
+export interface InstagramDetails {
 	id: string;
 	title: string;
 	uploader: string;
 	duration: number;
 	thumbnail: string;
 	mediaType: 'video' | 'image';
-	videoVersions: Array<{ url: string; width?: number; height?: number }>;
+	videoVersions: Array<{ url: string; backupUrl?: string; width?: number; height?: number }>;
 	imageCandidates: Array<{ url: string; width?: number; height?: number }>;
 	availableQualities: number[];
+}
+
+export function decodeSnapApp(args: string[]): string {
+	const [h, , n, t, e] = args;
+	const tNum = Number(t);
+	const eNum = Number(e);
+	function decode(d: string, baseSrc: number, baseDst: number) {
+		const g = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/'.split('');
+		const hArr = g.slice(0, baseSrc);
+		const iArr = g.slice(0, baseDst);
+		const j = d
+			.split('')
+			.reverse()
+			.reduce((a, b, c) => {
+				const idx = hArr.indexOf(b);
+				if (idx !== -1) return a + idx * Math.pow(baseSrc, c);
+				return a;
+			}, 0);
+		let k = '';
+		let remaining = j;
+		while (remaining > 0) {
+			k = iArr[remaining % baseDst] + k;
+			remaining = Math.floor(remaining / baseDst);
+		}
+		return k || '0';
+	}
+	let result = '';
+	for (let i = 0, len = h.length; i < len;) {
+		let s = '';
+		while (i < len && h[i] !== n[eNum]) {
+			s += h[i];
+			i++;
+		}
+		i++;
+		for (let j = 0; j < n.length; j++) {
+			s = s.replace(new RegExp(n[j], 'g'), j.toString());
+		}
+		result += String.fromCharCode(Number(decode(s, eNum, 10)) - tNum);
+	}
+	try {
+		const bytes = new Uint8Array(result.split('').map((char) => char.charCodeAt(0)));
+		return new TextDecoder('utf-8').decode(bytes);
+	} catch {
+		return result;
+	}
+}
+
+export function getEncodedSnapApp(data: string): string[] | null {
+	const splitA = data.split('decodeURIComponent(escape(r))}(');
+	if (splitA.length < 2) return null;
+	const splitB = splitA[1].split('))');
+	if (splitB.length < 1) return null;
+	return splitB[0].split(',').map((v) => v.replace(/"/g, '').trim());
+}
+
+export function decodeBase64Json<T = unknown>(b64: string): T | null {
+	try {
+		let normalized = b64.replace(/-/g, '+').replace(/_/g, '/');
+		while (normalized.length % 4) {
+			normalized += '=';
+		}
+		if (typeof atob === 'function') {
+			const binary = atob(normalized);
+			const bytes = new Uint8Array(binary.length);
+			for (let i = 0; i < binary.length; i++) {
+				bytes[i] = binary.charCodeAt(i);
+			}
+			const text = new TextDecoder().decode(bytes);
+			return JSON.parse(text) as T;
+		}
+	} catch {
+		// ignore
+	}
+	return null;
 }
 
 interface OembedResponse {
@@ -121,72 +179,146 @@ interface InvidiousResponse {
 const instagramCache = new Map<string, { details: InstagramDetails; timestamp: number }>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
-async function fetchInstagramDetails(shortcode: string): Promise<InstagramDetails> {
+export async function fetchInstagramDetails(
+	shortcode: string,
+	targetUrl?: string | null
+): Promise<InstagramDetails> {
 	const cached = instagramCache.get(shortcode);
 	if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
 		return cached.details;
 	}
 
-	const variables = JSON.stringify({ shortcode });
-	const encoded_variables = encodeURIComponent(variables);
-	const payload = `av=0&__d=www&__user=0&__a=1&__req=u&__hs=20371.HYP%3Ainstagram_web_pkg.2.1...0&dpr=1&__ccg=GOOD&__rev=1028249517&__s=ywybjm%3Aq4co81%3Adplvd8&__hsi=7559456450740095677&__dyn=7xeUjG1mxu1syUbFp41twpUnwgU7SbzEdF8aUco2qwJw5ux609vCwjE1EE2Cw8G11wBz81s8hwGxu786a3a1YwBgao6C0Mo2swtUd8-U2zxe2GewGw9a361qw8Xxm16wa-0raazo7u3C2u2J0bS1LwTwKG0WE8oC1Iwqo5p0OwUQp1yU426V89F8uwm8jwhUaE4e1tyVrx60gm5oswFwtF85i5E&__csr=geIAaiFliZllsBav4trBuTJ-KJ5WhnQyAnxeEWpBCC-hJADG9AgG4qpQ8zat5BypWy9eaRgBaJ2Xx2p6WgymmGDzQjJo8JJ4iKi8xObCjx50FzLF4-8DiwxDyGqoydV-ESQ9DLAB_GdDzFEsyUSeG8xmF9oymWyqyVFF84q5ooHohwuE5a0CU01kUUb81CE12E5V08m0WFA0ei80n2bLwjp42TOw2J-0rq04tUKp06PwEhy1u1ig4Dgy9wdW0D8n80rl0UxGtw53hEx2E1yPUy7U1J9Q0JFvc0cXwpyG4B6B2US01IAw2Bo0K215w0YEwj8&__hsdp=gaQbh9gple4i4WuA2XCG7RVt5m8DxGU4K32awCF0GBcq1AyH40uWxe3AwboK5-0FE8UbkkU4-4o11XwQCyE9UswZweC4U6iq6UOewJyEhwBwjQ2259o1oE1E85u0km5Unw7Pwaau1CwMwkEeU1v82ew2rA0LoW0W8aO0Ewc6&__hblp=0nE20wpGx6vxy2i1ryE9Gg6q1hwkE9WwkocUso4O2vDyof98K7o4-48hDwyLBx61HwkGg8VoGqawDxCGBwQxG6S0I8jwywXBCxKczEqxaax62m1FDxim1nw4axq0oC362m0iu7ohBxu11wEwfm0AE421xDwhEvwxzEvG2-3K0nO0zE1MUK0DA1DwgEizEW0Qp-2Awa8nxyi1fwRBwFwau68bE&__comet_req=7&lsd=AdGtgRvhyjc&jazoest=21085&__spin_r=1028249517&__spin_b=trunk&__spin_t=1760073111&__crn=comet.igweb.PolarisLoggedOutDesktopPostRouteNext&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=PolarisPostRootQuery&server_timestamps=true&variables=${encoded_variables}&doc_id=24368985919464652`;
+	const isPhotoPost = Boolean(targetUrl && /(?:\/p\/|\/share\/p\/)/i.test(targetUrl));
+	const canonicalUrl = isPhotoPost
+		? `https://www.instagram.com/p/${shortcode}/`
+		: `https://www.instagram.com/reel/${shortcode}/`;
 
-	const headers = {
-		accept: '*/*',
-		'content-type': 'application/x-www-form-urlencoded',
-		'user-agent':
-			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-		'x-csrftoken': 'YuvV-QRvpR2Ggzgk0cTg1T',
-		'x-ig-app-id': '936619743392459',
-		Cookie: 'csrftoken=YuvV-QRvpR2Ggzgk0cTg1T; mid=aOia4gALAAHSq3em2E34YEIFkMCC'
-	};
+	let title = isPhotoPost ? 'Instagram Photo' : 'Instagram Reel';
+	let uploader = '';
+	let thumbnail = '';
+	const duration = 0;
 
-	const res = await fetch('https://www.instagram.com/graphql/query', {
-		method: 'POST',
-		headers,
-		body: payload
-	});
-
-	if (!res.ok) {
-		throw new Error(`Instagram query failed with HTTP ${res.status}`);
+	// 1. Official Instagram oEmbed metadata (fast, unauthenticated, never 401s)
+	try {
+		const oembedRes = await fetch(
+			`https://www.instagram.com/api/v1/oembed/?url=${encodeURIComponent(`https://www.instagram.com/p/${shortcode}/`)}`,
+			{
+				headers: {
+					'User-Agent':
+						'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+				},
+				signal: AbortSignal.timeout(3500)
+			}
+		);
+		if (oembedRes.ok) {
+			const oembed = (await oembedRes.json()) as OembedResponse;
+			if (oembed.title) title = oembed.title;
+			if (oembed.author_name) uploader = oembed.author_name;
+			if (oembed.thumbnail_url) thumbnail = oembed.thumbnail_url;
+		}
+	} catch {
+		// Proceed to media extractors
 	}
 
-	const json = (await res.json()) as InstagramGraphQLResponse;
-	const items = json?.data?.xdt_api__v1__media__shortcode__web_info?.items;
-	if (!items || items.length === 0) {
+	// 2. SnapSave stream extraction (pure JS decryption of direct CDN stream & backup proxy)
+	const videoVersions: Array<{
+		url: string;
+		backupUrl?: string;
+		width?: number;
+		height?: number;
+	}> = [];
+	const imageCandidates: Array<{ url: string; width?: number; height?: number }> = [];
+
+	try {
+		const formData = new URLSearchParams();
+		formData.append('url', canonicalUrl);
+		const snapRes = await fetch('https://snapsave.app/action.php?lang=en', {
+			method: 'POST',
+			headers: {
+				accept: '*/*',
+				'content-type': 'application/x-www-form-urlencoded',
+				origin: 'https://snapsave.app',
+				referer: 'https://snapsave.app/',
+				'user-agent':
+					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+			},
+			body: formData.toString(),
+			signal: AbortSignal.timeout(5000)
+		});
+
+		if (snapRes.ok) {
+			const text = await snapRes.text();
+			let unescaped = text;
+			const encoded = getEncodedSnapApp(text);
+			if (encoded) {
+				try {
+					const decoded = decodeSnapApp(encoded);
+					if (decoded) {
+						unescaped = decoded.replace(/\\"/g, '"').replace(/\\/g, '');
+					}
+				} catch {
+					unescaped = text;
+				}
+			}
+
+			const tokenMatches =
+				unescaped.match(/https:\/\/d\.rapidcdn\.app\/v2\?token=([A-Za-z0-9_.-]+)/g) || [];
+
+			for (const tokenUrl of tokenMatches) {
+				const token = tokenUrl.split('token=')[1];
+				const payload = decodeBase64Json<{ url?: string; filename?: string }>(token.split('.')[1]);
+				if (payload?.url) {
+					videoVersions.push({
+						url: payload.url,
+						backupUrl: tokenUrl,
+						width: 1080,
+						height: 1920
+					});
+				} else {
+					videoVersions.push({
+						url: tokenUrl,
+						backupUrl: tokenUrl
+					});
+				}
+			}
+
+			if (videoVersions.length === 0) {
+				const directMp4 = unescaped.match(/https:\/\/[^"' <>\n\r]+\.mp4[^"' <>\n\r]*/g) || [];
+				for (const dm of directMp4) {
+					videoVersions.push({ url: dm });
+				}
+			}
+
+			if (!thumbnail) {
+				const thumbMatch = unescaped.match(/src="([^"]+)"/);
+				if (thumbMatch && thumbMatch[1].startsWith('http')) {
+					thumbnail = thumbMatch[1];
+				}
+			}
+		}
+	} catch {
+		// Proceed
+	}
+
+	if (thumbnail) {
+		imageCandidates.push({ url: thumbnail, width: 480, height: 853 });
+	}
+
+	if (!title && !thumbnail && videoVersions.length === 0 && imageCandidates.length === 0) {
 		throw new Error('Could not find media details. Please make sure the post or reel is public.');
 	}
 
-	const item = items[0];
-	const caption = item.caption?.text?.trim() || '';
-	const uploader = item.user?.username || item.user?.full_name || '';
-	const duration = item.video_duration || 0;
-	const videoVersions = item.video_versions || [];
-	const imageCandidates = item.image_versions2?.candidates || [];
-	const isVideo = videoVersions.length > 0;
-
-	const thumbnail =
-		(imageCandidates.length > 0 ? imageCandidates[0].url : '') ||
-		(videoVersions.length > 0 ? videoVersions[0].url : '');
-
-	const title = caption.slice(0, 80) || (isVideo ? 'Instagram Reel' : 'Instagram Photo');
-
-	const availableHeights = Array.from(
-		new Set(
-			videoVersions.map((v) => v.height).filter((h): h is number => typeof h === 'number' && h > 0)
-		)
-	).sort((a, b) => b - a);
-
+	const isVideo = !isPhotoPost || videoVersions.length > 0;
 	const details: InstagramDetails = {
 		id: shortcode,
-		title,
+		title: title.slice(0, 80) || (isVideo ? 'Instagram Reel' : 'Instagram Photo'),
 		uploader,
 		duration,
-		thumbnail,
+		thumbnail: thumbnail || (videoVersions.length > 0 ? videoVersions[0].url : ''),
 		mediaType: isVideo ? 'video' : 'image',
 		videoVersions,
 		imageCandidates,
-		availableQualities: availableHeights
+		availableQualities: [1080, 720, 480]
 	};
 
 	instagramCache.set(shortcode, { details, timestamp: Date.now() });
@@ -212,7 +344,7 @@ export async function handleInstagramInfo(request: Request): Promise<Response> {
 			return jsonResponse({ error: 'Could not extract shortcode from Instagram link.' }, 400);
 		}
 
-		const details = await fetchInstagramDetails(shortcode);
+		const details = await fetchInstagramDetails(shortcode, targetUrl);
 
 		return jsonResponse({
 			id: details.id,
@@ -256,7 +388,7 @@ export async function handleInstagramDownload(request: Request): Promise<Respons
 			return jsonResponse({ error: 'Could not extract shortcode from Instagram link.' }, 400);
 		}
 
-		const details = await fetchInstagramDetails(shortcode);
+		const details = await fetchInstagramDetails(shortcode, targetUrl);
 		const safeTitle = sanitizeFilename(details.title, 'instagram_media');
 		const asciiFilename =
 			safeTitle
@@ -264,13 +396,18 @@ export async function handleInstagramDownload(request: Request): Promise<Respons
 				.replace(/\s+/g, ' ')
 				.trim() || 'instagram_media';
 
+		const browserHeaders = {
+			'User-Agent':
+				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+		};
+
 		if (details.mediaType === 'image') {
 			const candidates = details.imageCandidates || [];
-			if (!candidates.length) {
+			if (!candidates.length && !details.thumbnail) {
 				return jsonResponse({ error: 'No image streams found for this Instagram post.' }, 400);
 			}
-			const imgUrl = candidates[0].url;
-			const imgFetch = await fetch(imgUrl);
+			const imgUrl = candidates[0]?.url || details.thumbnail;
+			const imgFetch = await fetch(imgUrl, { headers: browserHeaders });
 			if (!imgFetch.ok || !imgFetch.body) {
 				return jsonResponse({ error: 'Failed to download photo from Instagram CDN.' }, 400);
 			}
@@ -297,7 +434,13 @@ export async function handleInstagramDownload(request: Request): Promise<Respons
 		// Video / Reel download
 		const versions = details.videoVersions || [];
 		if (!versions.length) {
-			return jsonResponse({ error: 'No video stream found for this Instagram reel/post.' }, 400);
+			return jsonResponse(
+				{
+					error:
+						'Could not extract direct video stream for this reel. Please make sure the post or reel is public.'
+				},
+				400
+			);
 		}
 
 		let selectedVersion = versions[0];
@@ -307,8 +450,14 @@ export async function handleInstagramDownload(request: Request): Promise<Respons
 			if (matched) selectedVersion = matched;
 		}
 
-		const vidFetch = await fetch(selectedVersion.url);
-		if (!vidFetch.ok || !vidFetch.body) {
+		let vidFetch = await fetch(selectedVersion.url, { headers: browserHeaders }).catch(() => null);
+		if ((!vidFetch || !vidFetch.ok || !vidFetch.body) && selectedVersion.backupUrl) {
+			vidFetch = await fetch(selectedVersion.backupUrl, { headers: browserHeaders }).catch(
+				() => null
+			);
+		}
+
+		if (!vidFetch || !vidFetch.ok || !vidFetch.body) {
 			return jsonResponse({ error: 'Failed to fetch video stream from Instagram CDN.' }, 400);
 		}
 

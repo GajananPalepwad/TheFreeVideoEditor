@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import worker, { isYoutubeUrl, isInstagramUrl, extractShortcode, extractYoutubeId } from './index';
+import worker, {
+	isYoutubeUrl,
+	isInstagramUrl,
+	extractShortcode,
+	extractYoutubeId,
+	decodeBase64Json,
+	getEncodedSnapApp,
+	decodeSnapApp
+} from './index';
 
 describe('Cloudflare Worker API', () => {
 	describe('URL validators & parsers', () => {
@@ -32,6 +40,28 @@ describe('Cloudflare Worker API', () => {
 				'DZxvMgyH8yR'
 			);
 			expect(extractShortcode('invalid')).toBeNull();
+		});
+	});
+
+	describe('Instagram unpacker & base64 helpers', () => {
+		it('safely decodes base64 JSON with URL-safe characters', () => {
+			const payload = { url: 'https://instagram.fbcdn.net/video.mp4', filename: 'clip.mp4' };
+			const rawJson = JSON.stringify(payload);
+			const b64 = Buffer.from(rawJson).toString('base64');
+			const decoded = decodeBase64Json<typeof payload>(b64);
+			expect(decoded).toEqual(payload);
+
+			expect(decodeBase64Json('invalid-json')).toBeNull();
+		});
+
+		it('extracts encoded parameters from SnapApp payload and safely handles decode', () => {
+			const fakeScript =
+				'something;eval(function(p,a,c,k,e,r){return decodeURIComponent(escape(r))}("arg1","arg2","arg3",12,34,56));more';
+			const params = getEncodedSnapApp(fakeScript);
+			expect(params).toEqual(['arg1', 'arg2', 'arg3', '12', '34', '56']);
+
+			expect(getEncodedSnapApp('nothing here')).toBeNull();
+			expect(decodeSnapApp(['', '', '0123456789', '0', '0'])).toBe('');
 		});
 	});
 
@@ -157,6 +187,122 @@ describe('Cloudflare Worker API', () => {
 			expect(res.status).toBe(200);
 			expect(await res.text()).toBe('mock static asset: /editor/');
 			expect(mockEnv.ASSETS.fetch).toHaveBeenCalledWith(req);
+		});
+
+		it('returns 200 with metadata on valid instagram-info request', async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = vi.fn().mockImplementation((url: string | URL | Request) => {
+				const urlStr =
+					typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+				if (urlStr.includes('/api/v1/oembed/')) {
+					return Promise.resolve(
+						new Response(
+							JSON.stringify({
+								title: 'Test Reel Caption',
+								author_name: 'test_creator',
+								thumbnail_url: 'https://example.com/thumbnail.jpg'
+							}),
+							{ status: 200, headers: { 'Content-Type': 'application/json' } }
+						)
+					);
+				}
+				if (urlStr.includes('snapsave.app/action.php')) {
+					return Promise.resolve(new Response('no streams', { status: 200 }));
+				}
+				return Promise.resolve(new Response('not found', { status: 404 }));
+			});
+
+			try {
+				const req = new Request(
+					'https://thefreevideoeditor.com/api/instagram-info?url=https://www.instagram.com/reel/TestCode123/'
+				);
+				const res = await worker.fetch(req, mockEnv);
+				expect(res.status).toBe(200);
+				const data = (await res.json()) as {
+					id: string;
+					title: string;
+					uploader: string;
+					thumbnail: string;
+				};
+				expect(data.id).toBe('TestCode123');
+				expect(data.title).toBe('Test Reel Caption');
+				expect(data.uploader).toBe('test_creator');
+				expect(data.thumbnail).toBe('https://example.com/thumbnail.jpg');
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
+		it('streams video with proper headers on valid instagram download request', async () => {
+			const originalFetch = globalThis.fetch;
+			const sampleVideoPayload = Buffer.from('fake-video-stream-content');
+			const jwtPayload = Buffer.from(
+				JSON.stringify({
+					url: 'https://instagram.fbcdn.net/sample_video.mp4',
+					filename: 'sample.mp4'
+				})
+			).toString('base64');
+			const fakeTokenUrl = `https://d.rapidcdn.app/v2?token=header.${jwtPayload}.sig`;
+
+			globalThis.fetch = vi.fn().mockImplementation((url: string | URL | Request) => {
+				const urlStr =
+					typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+				if (urlStr.includes('/api/v1/oembed/')) {
+					return Promise.resolve(
+						new Response(
+							JSON.stringify({
+								title: 'Sample Video Download',
+								author_name: 'videomaker'
+							}),
+							{ status: 200, headers: { 'Content-Type': 'application/json' } }
+						)
+					);
+				}
+				if (urlStr.includes('snapsave.app/action.php')) {
+					return Promise.resolve(
+						new Response(
+							`<div class="download-items"><a href="${fakeTokenUrl}">Download</a></div>`,
+							{
+								status: 200
+							}
+						)
+					);
+				}
+				if (urlStr.includes('sample_video.mp4')) {
+					return Promise.resolve(
+						new Response(sampleVideoPayload, {
+							status: 200,
+							headers: {
+								'Content-Type': 'video/mp4',
+								'Content-Length': String(sampleVideoPayload.length)
+							}
+						})
+					);
+				}
+				return Promise.resolve(new Response('not found', { status: 404 }));
+			});
+
+			try {
+				const req = new Request('https://thefreevideoeditor.com/api/download-instagram', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						url: 'https://www.instagram.com/reel/Download123/',
+						formatType: 'video',
+						quality: 'best'
+					})
+				});
+				const res = await worker.fetch(req, mockEnv);
+				expect(res.status).toBe(200);
+				expect(res.headers.get('Content-Type')).toBe('video/mp4');
+				expect(res.headers.get('Content-Disposition')).toContain('Sample Video Download.mp4');
+				expect(res.headers.get('X-File-Type')).toBe('mp4');
+				expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+				const bodyBytes = await res.arrayBuffer();
+				expect(bodyBytes.byteLength).toBe(sampleVideoPayload.length);
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
 		});
 	});
 });
