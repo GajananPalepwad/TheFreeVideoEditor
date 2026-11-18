@@ -95,6 +95,8 @@ import {
 	removeMaskFromClip,
 	updateMaskInClip,
 	reorderMasksInClip,
+	pathShapeToPoints,
+	pointsToPathShape,
 	type Mask,
 	type ColorRgba,
 	type EffectInstance,
@@ -6205,17 +6207,21 @@ export function createEditorStore() {
 
 				updateMask(clipId, maskId, patch, options) {
 					const project = get().project;
+					let shapePropId: PropertyId | null = null;
+					let coordsToKey: number[] | null = null;
+
 					if (project) {
-						const clip = project.tracks.flatMap((t) => t.clips).find((c) => c.id === clipId);
+						const clip = findClipInSequence(project, get().activeSequenceId, clipId);
 						const mask = clip?.masks?.find((m) => m.id === maskId);
 						if (clip && mask) {
-							const shapePropId = `mask:${maskId}:shape` as PropertyId;
+							shapePropId = `mask:${maskId}:shape` as PropertyId;
 							const shapeCurve = propertyCurve(clip, shapePropId);
 							const shapeAnimated = shapeCurve && isAnimated(shapeCurve);
 
 							// If shape is updated and it is animated, check point count enforcement or auto-key
 							if (patch.points && shapeAnimated) {
-								const currentPoints = mask.points ?? [];
+								const currentPoints =
+									mask.points ?? (mask.shape ? pathShapeToPoints(mask.shape) : []);
 								if (patch.points.length !== currentPoints.length) {
 									get().setMaskBlockedMessage(
 										'Cannot add or remove points while mask shape is animated.'
@@ -6223,20 +6229,9 @@ export function createEditorStore() {
 									return false;
 								}
 								// Same point count: auto-key shape property
-								const coords: number[] = [];
-								for (const pt of patch.points) {
-									coords.push(
-										pt.x,
-										pt.y,
-										pt.inHandle?.x ?? pt.x,
-										pt.inHandle?.y ?? pt.y,
-										pt.outHandle?.x ?? pt.x,
-										pt.outHandle?.y ?? pt.y
-									);
-								}
-								get().setProperty(clipId, shapePropId, coords, { autoKey: true });
+								coordsToKey = pointsToPathShape(patch.points);
 							} else if (patch.shape && (shapeAnimated || shapeCurve)) {
-								get().setProperty(clipId, shapePropId, [...patch.shape], { autoKey: true });
+								coordsToKey = [...patch.shape];
 							}
 						}
 					}
@@ -6251,7 +6246,15 @@ export function createEditorStore() {
 									...t,
 									clips: t.clips.map((c) => {
 										if (c.id !== clipId) return c;
-										return updateMaskInClip(c, maskId, patch);
+										let updated = c;
+										if (shapePropId && coordsToKey) {
+											const localTime = get().timeline.playhead - c.start;
+											updated = setPropertyAtTime(updated, shapePropId, localTime, coordsToKey, {
+												autoKey: true,
+												fps: proj.settings.fps
+											});
+										}
+										return updateMaskInClip(updated, maskId, patch);
 									})
 								}))
 							})),
@@ -6261,7 +6264,10 @@ export function createEditorStore() {
 							}
 						);
 						return true;
-					} catch {
+					} catch (error) {
+						set((state) => {
+							state.projectMessage = errorMessage(error);
+						});
 						return false;
 					}
 				},

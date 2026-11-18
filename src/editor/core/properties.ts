@@ -2,6 +2,7 @@ import { evaluate, isAnimatedValue } from './animation';
 import { clampCrop, type Crop } from './crop';
 import { getEffectDefinition } from './effects/registry';
 import { gradientFieldsOf, stopsForEditing, type GradientColor } from './gradient';
+import { pointsToPathShape } from './maskGeometry';
 import type { AnimatedValue, Clip, ClipTransform, PropertyId, Time } from './types';
 
 export type PropertyShape = 'number' | 'vec2' | 'vec4' | 'numberArray';
@@ -812,6 +813,9 @@ export function propertyCurve(
 			}
 			const staticVal = (mask as unknown as Record<string, unknown>)[paramName];
 			if (staticVal !== undefined) return { value: staticVal as PropertyValue };
+			if (paramName === 'shape' && mask.type === 'path' && mask.points) {
+				return { value: pointsToPathShape(mask.points) };
+			}
 		}
 	}
 	if (id === 'timeRemap') {
@@ -835,7 +839,11 @@ function gradientFill(clip: Clip, localTime: Time): GradientColor {
 }
 
 /** What a gradient property is when the clip does not animate it: the value its gradient has. */
-function gradientSourceValue(clip: Clip, id: PropertyId, localTime: Time): PropertyValue | undefined {
+function gradientSourceValue(
+	clip: Clip,
+	id: PropertyId,
+	localTime: Time
+): PropertyValue | undefined {
 	if (!id.startsWith('gradient.')) return undefined;
 	const fields = gradientFieldsOf(clip);
 	if (!fields?.gradientType || fields.gradientType === 'none') return undefined;

@@ -394,6 +394,87 @@ describe('mask, fade and audio edits inside a template sequence', () => {
 		expect(innerClip(store, sequenceId).masks?.map((mask) => mask.id)).toEqual([first]);
 	});
 
+	it('auto-keys path mask shape when dot positions change while animated', async () => {
+		const { store, sequenceId } = await openTemplate();
+		const target = innerClip(store, sequenceId);
+		const maskId = store.getState().addMask(target.id, 'path')!;
+		const shapePropId = `mask:${maskId}:shape` as PropertyId;
+
+		// Enable animation on the path mask shape
+		store.getState().enableAnimation(target.id, shapePropId);
+		const initialClip = innerClip(store, sequenceId);
+		const curve = propertyCurve(initialClip, shapePropId);
+		expect(curve && isAnimated(curve)).toBe(true);
+
+		// Advance playhead by 1 second (1_000_000 microseconds)
+		store.getState().setPlayhead(target.start + 1_000_000);
+
+		// Modify dot positions (same point count: 3 points, moved vertex)
+		const modifiedPoints = [
+			{ x: 0.4, y: 0.4 },
+			{ x: 0.7, y: 0.3 },
+			{ x: 0.5, y: 0.7 }
+		];
+		expect(store.getState().updateMask(target.id, maskId, { points: modifiedPoints })).toBe(true);
+
+		// Verify keyframe was added at 1_000_000
+		const updatedClip = innerClip(store, sequenceId);
+		const updatedCurve = propertyCurve(updatedClip, shapePropId);
+		expect(updatedCurve && isAnimated(updatedCurve)).toBe(true);
+		if (updatedCurve && isAnimated(updatedCurve)) {
+			expect(updatedCurve.keyframes.length).toBe(2);
+			expect(updatedCurve.keyframes.some((k) => k.time === 1_000_000)).toBe(true);
+		}
+
+		// Attempting to add a point while animated is blocked
+		const pointsWithAdded = [...modifiedPoints, { x: 0.5, y: 0.5 }];
+		expect(store.getState().updateMask(target.id, maskId, { points: pointsWithAdded })).toBe(false);
+		expect(store.getState().maskTool.blockedMessage).toBe(
+			'Cannot add or remove points while mask shape is animated.'
+		);
+	});
+
+	it('auto-keys path mask shape and interpolates points on root timeline clips', async () => {
+		const { store, sequenceId } = await openTemplate();
+		// Create a root solid clip
+		const clipId = store.getState().addSolidLayer('#ff0000')!;
+		const maskId = store.getState().addMask(clipId, 'path')!;
+		const shapePropId = `mask:${maskId}:shape` as PropertyId;
+
+		// Initial points (3 points)
+		const p0 = [
+			{ x: 0.2, y: 0.2 },
+			{ x: 0.8, y: 0.2 },
+			{ x: 0.5, y: 0.8 }
+		];
+		expect(store.getState().updateMask(clipId, maskId, { points: p0 })).toBe(true);
+
+		// Enable shape animation at time 0
+		store.getState().setPlayhead(0);
+		store.getState().enableAnimation(clipId, shapePropId);
+
+		// Move playhead to 1 second
+		store.getState().setPlayhead(1_000_000);
+
+		// Move first dot from (0.2, 0.2) to (0.6, 0.4)
+		const p1 = [
+			{ x: 0.6, y: 0.4 },
+			{ x: 0.8, y: 0.2 },
+			{ x: 0.5, y: 0.8 }
+		];
+		expect(store.getState().updateMask(clipId, maskId, { points: p1 })).toBe(true);
+
+		// Verify clip now has 2 keyframes
+		const clip = innerClips(store, sequenceId).find((c) => c.id === clipId)!;
+		const curve = propertyCurve(clip, shapePropId);
+		expect(curve && isAnimated(curve)).toBe(true);
+		if (curve && isAnimated(curve)) {
+			expect(curve.keyframes.length).toBe(2);
+			expect(curve.keyframes[0]!.time).toBe(0);
+			expect(curve.keyframes[1]!.time).toBe(1_000_000);
+		}
+	});
+
 	it('setClipFade changes the fades of the nested clip', async () => {
 		const { store, sequenceId } = await openTemplate();
 		const target = innerClip(store, sequenceId);
@@ -433,12 +514,10 @@ describe('transition edits inside a template sequence', () => {
 		const target = innerClip(store, sequenceId);
 		const rootBefore = rootClips(store);
 
-		const id = store
-			.getState()
-			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
-				kind: 'head',
-				clipId: target.id
-			});
+		const id = store.getState().addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+			kind: 'head',
+			clipId: target.id
+		});
 
 		expect(id).not.toBeNull();
 		expect(trackOf(store, sequenceId, target).transitions?.map((t) => t.id)).toEqual([id]);
@@ -449,12 +528,10 @@ describe('transition edits inside a template sequence', () => {
 	it('updateTransition and removeTransition change the nested transition', async () => {
 		const { store, sequenceId } = await openTemplate();
 		const target = innerClip(store, sequenceId);
-		const id = store
-			.getState()
-			.addTransition(trackOf(store, sequenceId, target).id, 'fade', {
-				kind: 'head',
-				clipId: target.id
-			})!;
+		const id = store.getState().addTransition(trackOf(store, sequenceId, target).id, 'fade', {
+			kind: 'head',
+			clipId: target.id
+		})!;
 
 		expect(store.getState().updateTransition(id, { duration: 400_000 })).toBe(true);
 		expect(trackOf(store, sequenceId, target).transitions![0]!.duration).toBe(400_000);

@@ -13,6 +13,8 @@ import {
 } from './maskGeometry';
 import type { AnimatedValue, Clip, Mask, MaskPoint, PropertyId, Time } from './types';
 
+export { pathShapeToPoints, pointsToPathShape } from './maskGeometry';
+
 export interface EvaluatedMask {
 	id: string;
 	name?: string;
@@ -98,7 +100,12 @@ export function evaluateMask(
 	const expansion = evalProp('expansion', mask.expansion);
 	const opacity = Math.max(0, Math.min(1, evalProp('opacity', mask.opacity)));
 
-	const points = mask.type === 'path' ? (mask.points ?? pathShapeToPoints(shape)) : undefined;
+	const points =
+		mask.type === 'path'
+			? shapeCurve
+				? pathShapeToPoints(shape)
+				: (mask.points ?? pathShapeToPoints(shape))
+			: undefined;
 
 	return {
 		id: mask.id,

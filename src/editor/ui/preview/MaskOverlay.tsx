@@ -6,18 +6,21 @@ import {
 	type PointerEvent as ReactPointerEvent
 } from 'react';
 import {
+	distanceToSegment,
 	evaluateMask,
 	flattenBezier,
-	distanceToSegment,
 	getSequence,
+	isAnimated,
 	layerAffine,
+	propertyCurve,
 	readProperty,
 	resolveFrame,
 	type Clip,
 	type EvaluatedMask,
 	type MaskPoint,
 	type Point2D,
-	type Project
+	type Project,
+	type PropertyId
 } from '../../core';
 import { getTextDimensions } from '../../services/render/text/rasterizer';
 import { useEditorStore, useEditorStoreApi } from '../../state/EditorProvider';
@@ -161,14 +164,8 @@ export function getClipSourceDimensions(
 	}
 	if (src && 'type' in src && src.type === 'shape') {
 		const shapeSrc = src as { width?: number; height?: number };
-		const w =
-			(readProperty(clip, 'shape.width', localTime) as number) ??
-			shapeSrc.width ??
-			300;
-		const h =
-			(readProperty(clip, 'shape.height', localTime) as number) ??
-			shapeSrc.height ??
-			200;
+		const w = (readProperty(clip, 'shape.width', localTime) as number) ?? shapeSrc.width ?? 300;
+		const h = (readProperty(clip, 'shape.height', localTime) as number) ?? shapeSrc.height ?? 200;
 		return { width: w, height: h };
 	}
 	if (src && 'type' in src && src.type === 'sequence') {
@@ -355,10 +352,12 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 							shape[0] = Math.max(0, Math.min(1, shape[0]! + dNormX));
 							shape[1] = Math.max(0, Math.min(1, shape[1]! + dNormY));
 							store.getState().updateMask(selectedClip.id, mask.id, { shape });
-						} else if (mask.type === 'path' && mask.points) {
+						} else if (mask.type === 'path') {
+							const evalMask = evaluateMask(mask, localTime, selectedClip.properties);
+							const currentPts = evalMask.points ?? mask.points;
 							const ptIdx = maskTool.selectedPointIndex;
-							if (ptIdx !== null) {
-								const pts = mask.points.map((pt, i) =>
+							if (ptIdx !== null && currentPts) {
+								const pts = currentPts.map((pt, i) =>
 									i === ptIdx
 										? {
 												...pt,
@@ -383,7 +382,8 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 		masks,
 		dragging,
 		fromMonitor,
-		store
+		store,
+		localTime
 	]);
 
 	const evaluatedMasks = selectedClip
@@ -391,6 +391,20 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 		: [];
 	const activeMaskId = maskTool.selectedMaskId ?? (masks.length > 0 ? masks[0]!.id : null);
 	const activeMask = evaluatedMasks.find((m) => m.id === activeMaskId);
+	const activeMaskShapePropId = activeMask ? (`mask:${activeMask.id}:shape` as PropertyId) : null;
+	const activeMaskShapeCurve =
+		activeMask && selectedClip && activeMaskShapePropId
+			? propertyCurve(selectedClip, activeMaskShapePropId)
+			: null;
+	const isShapeAnimated = Boolean(activeMaskShapeCurve && isAnimated(activeMaskShapeCurve));
+
+	useEffect(() => {
+		if (!maskTool.blockedMessage) return;
+		const timer = setTimeout(() => {
+			store.getState().setMaskBlockedMessage(null);
+		}, 2500);
+		return () => clearTimeout(timer);
+	}, [maskTool.blockedMessage, store]);
 
 	const handlePointerDownHandle = (
 		e: ReactPointerEvent,
@@ -480,7 +494,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 	};
 
 	const handlePathPointerDown = (e: ReactPointerEvent, mask: EvaluatedMask) => {
-		if (!selectedClip) return;
+		if (!selectedClip || isShapeAnimated) return;
 		const svg = svgRef.current;
 		if (!svg) return;
 		const rect = svg.getBoundingClientRect();
@@ -511,7 +525,8 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 		};
 		pts.splice(insertIdx, 0, newPt);
 
-		store.getState().updateMask(selectedClip.id, mask.id, { points: pts });
+		const updated = store.getState().updateMask(selectedClip.id, mask.id, { points: pts });
+		if (!updated) return;
 		store.getState().selectMask(mask.id);
 		store.getState().selectMaskPoint(insertIdx);
 
@@ -586,7 +601,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 				const pMouseLayer = currentNorm;
 				const dxPix = (pMouseLayer.x - origCx) * sourceWidth;
 				const dyPix = (pMouseLayer.y - origCy) * sourceHeight;
-				let angleDeg = ((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360 + 360) % 360;
+				let angleDeg = (((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360) + 360) % 360;
 				if (shiftKey) {
 					angleDeg = Math.round(angleDeg / 15) * 15;
 				}
@@ -658,7 +673,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 				const pMouseLayer = currentNorm;
 				const dxPix = (pMouseLayer.x - origCx) * sourceWidth;
 				const dyPix = (pMouseLayer.y - origCy) * sourceHeight;
-				let angleDeg = ((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360 + 360) % 360;
+				let angleDeg = (((Math.atan2(dxPix, -dyPix) * (180 / Math.PI)) % 360) + 360) % 360;
 				if (shiftKey) {
 					angleDeg = Math.round(angleDeg / 15) * 15;
 				}
@@ -806,7 +821,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 			y: (e.clientY - rect.top) * scaleY
 		};
 
-		if (activeMask && activeMask.type === 'path') {
+		if (activeMask && activeMask.type === 'path' && !isShapeAnimated) {
 			const hit = findClosestPointOnPath(activeMask, currentScreen, toMonitor, fromMonitor, 14);
 			if (hit) {
 				setHoverHit({
@@ -825,12 +840,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 
 	const handleSvgPointerDown = (e: ReactPointerEvent) => {
 		if (e.target !== svgRef.current) return;
-		if (maskTool.selectedMaskId && selectedClip) {
-			const mask = evaluatedMasks.find((m) => m.id === maskTool.selectedMaskId);
-			if (mask && mask.type === 'path') {
-				handlePathPointerDown(e, mask);
-			}
-		}
+		store.getState().selectMaskPoint(null);
 	};
 
 	const handlePointerUp = (e: ReactPointerEvent) => {
@@ -916,10 +926,42 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 						if (isSelected && mask.feather > 0) {
 							const fW = (mask.feather / sourceWidth) * 2;
 							const fH = (mask.feather / sourceHeight) * 2;
-							f0 = maskLocalToMonitor(-(w + fW) / 2, -(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f1 = maskLocalToMonitor(+(w + fW) / 2, -(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f2 = maskLocalToMonitor(+(w + fW) / 2, +(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
-							f3 = maskLocalToMonitor(-(w + fW) / 2, +(h + fH) / 2, cx, cy, rotDeg, aspect, toMonitor);
+							f0 = maskLocalToMonitor(
+								-(w + fW) / 2,
+								-(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f1 = maskLocalToMonitor(
+								+(w + fW) / 2,
+								-(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f2 = maskLocalToMonitor(
+								+(w + fW) / 2,
+								+(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
+							f3 = maskLocalToMonitor(
+								-(w + fW) / 2,
+								+(h + fH) / 2,
+								cx,
+								cy,
+								rotDeg,
+								aspect,
+								toMonitor
+							);
 						}
 
 						return (
@@ -1379,6 +1421,12 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 							d += ' Z';
 						}
 
+						const maskShapePropId = `mask:${mask.id}:shape` as PropertyId;
+						const maskShapeCurve = selectedClip
+							? propertyCurve(selectedClip, maskShapePropId)
+							: null;
+						const maskShapeAnimated = Boolean(maskShapeCurve && isAnimated(maskShapeCurve));
+
 						return (
 							<g key={mask.id}>
 								{/* Visible stroke path (dragging inside moves entire path mask) */}
@@ -1392,16 +1440,27 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 									onPointerDown={(e) => handlePointerDownHandle(e, mask, 'move')}
 								/>
 								{/* Thick hit path for easy clicking anywhere along the edge to add points */}
-								<path
-									d={d}
-									fill="none"
-									stroke="rgba(0, 0, 0, 0.001)"
-									strokeWidth={24}
-									style={{ cursor: 'crosshair', pointerEvents: 'stroke' }}
-									onPointerDown={(e) => handlePathPointerDown(e, mask)}
-								/>
+								{!maskShapeAnimated && (
+									<path
+										d={d}
+										fill="none"
+										stroke="rgba(0, 0, 0, 0.001)"
+										strokeWidth={24}
+										style={{ cursor: 'crosshair', pointerEvents: 'stroke' }}
+										onPointerDown={(e) => handlePathPointerDown(e, mask)}
+									/>
+								)}
 
 								{/* Center move handle */}
+								<circle
+									cx={center.x}
+									cy={center.y}
+									r={14}
+									fill="transparent"
+									stroke="transparent"
+									style={{ cursor: 'move', pointerEvents: 'all' }}
+									onPointerDown={(e) => handlePointerDownHandle(e, mask, 'move')}
+								/>
 								<circle
 									cx={center.x}
 									cy={center.y}
@@ -1410,8 +1469,7 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 									stroke={strokeColor}
 									strokeWidth={2}
 									data-handle="move"
-									style={{ cursor: 'move', pointerEvents: 'all' }}
-									onPointerDown={(e) => handlePointerDownHandle(e, mask, 'move')}
+									style={{ cursor: 'move', pointerEvents: 'none' }}
 								>
 									<title>Drag to move mask</title>
 								</circle>
@@ -1448,12 +1506,24 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 																cy={
 																	toMonitor({ x: pt.x + pt.inHandle.x, y: pt.y + pt.inHandle.y }).y
 																}
+																r={12}
+																fill="transparent"
+																stroke="transparent"
+																style={{ cursor: 'pointer', pointerEvents: 'all' }}
+																onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx, 'in')}
+															/>
+															<circle
+																cx={
+																	toMonitor({ x: pt.x + pt.inHandle.x, y: pt.y + pt.inHandle.y }).x
+																}
+																cy={
+																	toMonitor({ x: pt.x + pt.inHandle.x, y: pt.y + pt.inHandle.y }).y
+																}
 																r={4}
 																fill="#ffffff"
 																stroke="#3b82f6"
 																strokeWidth={1.5}
-																style={{ cursor: 'pointer' }}
-																onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx, 'in')}
+																style={{ cursor: 'pointer', pointerEvents: 'none' }}
 															/>
 														</>
 													)}
@@ -1483,12 +1553,26 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 																	toMonitor({ x: pt.x + pt.outHandle.x, y: pt.y + pt.outHandle.y })
 																		.y
 																}
+																r={12}
+																fill="transparent"
+																stroke="transparent"
+																style={{ cursor: 'pointer', pointerEvents: 'all' }}
+																onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx, 'out')}
+															/>
+															<circle
+																cx={
+																	toMonitor({ x: pt.x + pt.outHandle.x, y: pt.y + pt.outHandle.y })
+																		.x
+																}
+																cy={
+																	toMonitor({ x: pt.x + pt.outHandle.x, y: pt.y + pt.outHandle.y })
+																		.y
+																}
 																r={4}
 																fill="#ffffff"
 																stroke="#3b82f6"
 																strokeWidth={1.5}
-																style={{ cursor: 'pointer' }}
-																onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx, 'out')}
+																style={{ cursor: 'pointer', pointerEvents: 'none' }}
 															/>
 														</>
 													)}
@@ -1499,13 +1583,21 @@ export default function MaskOverlay({ project, renderedWidth, renderedHeight }: 
 											<circle
 												cx={p.x}
 												cy={p.y}
-												r={isPointSelected ? 5 : 4}
+												r={14}
+												fill="transparent"
+												stroke="transparent"
+												style={{ cursor: 'pointer', pointerEvents: 'all' }}
+												onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx)}
+												onDoubleClick={(e) => handleDoubleClickAnchor(e, mask, idx)}
+											/>
+											<circle
+												cx={p.x}
+												cy={p.y}
+												r={isPointSelected ? 5.5 : 4.5}
 												fill={isPointSelected ? '#3b82f6' : '#ffffff'}
 												stroke={strokeColor}
 												strokeWidth={1.5}
-												style={{ cursor: 'pointer' }}
-												onPointerDown={(e) => handlePointerDownAnchor(e, mask, idx)}
-												onDoubleClick={(e) => handleDoubleClickAnchor(e, mask, idx)}
+												style={{ cursor: 'pointer', pointerEvents: 'none' }}
 											>
 												<title>
 													Click and drag to move vertex. Double-click to toggle smooth/corner.
