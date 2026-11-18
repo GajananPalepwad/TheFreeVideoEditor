@@ -131,7 +131,13 @@ function AssetPreview({ asset, projectId }: { asset: Asset; projectId: ProjectId
 	);
 }
 
-export default function MediaLibrary() {
+export default function MediaLibrary({
+	initialRelinkId = null,
+	initialRelinkMismatch = ''
+}: {
+	initialRelinkId?: AssetId | null;
+	initialRelinkMismatch?: string;
+} = {}) {
 	const project = useEditorStore((state) => state.project);
 	const media = useEditorStore((state) => state.media);
 	const projectMessage = useEditorStore((state) => state.projectMessage);
@@ -153,9 +159,10 @@ export default function MediaLibrary() {
 	const [renamingId, setRenamingId] = useState<AssetId | null>(null);
 	const [renameValue, setRenameValue] = useState('');
 	const [deleteId, setDeleteId] = useState<AssetId | null>(null);
-	const [relinkId, setRelinkId] = useState<AssetId | null>(null);
+	const [relinkId, setRelinkId] = useState<AssetId | null>(initialRelinkId);
 	const [relinkFile, setRelinkFile] = useState<File | null>(null);
-	const [relinkMismatch, setRelinkMismatch] = useState('');
+	const [relinkMismatch, setRelinkMismatch] = useState(initialRelinkMismatch);
+	const [isRelinkDragOver, setIsRelinkDragOver] = useState(false);
 	const [isImporting, setIsImporting] = useState(false);
 	const [activeAssetId, setActiveAssetId] = useState<AssetId | null>(null);
 	const [proxySettingsOpen, setProxySettingsOpen] = useState(false);
@@ -453,26 +460,36 @@ export default function MediaLibrary() {
 		});
 	}
 
-	async function chooseRelinkFile(files: FileList | null): Promise<void> {
-		const file = files?.item(0);
+	async function chooseRelinkFile(files: FileList | File[] | null): Promise<void> {
+		const file = files instanceof FileList ? files.item(0) : files?.[0];
 		if (!file || !pendingRelink) return;
 		setRelinkFile(file);
-		const result = await relinkAsset(pendingRelink.id, file);
-		if (result.mismatch) setRelinkMismatch(result.mismatch);
-		else if (result.relinked) closeRelink();
+		setRelinkMismatch('');
+		try {
+			const result = await relinkAsset(pendingRelink.id, file);
+			if (result.mismatch) setRelinkMismatch(result.mismatch);
+			else if (result.relinked) closeRelink();
+		} catch (err) {
+			setRelinkMismatch(err instanceof Error ? err.message : 'Failed to relink media file.');
+		}
 	}
 
 	function closeRelink(): void {
 		setRelinkId(null);
 		setRelinkFile(null);
 		setRelinkMismatch('');
+		setIsRelinkDragOver(false);
 		if (relinkInputRef.current) relinkInputRef.current.value = '';
 	}
 
 	async function confirmRelink(): Promise<void> {
 		if (!pendingRelink || !relinkFile) return;
-		const result = await relinkAsset(pendingRelink.id, relinkFile, { acceptMismatch: true });
-		if (result.relinked) closeRelink();
+		try {
+			const result = await relinkAsset(pendingRelink.id, relinkFile, { acceptMismatch: true });
+			if (result.relinked) closeRelink();
+		} catch (err) {
+			setRelinkMismatch(err instanceof Error ? err.message : 'Failed to relink media file.');
+		}
 	}
 
 	async function removeSelectedAsset(force = false): Promise<void> {
@@ -1451,37 +1468,202 @@ export default function MediaLibrary() {
 			>
 				{pendingRelink && project && (
 					<div className="dialog-content">
-						<h2 id="media-relink-title">Relink “{pendingRelink.name}”</h2>
-						<p>
-							Select the original media file. Its type, size, and duration will be checked before
-							relinking.
-						</p>
-						<label className="dialog-field">
-							<span>Media file</span>
-							<input
-								ref={relinkInputRef}
-								type="file"
-								name="relink-file"
-								accept={ACCEPTED_MEDIA_INPUT}
-								onChange={(event) => void chooseRelinkFile(event.currentTarget.files)}
-							/>
-						</label>
+						<div className="dialog-heading">
+							<div>
+								<span className="dialog-eyebrow">RELINK MEDIA</span>
+								<h2 id="media-relink-title">Relink Missing Asset</h2>
+								<p className="dialog-description">
+									Select the original or replacement media file to reconnect it to your timeline and clips.
+								</p>
+							</div>
+							<button
+								type="button"
+								className="icon-button dialog-close"
+								onClick={closeRelink}
+								aria-label="Close dialog"
+							>
+								✕
+							</button>
+						</div>
+
+						<div className="media-relink-target-card">
+							<div className="media-relink-target-header">
+								<div className="media-relink-target-title-group">
+									<span className={`media-relink-kind-badge is-${pendingRelink.kind}`}>
+										{pendingRelink.kind.toUpperCase()}
+									</span>
+									<span className="media-relink-target-name" title={pendingRelink.name}>
+										{pendingRelink.name}
+									</span>
+								</div>
+								<span className="media-relink-status-badge">Missing</span>
+							</div>
+							<div className="media-relink-target-meta">
+								{pendingRelink.kind !== 'image' && (
+									<span className="media-relink-meta-item">
+										<span className="media-relink-meta-label">Duration:</span>
+										<span className="media-relink-meta-value">
+											{timecode(pendingRelink, project.settings.fps)}
+										</span>
+									</span>
+								)}
+								{pendingRelink.width && pendingRelink.height && (
+									<span className="media-relink-meta-item">
+										<span className="media-relink-meta-label">Resolution:</span>
+										<span className="media-relink-meta-value">
+											{`${pendingRelink.width}×${pendingRelink.height}`}
+										</span>
+									</span>
+								)}
+								<span className="media-relink-meta-item">
+									<span className="media-relink-meta-label">Original Size:</span>
+									<span className="media-relink-meta-value">
+										{formatBytes(pendingRelink.size)}
+									</span>
+								</span>
+							</div>
+						</div>
+
+						<input
+							ref={relinkInputRef}
+							type="file"
+							name="relink-file"
+							accept={ACCEPTED_MEDIA_INPUT}
+							className="media-relink-hidden-input"
+							onChange={(event) => {
+								void chooseRelinkFile(event.currentTarget.files);
+							}}
+						/>
+
+						<div
+							className={`media-relink-dropzone ${isRelinkDragOver ? 'is-drag-over' : ''}`}
+							role="button"
+							tabIndex={0}
+							aria-label="Choose replacement media file"
+							onClick={() => {
+								if (relinkInputRef.current) relinkInputRef.current.value = '';
+								relinkInputRef.current?.click();
+							}}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									if (relinkInputRef.current) relinkInputRef.current.value = '';
+									relinkInputRef.current?.click();
+								}
+							}}
+							onDragOver={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setIsRelinkDragOver(true);
+							}}
+							onDragLeave={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setIsRelinkDragOver(false);
+							}}
+							onDrop={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setIsRelinkDragOver(false);
+								void chooseRelinkFile(e.dataTransfer.files);
+							}}
+						>
+							<div className="media-relink-drop-icon-wrapper" aria-hidden="true">
+								<svg
+									width="22"
+									height="22"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								>
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+									<polyline points="17 8 12 3 7 8" />
+									<line x1="12" x2="12" y1="3" y2="15" />
+								</svg>
+							</div>
+							<div className="media-relink-drop-text">
+								<span className="media-relink-drop-primary">
+									<strong>Choose file</strong> or drag &amp; drop replacement
+								</span>
+								<span className="media-relink-drop-hint">
+									Matches video, audio, or image files
+								</span>
+							</div>
+						</div>
+
 						{relinkMismatch && (
-							<p className="dialog-message" role="alert">
-								{relinkMismatch}
-							</p>
+							<div className="media-relink-mismatch-banner" role="alert">
+								<div className="media-relink-mismatch-icon" aria-hidden="true">
+									<svg
+										width="18"
+										height="18"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									>
+										<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+										<line x1="12" y1="9" x2="12" y2="13" />
+										<line x1="12" y1="17" x2="12.01" y2="17" />
+									</svg>
+								</div>
+								<div className="media-relink-mismatch-content">
+									<strong className="media-relink-mismatch-title">
+										{relinkMismatch.includes('Relink anyway?')
+											? 'File Mismatch Detected'
+											: 'Unable to Relink File'}
+									</strong>
+									<p className="media-relink-mismatch-desc">{relinkMismatch}</p>
+									{relinkFile && (
+										<div className="media-relink-mismatch-file">
+											Selected: <strong>{relinkFile.name}</strong> ({formatBytes(relinkFile.size)})
+										</div>
+									)}
+								</div>
+							</div>
 						)}
+
 						<div className="dialog-actions">
 							<button className="secondary-button" type="button" onClick={closeRelink}>
 								Cancel
 							</button>
-							{relinkMismatch && (
+							{relinkMismatch ? (
+								<>
+									<button
+										className="secondary-button"
+										type="button"
+										onClick={() => {
+											if (relinkInputRef.current) relinkInputRef.current.value = '';
+											relinkInputRef.current?.click();
+										}}
+									>
+										Choose Different File…
+									</button>
+									{relinkMismatch.includes('Relink anyway?') && (
+										<button
+											className="danger-button"
+											type="button"
+											onClick={() => void confirmRelink()}
+										>
+											Relink Anyway
+										</button>
+									)}
+								</>
+							) : (
 								<button
-									className="danger-button"
+									className="primary-button"
 									type="button"
-									onClick={() => void confirmRelink()}
+									onClick={() => {
+										if (relinkInputRef.current) relinkInputRef.current.value = '';
+										relinkInputRef.current?.click();
+									}}
 								>
-									Relink Anyway
+									Browse File…
 								</button>
 							)}
 						</div>
