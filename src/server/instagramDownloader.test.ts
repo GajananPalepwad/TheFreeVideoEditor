@@ -1,10 +1,13 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
 	extractShortcode,
 	isInstagramUrl,
 	getCachedInstagramDetails,
 	setCachedInstagramDetails,
-	clearInstagramCache
+	clearInstagramCache,
+	handleInstagramInfo,
+	handleInstagramDownload,
+	instagramDownloadPlugin
 } from './instagramDownloader.mjs';
 
 describe('instagramDownloader', () => {
@@ -82,6 +85,106 @@ describe('instagramDownloader', () => {
 			expect(getCachedInstagramDetails('abc')).not.toBeNull();
 			clearInstagramCache();
 			expect(getCachedInstagramDetails('abc')).toBeNull();
+		});
+	});
+
+	describe('instagramDownloadPlugin', () => {
+		it('unshifts middleware into server middlewares stack via return function', () => {
+			const plugin = instagramDownloadPlugin();
+			const mockServer = {
+				middlewares: {
+					stack: [] as Array<{ route: string; handle: unknown }>
+				}
+			};
+
+			const postHook = plugin.configureServer(mockServer as never);
+			expect(typeof postHook).toBe('function');
+			if (typeof postHook === 'function') {
+				postHook();
+			}
+
+			expect(mockServer.middlewares.stack.length).toBe(1);
+			expect(mockServer.middlewares.stack[0].route).toBe('');
+			expect(typeof mockServer.middlewares.stack[0].handle).toBe('function');
+		});
+
+		it('routes /api/instagram-info and /api/instagram-info/ matching both variants', () => {
+			const plugin = instagramDownloadPlugin();
+			const mockServer = {
+				middlewares: {
+					stack: [] as Array<{
+						route: string;
+						handle: (req: unknown, res: unknown, next: () => void) => void;
+					}>
+				}
+			};
+
+			const postHook = plugin.configureServer(mockServer as never);
+			if (typeof postHook === 'function') postHook();
+
+			const middleware = mockServer.middlewares.stack[0].handle;
+
+			// Non-API route should pass to next()
+			const nextFn = vi.fn();
+			middleware({ url: '/about' }, {}, nextFn);
+			expect(nextFn).toHaveBeenCalled();
+		});
+	});
+
+	describe('request handlers validation', () => {
+		it('returns 400 for missing or invalid url in handleInstagramInfo', async () => {
+			let statusCode = 0;
+			let responseData = '';
+			const mockRes = {
+				setHeader: vi.fn(),
+				set statusCode(code: number) {
+					statusCode = code;
+				},
+				get statusCode() {
+					return statusCode;
+				},
+				end(chunk: string) {
+					responseData = chunk;
+				}
+			};
+
+			const mockReq = {
+				url: '/api/instagram-info?url=https://youtube.com/not-insta',
+				method: 'GET'
+			};
+
+			await handleInstagramInfo(mockReq, mockRes);
+			expect(statusCode).toBe(400);
+			expect(JSON.parse(responseData).error).toContain('Please enter a valid Instagram');
+		});
+
+		it('returns 400 for missing or invalid url in handleInstagramDownload', async () => {
+			let statusCode = 0;
+			let responseData = '';
+			const mockRes = {
+				setHeader: vi.fn(),
+				removeHeader: vi.fn(),
+				headersSent: false,
+				set statusCode(code: number) {
+					statusCode = code;
+				},
+				get statusCode() {
+					return statusCode;
+				},
+				end(chunk: string) {
+					responseData = chunk;
+				}
+			};
+
+			const mockReq = {
+				url: '/api/download-instagram?url=https://invalid.com',
+				method: 'GET',
+				on: vi.fn()
+			};
+
+			await handleInstagramDownload(mockReq, mockRes);
+			expect(statusCode).toBe(400);
+			expect(JSON.parse(responseData).error).toContain('Please enter a valid Instagram');
 		});
 	});
 });
