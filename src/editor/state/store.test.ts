@@ -1041,9 +1041,17 @@ LUT_3D_SIZE 2
 			.getState()
 			.project?.tracks.flatMap((t) => t.clips)
 			.find((c) => c.id === solidId);
-		let curve = clip?.properties?.opacity as any;
+		type OpacityCurve = {
+			keyframes: Array<{
+				value: number;
+				interpolation?: string;
+				easeIn?: { x: number; y: number };
+				easeOut?: { x: number; y: number };
+			}>;
+		};
+		let curve = clip?.properties?.opacity as unknown as OpacityCurve | undefined;
 		expect(curve?.keyframes).toHaveLength(2);
-		expect(curve?.keyframes[1].value).toBe(0.4);
+		expect(curve?.keyframes[1]?.value).toBe(0.4);
 
 		// Adjust the keyframe value via setKeyframeValue
 		store.getState().setKeyframeValue(solidId, 'opacity', 1_000_000, 0.85);
@@ -1051,8 +1059,8 @@ LUT_3D_SIZE 2
 			.getState()
 			.project?.tracks.flatMap((t) => t.clips)
 			.find((c) => c.id === solidId);
-		curve = clip?.properties?.opacity as any;
-		expect(curve?.keyframes[1].value).toBe(0.85);
+		curve = clip?.properties?.opacity as unknown as OpacityCurve | undefined;
+		expect(curve?.keyframes[1]?.value).toBe(0.85);
 
 		// Adjust bezier handles
 		store.getState().setBezierHandles(solidId, 'opacity', 1_000_000, {
@@ -1063,7 +1071,7 @@ LUT_3D_SIZE 2
 			.getState()
 			.project?.tracks.flatMap((t) => t.clips)
 			.find((c) => c.id === solidId);
-		curve = clip?.properties?.opacity as any;
+		curve = clip?.properties?.opacity as unknown as OpacityCurve | undefined;
 		expect(curve?.keyframes[1].interpolation).toBe('bezier');
 		expect(curve?.keyframes[1].easeIn).toEqual({ x: 0.4, y: 0.8 });
 		expect(curve?.keyframes[1].easeOut).toEqual({ x: 0.6, y: 0.2 });
@@ -1435,6 +1443,27 @@ LUT_3D_SIZE 2
 			store.getState().setMaskOverlayVisible(true);
 			const countAfterOverlay = notificationCount;
 			store.getState().setMaskOverlayVisible(true);
+			expect(notificationCount).toBe(countAfterOverlay);
+
+			// Workspace switches and layout updates with identical values should NOT notify subscribers
+			const curWs = store.getState().activeWorkspaceId;
+			store.getState().switchWorkspace(curWs);
+			expect(notificationCount).toBe(countAfterOverlay);
+
+			const curLayout = store.getState().activeLayout;
+			store.getState().updateLayout(curLayout);
+			expect(notificationCount).toBe(countAfterOverlay);
+
+			// AI silence options, virtual preview, and detected silences guards
+			store.getState().setSilenceVirtualPreview(false);
+			expect(notificationCount).toBe(countAfterOverlay);
+
+			store
+				.getState()
+				.setSilenceOptions({ maxSilenceSec: store.getState().ai.silenceOptions.maxSilenceSec });
+			expect(notificationCount).toBe(countAfterOverlay);
+
+			store.getState().setDetectedSilences([]);
 			expect(notificationCount).toBe(countAfterOverlay);
 
 			unsubscribe();

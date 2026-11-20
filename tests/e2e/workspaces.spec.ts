@@ -220,6 +220,16 @@ test.describe('Workspaces & Layouts', () => {
 		await page.keyboard.press('Backquote');
 		await expect(page.locator('.workspace-root--maximized')).toHaveCount(0);
 
+		// Switch to AI workspace, maximize and restore AI panel without depth errors
+		await page.click('.workspace-tab:has-text("AI")');
+		await expect(page.getByTestId('ai-assistant-panel')).toBeVisible();
+		const aiStack = page.locator('[data-testid="stack-ai-assistant"]');
+		await aiStack.locator('button[title="Maximize panel"]').click();
+		await expect(page.locator('.workspace-root--maximized')).toBeVisible();
+		await expect(page.getByTestId('ai-assistant-panel')).toBeVisible();
+		await page.getByRole('button', { name: 'Restore' }).click();
+		await expect(page.locator('.workspace-root--maximized')).toHaveCount(0);
+
 		expect(errors).toHaveLength(0);
 	});
 });

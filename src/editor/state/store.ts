@@ -8510,6 +8510,7 @@ export function createEditorStore() {
 				},
 
 				switchWorkspace(workspaceId) {
+					if (get().activeWorkspaceId === workspaceId) return;
 					trackFeatureUsed('switch_workspace', { workspace: workspaceId });
 					const currentWorkspaces = get().workspaces;
 					const { workspace, layout } = resolveWorkspaceLayout(workspaceId, currentWorkspaces);
@@ -8540,6 +8541,10 @@ export function createEditorStore() {
 				updateLayout(newLayout) {
 					const activeId = get().activeWorkspaceId;
 					const normalized = validateAndNormalizeLayout(newLayout);
+					const currentActiveLayout = get().activeLayout;
+					if (JSON.stringify(normalized) === JSON.stringify(currentActiveLayout)) {
+						return;
+					}
 					const currentWorkspaces = get().workspaces;
 					const updatedOverrides = {
 						...currentWorkspaces.overrides,
@@ -9529,6 +9534,27 @@ export function createEditorStore() {
 					});
 				},
 				setSilenceOptions(opts) {
+					const current = get().ai.silenceOptions;
+					let hasChange = false;
+					const currentRecord = current as unknown as Record<string, unknown>;
+					for (const [key, val] of Object.entries(opts)) {
+						if (Array.isArray(val)) {
+							const curArr = currentRecord[key];
+							if (
+								!Array.isArray(curArr) ||
+								curArr.length !== val.length ||
+								curArr.some((v, i) => v !== val[i])
+							) {
+								hasChange = true;
+								break;
+							}
+						} else if (currentRecord[key] !== val) {
+							hasChange = true;
+							break;
+						}
+					}
+					if (!hasChange) return;
+
 					set((state) => {
 						state.ai.silenceOptions = {
 							...state.ai.silenceOptions,
@@ -9538,6 +9564,19 @@ export function createEditorStore() {
 					get().recomputeSilencesFromCache();
 				},
 				setDetectedSilences(silences) {
+					const current = get().ai.detectedSilences;
+					if (
+						current.length === silences.length &&
+						current.every(
+							(s, i) =>
+								s.id === silences[i]?.id &&
+								s.included === silences[i]?.included &&
+								s.cutStartUs === silences[i]?.cutStartUs &&
+								s.cutEndUs === silences[i]?.cutEndUs
+						)
+					) {
+						return;
+					}
 					set((state) => {
 						state.ai.detectedSilences = silences;
 					});
@@ -9558,6 +9597,7 @@ export function createEditorStore() {
 					});
 				},
 				setSilenceVirtualPreview(active) {
+					if (get().ai.virtualPreview === active) return;
 					set((state) => {
 						state.ai.virtualPreview = active;
 					});
@@ -9571,7 +9611,9 @@ export function createEditorStore() {
 
 					let targetTrackIds = options.trackIds;
 					if (!targetTrackIds || targetTrackIds.length === 0) {
-						targetTrackIds = activeView.tracks.filter((t) => t.kind === 'audio').map((t) => t.id);
+						targetTrackIds = activeView.tracks
+							.filter((t) => t.kind === 'audio' || t.kind === 'video')
+							.map((t) => t.id);
 					}
 
 					set((state) => {
@@ -9583,8 +9625,10 @@ export function createEditorStore() {
 						const prepared = await prepareProjectAudioForStt(activeView, {
 							trackIds: targetTrackIds,
 							onProgress(ratio) {
+								const progress = Math.round(ratio * 50);
+								if (get().ai.analysisProgress === progress) return;
 								set((state) => {
-									state.ai.analysisProgress = Math.round(ratio * 50);
+									state.ai.analysisProgress = progress;
 								});
 							}
 						});

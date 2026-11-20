@@ -160,10 +160,12 @@ export default function WorkspaceShell({
 							<div className="keepalive-slot keepalive-target-program" />
 						) : maximizedPanelId === 'timeline' ? (
 							<div className="keepalive-slot keepalive-target-timeline" />
-						) : renderPanel ? (
-							renderPanel(maximizedPanelId)
 						) : (
-							def && <def.component />
+							(() => {
+								const customRender = renderPanel ? renderPanel(maximizedPanelId) : undefined;
+								if (customRender !== undefined && customRender !== null) return customRender;
+								return def ? <def.component /> : null;
+							})()
 						)}
 					</div>
 				</div>
