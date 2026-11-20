@@ -43,6 +43,8 @@
 	flex: 0 0 auto;
 	place-items: center;
 	background: #000000;
+	max-width: 100%;
+	max-height: 100%;
 }
 
 .preview-canvas {
@@ -58,8 +60,7 @@
 	image-rendering: pixelated;
 }
 
-.preview-empty-state,
-.preview-empty-overlay {
+.preview-empty-state {
 	display: grid;
 	gap: var(--spacing-xs);
 	color: var(--color-preview-foreground);
@@ -72,8 +73,7 @@
 	font-weight: var(--font-weight-medium);
 }
 
-.preview-empty-state span,
-.preview-empty-overlay {
+.preview-empty-state span {
 	color: var(--color-mute);
 	font-size: var(--text-body-sm);
 }
@@ -81,9 +81,11 @@
 .preview-empty-overlay {
 	position: absolute;
 	inset: 0;
+	display: grid;
 	place-items: center;
 	background: color-mix(in srgb, var(--color-preview-stage) 72%, transparent);
-	color: var(--color-preview-foreground);
+	color: var(--color-mute);
+	font-size: var(--text-body-sm);
 	pointer-events: none;
 }
 
@@ -372,7 +374,10 @@
 	font-size: var(--text-body-sm);
 	white-space: nowrap;
 	cursor: pointer;
-	transition: all 0.12s ease;
+	transition:
+		opacity 0.12s ease,
+		transform 0.12s ease,
+		background-color 0.12s ease;
 }
 
 .preview-transport button:hover:not(:disabled),
@@ -487,7 +492,10 @@
 	color: var(--color-mute);
 	cursor: pointer;
 	font-size: var(--text-label-sm);
-	transition: all 0.12s ease;
+	transition:
+		opacity 0.12s ease,
+		transform 0.12s ease,
+		background-color 0.12s ease;
 }
 
 .preview-mute-button:hover:not(:disabled) {

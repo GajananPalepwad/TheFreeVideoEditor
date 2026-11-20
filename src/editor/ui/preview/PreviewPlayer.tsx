@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { resolveFrame, projectNeedsGpu } from '../../core';
 import type { Project } from '../../core';
 import type { PlaybackEngine, PlaybackSnapshot } from '../../services/playback/engine';
@@ -13,6 +13,8 @@ import { TrackingOverlay } from './TrackingOverlay';
 import CaptionOverlay from './CaptionOverlay';
 import GuidesOverlay from './GuidesOverlay';
 import VoiceoverOverlay from './VoiceoverOverlay';
+
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 interface PreviewPlayerProps {
 	project: Project | null;
@@ -52,7 +54,7 @@ export default function PreviewPlayer({
 		setFitScale((prev) => (Math.abs(prev - nextScale) > 0.001 ? nextScale : prev));
 	}, []);
 
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const viewport = viewportRef.current;
 		if (!viewport || !projectWidth || !projectHeight) return;
 		return observePreviewScale(
@@ -64,6 +66,8 @@ export default function PreviewPlayer({
 
 	const renderedWidth = Math.max(1, project?.settings.width ?? 1) * fitScale * scale;
 	const renderedHeight = Math.max(1, project?.settings.height ?? 1) * fitScale * scale;
+	const aspectRatio =
+		projectWidth && projectHeight ? `${projectWidth} / ${projectHeight}` : undefined;
 
 	const scaleFactor =
 		playbackResolution === 'half' ? 0.5 : playbackResolution === 'quarter' ? 0.25 : 1;
@@ -83,7 +87,13 @@ export default function PreviewPlayer({
 				{project ? (
 					<div
 						className="preview-canvas-frame"
-						style={{ width: renderedWidth, height: renderedHeight }}
+						style={{
+							width: renderedWidth > 0 ? renderedWidth : '100%',
+							height: renderedHeight > 0 ? renderedHeight : '100%',
+							aspectRatio,
+							maxWidth: '100%',
+							maxHeight: '100%'
+						}}
 					>
 						<canvas
 							key={`${project.id}:${renderer}`}

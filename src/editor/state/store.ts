@@ -1753,10 +1753,21 @@ export function createEditorStore() {
 							: 'Theme preference could not be read.';
 					});
 
-					// Pre-warm fonts so canvas rendering doesn't drop to fallback on page refresh
+					// Pre-warm primary UI font immediately, and defer remaining fonts to idle time
 					void loadSavedCustomFonts().catch(() => {});
-					for (const font of BUNDLED_FONTS) {
-						void ensureFontLoaded(font.family).catch(() => {});
+					void ensureFontLoaded('Inter').catch(() => {});
+					if (typeof window !== 'undefined') {
+						const scheduleIdle =
+							typeof window.requestIdleCallback === 'function'
+								? window.requestIdleCallback.bind(window)
+								: (cb: () => void) => setTimeout(cb, 1000);
+						scheduleIdle(() => {
+							for (const font of BUNDLED_FONTS) {
+								if (font.family !== 'Inter') {
+									void ensureFontLoaded(font.family).catch(() => {});
+								}
+							}
+						});
 					}
 
 					try {

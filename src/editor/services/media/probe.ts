@@ -275,7 +275,7 @@ async function probeWithBrowser(
 			const familyName = file.name.replace(/\.[^/.]+$/, '');
 			try {
 				if (typeof FontFace !== 'undefined') {
-					const face = new FontFace(familyName, `url(${url})`);
+					const face = new FontFace(familyName, `url(${url})`, { display: 'swap' });
 					await face.load();
 					if (typeof document !== 'undefined' && document.fonts) {
 						document.fonts.add(face);
