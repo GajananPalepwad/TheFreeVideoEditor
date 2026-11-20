@@ -49,6 +49,9 @@ function externalizeOnnxWasmPlugin() {
 export default defineConfig({
 	site: 'https://thefreevideoeditor.com',
 	trailingSlash: 'always',
+	devToolbar: {
+		enabled: false
+	},
 	integrations: [react()],
 	vite: {
 		plugins: [
