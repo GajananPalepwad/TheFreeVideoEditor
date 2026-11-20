@@ -648,7 +648,10 @@ function ActiveTimeline({ project }: { project: Project }) {
 	useEffect(() => {
 		const scroller = scrollerRef.current;
 		if (!scroller) return;
-		if (Math.abs(scroller.scrollLeft - scrollLeft) > 1) scroller.scrollLeft = scrollLeft;
+		if (Math.abs(scroller.scrollLeft - scrollLeft) > 1) {
+			programmaticScrollLeft.current = scrollLeft;
+			scroller.scrollLeft = scrollLeft;
+		}
 		if (Math.abs(scroller.scrollTop - scrollTop) > 1) scroller.scrollTop = scrollTop;
 	}, [scrollLeft, scrollTop]);
 
