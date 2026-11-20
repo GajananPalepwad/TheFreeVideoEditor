@@ -27,15 +27,21 @@ describe('TimelineToolbar component', () => {
 		// Verify layer suffix class is rendered on each layer button
 		expect(html).toContain('tool-button-layer-suffix');
 
-		// Verify each layer button has the base text and the suffix
+		// Verify each layer button has the base text and the suffix with aria-hidden
 		expect(html).toMatch(
-			/Adjustment<span class="[^"]*tool-button-layer-suffix[^"]*">\s*Layer<\/span>/
+			/Adjustment<span [^>]*class="[^"]*tool-button-layer-suffix[^"]*"[^>]*aria-hidden="true"[^>]*>(?:<!-- -->|\s)*Layer<\/span>/
 		);
-		expect(html).toMatch(/Solid<span class="[^"]*tool-button-layer-suffix[^"]*">\s*Layer<\/span>/);
-		expect(html).toMatch(/Shape<span class="[^"]*tool-button-layer-suffix[^"]*">\s*Layer<\/span>/);
-		expect(html).toMatch(/Text<span class="[^"]*tool-button-layer-suffix[^"]*">\s*Layer<\/span>/);
 		expect(html).toMatch(
-			/Caption<span class="[^"]*tool-button-layer-suffix[^"]*">\s*Layer<\/span>/
+			/Solid<span [^>]*class="[^"]*tool-button-layer-suffix[^"]*"[^>]*aria-hidden="true"[^>]*>(?:<!-- -->|\s)*Layer<\/span>/
+		);
+		expect(html).toMatch(
+			/Shape<span [^>]*class="[^"]*tool-button-layer-suffix[^"]*"[^>]*aria-hidden="true"[^>]*>(?:<!-- -->|\s)*Layer<\/span>/
+		);
+		expect(html).toMatch(
+			/Text<span [^>]*class="[^"]*tool-button-layer-suffix[^"]*"[^>]*aria-hidden="true"[^>]*>(?:<!-- -->|\s)*Layer<\/span>/
+		);
+		expect(html).toMatch(
+			/Caption<span [^>]*class="[^"]*tool-button-layer-suffix[^"]*"[^>]*aria-hidden="true"[^>]*>(?:<!-- -->|\s)*Layer<\/span>/
 		);
 
 		// Accessible aria-labels remain intact
