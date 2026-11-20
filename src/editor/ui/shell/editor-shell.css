@@ -299,7 +299,10 @@
 	color: #f1f5f9;
 	font-size: 13px;
 	font-weight: 500;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .project-rename-form input:focus {
@@ -322,7 +325,10 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .rename-save {
@@ -416,7 +422,10 @@
 	font-size: 11px;
 	font-weight: 500;
 	white-space: nowrap;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .save-status::before {
@@ -576,7 +585,10 @@
 	font-size: 11.5px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .export-button:hover:not(:disabled) {
@@ -1693,7 +1705,10 @@
 	color: #f1f5f9;
 	font: inherit;
 	font-size: 12px;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .shortcut-dialog input[type='search']:focus {
@@ -1848,7 +1863,10 @@
 	color: #94a3b8;
 	font-size: 14px;
 	cursor: pointer;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .dialog-close:hover,
@@ -2034,7 +2052,10 @@
 	font-size: 12px;
 	font-weight: 500;
 	cursor: pointer;
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .project-row-actions .secondary-button:hover:not(:disabled),
@@ -2074,7 +2095,10 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -2119,7 +2143,10 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-	transition: all 0.15s ease;
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .danger-button:hover:not(:disabled) {

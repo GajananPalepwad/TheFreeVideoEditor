@@ -374,7 +374,10 @@
 	font-size: var(--text-body-sm);
 	white-space: nowrap;
 	cursor: pointer;
-	transition: all 0.12s ease;
+	transition:
+		opacity 0.12s ease,
+		transform 0.12s ease,
+		background-color 0.12s ease;
 }
 
 .preview-transport button:hover:not(:disabled),
@@ -489,7 +492,10 @@
 	color: var(--color-mute);
 	cursor: pointer;
 	font-size: var(--text-label-sm);
-	transition: all 0.12s ease;
+	transition:
+		opacity 0.12s ease,
+		transform 0.12s ease,
+		background-color 0.12s ease;
 }
 
 .preview-mute-button:hover:not(:disabled) {
