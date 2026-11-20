@@ -233,8 +233,8 @@ export async function registerCustomFont(font: CustomFont): Promise<boolean> {
 			if (source) {
 				const fontFace =
 					typeof source === 'string'
-						? new FontFace(font.family, source)
-						: new FontFace(font.family, source);
+						? new FontFace(font.family, source, { display: 'swap' })
+						: new FontFace(font.family, source, { display: 'swap' });
 				const loadedFace = await fontFace.load();
 				if (globalFonts) {
 					globalFonts.add(loadedFace);
@@ -398,8 +398,7 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 				try {
 					const isFaceLoaded = Array.from(document.fonts).some(
 						(f) =>
-							f.family.replace(/^['"]|['"]$/g, '').toLowerCase() === lower &&
-							f.status === 'loaded'
+							f.family.replace(/^['"]|['"]$/g, '').toLowerCase() === lower && f.status === 'loaded'
 					);
 					if (isFaceLoaded) {
 						loadedFonts.add(clean);
@@ -409,10 +408,7 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 
 					// If document fonts are actively loading stylesheets, wait briefly for document.fonts.ready
 					if (document.fonts.status === 'loading') {
-						await Promise.race([
-							document.fonts.ready,
-							new Promise((r) => setTimeout(r, 1500))
-						]);
+						await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
 						const isLoadedAfterWait = Array.from(document.fonts).some(
 							(f) =>
 								f.family.replace(/^['"]|['"]$/g, '').toLowerCase() === lower &&
@@ -499,8 +495,10 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 
 			const fontFace =
 				typeof fontSource === 'string'
-					? new FontFace(clean, fontSource.startsWith('url(') ? fontSource : `url(${fontSource})`)
-					: new FontFace(clean, fontSource);
+					? new FontFace(clean, fontSource.startsWith('url(') ? fontSource : `url(${fontSource})`, {
+							display: 'swap'
+						})
+					: new FontFace(clean, fontSource, { display: 'swap' });
 			const loadedFace = await fontFace.load();
 
 			if (globalFonts) {
@@ -512,7 +510,8 @@ export async function ensureFontLoaded(family: string, url?: string): Promise<bo
 						try {
 							const variantFace = new FontFace(clean, `url(${variant.url})`, {
 								weight: variant.weight,
-								style: variant.style
+								style: variant.style,
+								display: 'swap'
 							});
 							const loadedVariant = await variantFace.load();
 							globalFonts.add(loadedVariant);
@@ -558,4 +557,3 @@ export function isFontLoaded(family: string): boolean {
 	}
 	return false;
 }
-
