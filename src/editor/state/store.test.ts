@@ -1392,6 +1392,51 @@ LUT_3D_SIZE 2
 			await store.getState().refreshProjects();
 			expect(notificationCount).toBe(countAfterFirstRefresh);
 
+			// Selection and message setters with identical values should NOT notify subscribers
+			const curTrack = store.getState().timeline.selection.trackId ?? null;
+			store.getState().selectTrack(curTrack);
+			expect(notificationCount).toBe(countAfterFirstRefresh);
+
+			store.getState().selectClips([]);
+			const countAfterClear = notificationCount;
+			store.getState().selectClips([]);
+			expect(notificationCount).toBe(countAfterClear);
+
+			store.getState().selectAssets(['a1' as AssetId]);
+			const countAfterAsset = notificationCount;
+			store.getState().selectAssets(['a1' as AssetId]);
+			expect(notificationCount).toBe(countAfterAsset);
+
+			store.getState().setProjectMessage('Hello test');
+			const countAfterMsg = notificationCount;
+			store.getState().setProjectMessage('Hello test');
+			expect(notificationCount).toBe(countAfterMsg);
+
+			store.getState().setTimelineMessage('Timeline info');
+			const countAfterTlMsg = notificationCount;
+			store.getState().setTimelineMessage('Timeline info');
+			expect(notificationCount).toBe(countAfterTlMsg);
+
+			store.getState().selectMask('m1');
+			const countAfterMask = notificationCount;
+			store.getState().selectMask('m1');
+			expect(notificationCount).toBe(countAfterMask);
+
+			store.getState().selectMaskPoint(2);
+			const countAfterMaskPt = notificationCount;
+			store.getState().selectMaskPoint(2);
+			expect(notificationCount).toBe(countAfterMaskPt);
+
+			store.getState().setMaskBlockedMessage('Blocked');
+			const countAfterBlocked = notificationCount;
+			store.getState().setMaskBlockedMessage('Blocked');
+			expect(notificationCount).toBe(countAfterBlocked);
+
+			store.getState().setMaskOverlayVisible(true);
+			const countAfterOverlay = notificationCount;
+			store.getState().setMaskOverlayVisible(true);
+			expect(notificationCount).toBe(countAfterOverlay);
+
 			unsubscribe();
 		});
 	});

@@ -171,6 +171,7 @@ export class CompatibilityFrameProvider {
 		if (!asset) throw new Error(`Project asset “${assetId}” is missing.`);
 		const url = URL.createObjectURL(await this.getFile(this.project.id, asset));
 		const video = document.createElement('video');
+		video.crossOrigin = 'anonymous';
 		video.muted = true;
 		video.playsInline = true;
 		video.preload = 'auto';

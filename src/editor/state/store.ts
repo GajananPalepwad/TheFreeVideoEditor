@@ -2458,6 +2458,10 @@ export function createEditorStore() {
 					});
 				},
 				selectAssets(assetIds) {
+					const current = get().media.selectedAssetIds;
+					if (current.length === assetIds.length && current.every((id, i) => id === assetIds[i])) {
+						return;
+					}
 					set((state) => {
 						state.media.selectedAssetIds = assetIds;
 					});
@@ -2746,6 +2750,7 @@ export function createEditorStore() {
 					});
 				},
 				setProjectMessage(message) {
+					if (get().projectMessage === message) return;
 					set((state) => {
 						state.projectMessage = message;
 					});
@@ -2886,8 +2891,8 @@ export function createEditorStore() {
 					const nextScrollLeft = Math.max(0, scrollLeft);
 					const nextScrollTop = Math.max(0, scrollTop);
 					if (
-						Math.abs(get().timeline.scrollLeft - nextScrollLeft) < 0.5 &&
-						Math.abs(get().timeline.scrollTop - nextScrollTop) < 0.5
+						Math.abs(get().timeline.scrollLeft - nextScrollLeft) < 1 &&
+						Math.abs(get().timeline.scrollTop - nextScrollTop) < 1
 					) {
 						return;
 					}
@@ -2919,9 +2924,26 @@ export function createEditorStore() {
 						activeProj.tracks.flatMap((track) => track.clips.map((clip) => clip.id))
 					);
 					const validIds = ids.filter((id) => available.has(id));
+					const uniqueValid = [...new Set(validIds)];
+					const currentSelection = get().timeline.selection;
+					if (
+						mode === 'replace' &&
+						!currentSelection.gap &&
+						currentSelection.clipIds.length === uniqueValid.length &&
+						currentSelection.clipIds.every((id, idx) => id === uniqueValid[idx])
+					) {
+						if (uniqueValid.length === 1) {
+							const parentTrack = activeProj.tracks.find((track) =>
+								track.clips.some((clip) => clip.id === uniqueValid[0])
+							);
+							if (currentSelection.trackId === parentTrack?.id) return;
+						} else {
+							return;
+						}
+					}
 					set((state) => {
 						if (mode === 'replace') {
-							state.timeline.selection.clipIds = [...new Set(validIds)];
+							state.timeline.selection.clipIds = uniqueValid;
 							delete state.timeline.selection.gap;
 							if (validIds.length === 1) {
 								const parentTrack = activeProj.tracks.find((track) =>
@@ -2946,6 +2968,8 @@ export function createEditorStore() {
 					});
 				},
 				selectTrack(trackId) {
+					const currentTrackId = get().timeline.selection.trackId;
+					if (currentTrackId === (trackId ?? undefined)) return;
 					set((state) => {
 						if (trackId) {
 							state.timeline.selection.trackId = trackId;
@@ -2969,6 +2993,7 @@ export function createEditorStore() {
 					});
 				},
 				setTimelineMessage(message) {
+					if (get().timeline.message === message) return;
 					set((state) => {
 						state.timeline.message = message;
 					});
@@ -4065,6 +4090,17 @@ export function createEditorStore() {
 					return format === 'vtt' ? serializeVtt(track.captions) : serializeSrt(track.captions);
 				},
 				selectCaption(trackId, captionId) {
+					const current = get().timeline.selection;
+					const targetTrackId = trackId ?? undefined;
+					const targetCaptionId = captionId && trackId ? captionId : undefined;
+					if (
+						current.clipIds.length === 0 &&
+						!current.gap &&
+						current.trackId === targetTrackId &&
+						current.captionId === targetCaptionId
+					) {
+						return;
+					}
 					set((state) => {
 						if (captionId && trackId) {
 							state.timeline.selection = {
@@ -6073,12 +6109,15 @@ export function createEditorStore() {
 				},
 
 				setMaskTool(tool) {
+					if (get().maskTool.activeTool === tool) return;
 					set((state) => {
 						state.maskTool.activeTool = tool;
 					});
 				},
 
 				selectMask(maskId) {
+					const current = get().maskTool;
+					if (current.selectedMaskId === maskId && current.selectedPointIndex === null) return;
 					set((state) => {
 						state.maskTool.selectedMaskId = maskId;
 						state.maskTool.selectedPointIndex = null;
@@ -6086,6 +6125,16 @@ export function createEditorStore() {
 				},
 
 				selectMaskPoint(index) {
+					const current = get().maskTool;
+					if (
+						current.selectedPointIndex === index &&
+						((index === null && current.selectedPoints.length === 0) ||
+							(index !== null &&
+								current.selectedPoints.length === 1 &&
+								current.selectedPoints[0] === index))
+					) {
+						return;
+					}
 					set((state) => {
 						state.maskTool.selectedPointIndex = index;
 						state.maskTool.selectedPoints = index !== null ? [index] : [];
@@ -6093,6 +6142,14 @@ export function createEditorStore() {
 				},
 
 				selectMaskPoints(indices) {
+					const current = get().maskTool;
+					if (
+						current.selectedPoints.length === indices.length &&
+						current.selectedPoints.every((pt, i) => pt === indices[i]) &&
+						current.selectedPointIndex === (indices.length > 0 ? indices[0] : null)
+					) {
+						return;
+					}
 					set((state) => {
 						state.maskTool.selectedPoints = [...indices];
 						state.maskTool.selectedPointIndex = indices.length > 0 ? indices[0] : null;
@@ -6120,12 +6177,14 @@ export function createEditorStore() {
 				},
 
 				setMaskBlockedMessage(message) {
+					if (get().maskTool.blockedMessage === message) return;
 					set((state) => {
 						state.maskTool.blockedMessage = message;
 					});
 				},
 
 				setMaskOverlayVisible(visible) {
+					if (get().maskTool.showOverlay === visible) return;
 					set((state) => {
 						state.maskTool.showOverlay = visible;
 					});

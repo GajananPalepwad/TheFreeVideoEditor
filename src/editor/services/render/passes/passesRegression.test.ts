@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { FboPool } from './FboPool';
 import { ShaderPassManager, createShader, createProgram } from './ShaderPass';
 import { ShaderCompileError } from '../RenderContext';
+import { GlCompositor } from '../GlCompositor';
+import type { ActiveLayer } from '../../../core/playback';
+import type { ClipId, TrackId } from '../../../core/types';
 import * as effectsShaders from './effectsShaders';
 import { applyExposure } from '../../../core/colorMath';
 import layerFragSource from '../shaders/layer.frag.glsl?raw';
@@ -231,5 +234,121 @@ describe('passes regression tests (Gate J root causes & invariants)', () => {
 		pass.dispose();
 		expect(pass.liveProgramsCount).toBe(0);
 		expect(pass.liveTexturesCount).toBe(0);
+	});
+
+	it('isolates WebGL texture upload failures (e.g. SecurityError on cross-origin media)', () => {
+		const mockGl = {
+			getExtension: vi.fn(),
+			createShader: vi.fn(() => ({})),
+			shaderSource: vi.fn(),
+			compileShader: vi.fn(),
+			getShaderParameter: vi.fn(() => true),
+			createProgram: vi.fn(() => ({})),
+			attachShader: vi.fn(),
+			linkProgram: vi.fn(),
+			getProgramParameter: vi.fn(() => true),
+			getUniformLocation: vi.fn((_p, name) => ({ name })),
+			getAttribLocation: vi.fn(() => 0),
+			createVertexArray: vi.fn(() => ({})),
+			bindVertexArray: vi.fn(),
+			createBuffer: vi.fn(() => ({})),
+			bindBuffer: vi.fn(),
+			bufferData: vi.fn(),
+			enableVertexAttribArray: vi.fn(),
+			vertexAttribPointer: vi.fn(),
+			createTexture: vi.fn(() => ({})),
+			bindTexture: vi.fn(),
+			texParameteri: vi.fn(),
+			disable: vi.fn(),
+			enable: vi.fn(),
+			pixelStorei: vi.fn(),
+			blendFunc: vi.fn(),
+			texImage2D: vi.fn(() => {
+				throw new DOMException(
+					"Failed to execute 'texImage2D' on 'WebGL2RenderingContext': The video element contains cross-origin data, and may not be loaded.",
+					'SecurityError'
+				);
+			}),
+			texSubImage2D: vi.fn(() => {
+				throw new DOMException(
+					"Failed to execute 'texSubImage2D' on 'WebGL2RenderingContext': The video element contains cross-origin data, and may not be loaded.",
+					'SecurityError'
+				);
+			}),
+			isContextLost: vi.fn(() => false),
+			drawArrays: vi.fn(),
+			deleteTexture: vi.fn(),
+			deleteBuffer: vi.fn(),
+			deleteVertexArray: vi.fn(),
+			deleteProgram: vi.fn(),
+			deleteShader: vi.fn(),
+			bindFramebuffer: vi.fn(),
+			viewport: vi.fn(),
+			clearColor: vi.fn(),
+			clear: vi.fn(),
+			useProgram: vi.fn(),
+			uniform1i: vi.fn(),
+			uniform2f: vi.fn(),
+			uniformMatrix3fv: vi.fn(),
+			activeTexture: vi.fn(),
+			TEXTURE_2D: 0x0de1,
+			TEXTURE0: 0x84c0,
+			RGBA8: 0x8058,
+			RGBA: 0x1908,
+			UNSIGNED_BYTE: 0x1401,
+			COLOR_BUFFER_BIT: 0x4000,
+			FRAMEBUFFER: 0x8d40,
+			CLAMP_TO_EDGE: 0x812f,
+			LINEAR: 0x2601,
+			TEXTURE_MIN_FILTER: 0x2801,
+			TEXTURE_MAG_FILTER: 0x2800,
+			TEXTURE_WRAP_S: 0x2802,
+			TEXTURE_WRAP_T: 0x2803,
+			ARRAY_BUFFER: 0x8892,
+			STATIC_DRAW: 0x88e4,
+			FLOAT: 0x1406,
+			DEPTH_TEST: 0x0b71,
+			CULL_FACE: 0x0b44,
+			BLEND: 0x0be2,
+			UNPACK_PREMULTIPLY_ALPHA_WEBGL: 0x9241,
+			UNPACK_FLIP_Y_WEBGL: 0x9240,
+			ONE: 1,
+			ONE_MINUS_SRC_ALPHA: 0x0303
+		} as unknown as WebGL2RenderingContext;
+
+		const mockCanvas = {
+			getContext: vi.fn(() => mockGl),
+			width: 1920,
+			height: 1080,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn()
+		} as unknown as HTMLCanvasElement;
+
+		const compositor = new GlCompositor(mockCanvas);
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		const layer: ActiveLayer = {
+			clipId: 'clip-cross-origin' as ClipId,
+			trackId: 'track-1' as TrackId,
+			trackOrder: 0,
+			sourceTime: 0,
+			kind: 'video',
+			opacity: 1
+		};
+		const crossOriginVideo = {
+			videoWidth: 1920,
+			videoHeight: 1080
+		} as unknown as HTMLVideoElement;
+
+		// Rendering should not throw despite texImage2D throwing SecurityError
+		expect(() => {
+			compositor.render({ width: 1920, height: 1080 }, [layer], () => crossOriginVideo);
+		}).not.toThrow();
+
+		expect(warnSpy).toHaveBeenCalledWith(
+			'Failed to upload texture source to WebGL:',
+			expect.any(Error)
+		);
+		warnSpy.mockRestore();
 	});
 });

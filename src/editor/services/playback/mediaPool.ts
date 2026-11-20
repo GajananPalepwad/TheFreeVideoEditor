@@ -404,6 +404,7 @@ export class MediaPool {
 		if (entry.kind === 'video') {
 			entry.element.muted = true;
 			entry.element.playsInline = true;
+			entry.element.crossOrigin = 'anonymous';
 		} else {
 			entry.element.muted = false;
 		}

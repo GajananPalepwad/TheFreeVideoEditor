@@ -16,7 +16,9 @@ export default function ExportFrameDialog() {
 	const open = useEditorStore((state) => state.isExportFrameDialogOpen);
 	const close = useEditorStore((state) => state.closeExportFrameDialog);
 	const project = useEditorStore((state) => state.project);
-	const playhead = useEditorStore((state) => state.timeline.playhead);
+	const playhead = useEditorStore((state) =>
+		state.isExportFrameDialogOpen ? state.timeline.playhead : 0
+	);
 
 	const [format, setFormat] = useState<ImageFormat>('jpeg');
 	const [quality, setQuality] = useState<number>(0.92);
@@ -30,7 +32,7 @@ export default function ExportFrameDialog() {
 	// Synchronize frame preview and initial filename when dialog opens
 	useEffect(() => {
 		if (!open || !project) {
-			setPreviewUrl(null);
+			setPreviewUrl((prev) => (prev === null ? prev : null));
 			return;
 		}
 

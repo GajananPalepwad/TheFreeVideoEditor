@@ -646,73 +646,77 @@ class PlaybackEngineImpl implements PlaybackEngine {
 		};
 		checkLayerLuts(layers);
 
-		renderer.render(
-			{ width: proj.settings.width, height: proj.settings.height },
-			layers,
-			(layer: ActiveLayer): FrameSource | null => {
-				if (layer.kind === 'shape' && layer.shapeData) {
-					const rendered = rasterizeShape(layer.shapeData);
-					return rendered.canvas as FrameSource;
-				}
-				if (layer.kind === 'text' && layer.textData) {
-					const data = layer.textData;
-					if (data.style.fontFamily && !isFontLoaded(data.style.fontFamily)) {
-						void ensureFontLoaded(data.style.fontFamily).then((loaded) => {
-							if (loaded) {
-								this.textCache.clear();
-								this.requestRender();
-							}
+		try {
+			renderer.render(
+				{ width: proj.settings.width, height: proj.settings.height },
+				layers,
+				(layer: ActiveLayer): FrameSource | null => {
+					if (layer.kind === 'shape' && layer.shapeData) {
+						const rendered = rasterizeShape(layer.shapeData);
+						return rendered.canvas as FrameSource;
+					}
+					if (layer.kind === 'text' && layer.textData) {
+						const data = layer.textData;
+						if (data.style.fontFamily && !isFontLoaded(data.style.fontFamily)) {
+							void ensureFontLoaded(data.style.fontFamily).then((loaded) => {
+								if (loaded) {
+									this.textCache.clear();
+									this.requestRender();
+								}
+							});
+						}
+						const scale = Math.max(layer.transform?.scaleX ?? 1, layer.transform?.scaleY ?? 1);
+						return this.textCache.get({
+							text: data.text,
+							style: data.style,
+							box: data.box,
+							fontSize: data.fontSize,
+							fillColor: data.fillColor,
+							strokeColor: data.strokeColor,
+							strokeWidth: data.strokeWidth,
+							letterSpacing: data.letterSpacing,
+							lineHeight: data.lineHeight,
+							reveal: data.reveal,
+							shadowColor: data.shadowColor,
+							shadowBlur: data.shadowBlur,
+							shadowOffsetX: data.shadowOffsetX,
+							shadowOffsetY: data.shadowOffsetY,
+							backgroundBoxColor: data.backgroundBoxColor,
+							backgroundBoxPadding: data.backgroundBoxPadding,
+							backgroundBoxRadius: data.backgroundBoxRadius,
+							boxBorderColor: data.boxBorderColor,
+							boxBorderWidth: data.boxBorderWidth,
+							accentBarColor: data.accentBarColor,
+							accentBarWidth: data.accentBarWidth,
+							frameStyle: data.frameStyle,
+							badgeText: data.badgeText,
+							gradientType: data.gradientType,
+							gradientColorEnd: data.gradientColorEnd,
+							gradientAngle: data.gradientAngle,
+							gradientStops: data.gradientStops,
+							animator: data.animator,
+							colorRuns: data.colorRuns,
+							scale
 						});
 					}
-					const scale = Math.max(layer.transform?.scaleX ?? 1, layer.transform?.scaleY ?? 1);
-					return this.textCache.get({
-						text: data.text,
-						style: data.style,
-						box: data.box,
-						fontSize: data.fontSize,
-						fillColor: data.fillColor,
-						strokeColor: data.strokeColor,
-						strokeWidth: data.strokeWidth,
-						letterSpacing: data.letterSpacing,
-						lineHeight: data.lineHeight,
-						reveal: data.reveal,
-						shadowColor: data.shadowColor,
-						shadowBlur: data.shadowBlur,
-						shadowOffsetX: data.shadowOffsetX,
-						shadowOffsetY: data.shadowOffsetY,
-						backgroundBoxColor: data.backgroundBoxColor,
-						backgroundBoxPadding: data.backgroundBoxPadding,
-						backgroundBoxRadius: data.backgroundBoxRadius,
-						boxBorderColor: data.boxBorderColor,
-						boxBorderWidth: data.boxBorderWidth,
-						accentBarColor: data.accentBarColor,
-						accentBarWidth: data.accentBarWidth,
-						frameStyle: data.frameStyle,
-						badgeText: data.badgeText,
-						gradientType: data.gradientType,
-						gradientColorEnd: data.gradientColorEnd,
-						gradientAngle: data.gradientAngle,
-						gradientStops: data.gradientStops,
-						animator: data.animator,
-						colorRuns: data.colorRuns,
-						scale
-					});
-				}
-				const source = this.pool.getFrameSource(layer, this.clock.playing, this.clock.rate);
-				if (!source) {
-					// Only indicate loading when playback is paused/scrubbing and no frame is available yet.
-					// During active playback, compositor holds lastGoodFrames smoothly without showing loading overlays.
-					if (!this.clock.playing && !this.lastGoodFrames.has(layer.clipId)) {
-						loading = true;
+					const source = this.pool.getFrameSource(layer, this.clock.playing, this.clock.rate);
+					if (!source) {
+						// Only indicate loading when playback is paused/scrubbing and no frame is available yet.
+						// During active playback, compositor holds lastGoodFrames smoothly without showing loading overlays.
+						if (!this.clock.playing && !this.lastGoodFrames.has(layer.clipId)) {
+							loading = true;
+						}
+					} else if (this.pool.isUsingProxy(layer)) {
+						proxyActive = true;
 					}
-				} else if (this.pool.isUsingProxy(layer)) {
-					proxyActive = true;
-				}
-				return source;
-			},
-			this.lastGoodFrames,
-			{ playing: this.clock.playing, scale: this.currentRenderScale }
-		);
+					return source;
+				},
+				this.lastGoodFrames,
+				{ playing: this.clock.playing, scale: this.currentRenderScale }
+			);
+		} catch (error) {
+			console.warn('Playback frame render failed:', error);
+		}
 		this.updateSnapshot({ proxyActive });
 		canvas.setAttribute(
 			'aria-label',
