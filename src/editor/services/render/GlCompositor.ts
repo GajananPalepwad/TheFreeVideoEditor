@@ -971,15 +971,20 @@ export class GlCompositor implements FrameRenderer {
 		gl.bindTexture(gl.TEXTURE_2D, entry.texture);
 		const unchanged = layer.kind === 'image' && entry.source === source;
 		if (!unchanged) {
-			if (entry.width === width && entry.height === height) {
-				gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
-			} else {
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
-				entry.width = width;
-				entry.height = height;
+			try {
+				if (entry.width === width && entry.height === height) {
+					gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+				} else {
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
+					entry.width = width;
+					entry.height = height;
+				}
+				entry.source = source;
+				stats.textureUploads += 1;
+			} catch (err) {
+				console.warn('Failed to upload texture source to WebGL:', err);
+				return null;
 			}
-			entry.source = source;
-			stats.textureUploads += 1;
 		}
 		return entry;
 	}

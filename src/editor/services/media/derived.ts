@@ -113,6 +113,7 @@ async function extractVideoDerived(
 ): Promise<{ poster: Blob; thumbs: DerivedData['thumbs'] }> {
 	const url = URL.createObjectURL(file);
 	const video = document.createElement('video');
+	video.crossOrigin = 'anonymous';
 	video.preload = 'auto';
 	video.muted = true;
 	video.playsInline = true;

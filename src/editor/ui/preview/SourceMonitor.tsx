@@ -194,6 +194,7 @@ export default function SourceMonitor({ engine = null }: SourceMonitorProps) {
 										src={sourceMedia.url || undefined}
 										preload="metadata"
 										playsInline
+										crossOrigin="anonymous"
 										onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
 										onTimeUpdate={updateTime}
 										onPlay={() => setPlaying(true)}

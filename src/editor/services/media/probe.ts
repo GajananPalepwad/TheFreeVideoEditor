@@ -119,6 +119,7 @@ async function estimateFrameRate(
 
 function makeProbeVideo(): HTMLVideoElement {
 	const video = document.createElement('video');
+	video.crossOrigin = 'anonymous';
 	video.preload = 'metadata';
 	video.muted = true;
 	video.playsInline = true;
