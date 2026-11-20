@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('AI Workspace & Silence Trimming', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/editor');
+		await page.goto('/editor/');
 		await page.evaluate(() => {
 			window.localStorage.removeItem('tfve:workspace-state');
 		});
@@ -66,8 +66,13 @@ test.describe('AI Workspace & Silence Trimming', () => {
 
 		// Populate synthetic detected silences directly via store for deterministic E2E verification
 		await page.evaluate(() => {
-			const store = (window as unknown as { __TFVE_STORE__?: { getState: () => any } })
-				.__TFVE_STORE__;
+			const store = (
+				window as unknown as {
+					__TFVE_STORE__?: {
+						getState: () => { setDetectedSilences: (s: unknown) => void };
+					};
+				}
+			).__TFVE_STORE__;
 			if (store) {
 				store.getState().setDetectedSilences([
 					{
@@ -134,8 +139,16 @@ test.describe('AI Workspace & Silence Trimming', () => {
 
 		// Override analyzeSilence to populate detected silences when button is clicked
 		await page.evaluate(() => {
-			const store = (window as unknown as { __TFVE_STORE__?: { getState: () => any } })
-				.__TFVE_STORE__;
+			const store = (
+				window as unknown as {
+					__TFVE_STORE__?: {
+						getState: () => {
+							analyzeSilence?: () => Promise<void>;
+							setDetectedSilences: (s: unknown) => void;
+						};
+					};
+				}
+			).__TFVE_STORE__;
 			if (store) {
 				store.getState().analyzeSilence = async () => {
 					store.getState().setDetectedSilences([

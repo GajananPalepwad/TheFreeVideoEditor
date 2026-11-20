@@ -9,7 +9,12 @@ export const SilenceTrimPanel: React.FC = () => {
 	const project = useEditorStore((state) => state.project);
 	const fps = project?.settings.fps ?? 30;
 	const activeSequenceId = useEditorStore((state) => state.activeSequenceId);
-	const aiState = useEditorStore((state) => state.ai);
+	const options = useEditorStore((state) => state.ai.silenceOptions);
+	const silences = useEditorStore((state) => state.ai.detectedSilences);
+	const isAnalyzing = useEditorStore((state) => state.ai.isAnalyzingSilence);
+	const analysisProgress = useEditorStore((state) => state.ai.analysisProgress);
+	const virtualPreview = useEditorStore((state) => state.ai.virtualPreview);
+	const cachedFeatures = useEditorStore((state) => state.ai.cachedFeatures);
 	const setSilenceOptions = useEditorStore((state) => state.setSilenceOptions);
 	const toggleSilenceIncluded = useEditorStore((state) => state.toggleSilenceIncluded);
 	const includeAllSilences = useEditorStore((state) => state.includeAllSilences);
@@ -26,17 +31,12 @@ export const SilenceTrimPanel: React.FC = () => {
 		}
 	};
 
-	const options = aiState.silenceOptions;
-	const silences = aiState.detectedSilences;
-	const isAnalyzing = aiState.isAnalyzingSilence;
-	const virtualPreview = aiState.virtualPreview;
-
-	// Audio tracks in current sequence
+	// Audio tracks in current sequence (including video tracks that carry audio)
 	const audioTracks = useMemo(() => {
 		if (!project) return [];
 		const seq =
 			activeSequenceId === 'root' ? project : (project.sequences?.[activeSequenceId] ?? project);
-		return seq.tracks.filter((t) => t.kind === 'audio');
+		return seq.tracks.filter((t) => t.kind === 'audio' || t.kind === 'video');
 	}, [project, activeSequenceId]);
 
 	const includedSilences = useMemo(() => silences.filter((s) => s.included), [silences]);
@@ -47,7 +47,8 @@ export const SilenceTrimPanel: React.FC = () => {
 	);
 
 	const handleTrackToggle = (trackId: string) => {
-		const current = options.trackIds;
+		const allTrackIds = audioTracks.map((t) => t.id);
+		const current = options.trackIds.length === 0 ? allTrackIds : options.trackIds;
 		const next = current.includes(trackId)
 			? current.filter((id) => id !== trackId)
 			: [...current, trackId];
@@ -366,7 +367,7 @@ export const SilenceTrimPanel: React.FC = () => {
 					{isAnalyzing ? (
 						<>
 							<span className="ai-spinner" aria-hidden="true" />
-							<span>Analyzing Audio ({aiState.analysisProgress}%)...</span>
+							<span>Analyzing Audio ({analysisProgress}%)...</span>
 						</>
 					) : (
 						<>
@@ -504,7 +505,7 @@ export const SilenceTrimPanel: React.FC = () => {
 				</div>
 			)}
 
-			{silences.length === 0 && !isAnalyzing && aiState.cachedFeatures && (
+			{silences.length === 0 && !isAnalyzing && cachedFeatures && (
 				<div ref={resultsRef} className="ai-section" data-testid="silence-empty-section">
 					<div
 						style={{

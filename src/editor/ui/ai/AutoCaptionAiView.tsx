@@ -12,7 +12,7 @@ import { trackFeatureUsed } from '../../../services/activityTracking';
 export const AutoCaptionAiView: React.FC = () => {
 	const store = useEditorStoreApi();
 	const project = useEditorStore((state) => state.project);
-	const selection = useEditorStore((state) => state.timeline.selection);
+	const selectedClipIds = useEditorStore((state) => state.timeline.selection.clipIds);
 
 	const [status, setStatus] = useState<SttProgressEvent>({
 		phase: 'idle',
@@ -83,7 +83,7 @@ export const AutoCaptionAiView: React.FC = () => {
 		});
 
 		try {
-			const clipIds = audioSource === 'selected' ? selection.clipIds : undefined;
+			const clipIds = audioSource === 'selected' ? selectedClipIds : undefined;
 
 			const words = await localSttService.transcribeProject(project, {
 				trackId: selectedTrackId === 'all' ? undefined : selectedTrackId,
@@ -268,7 +268,7 @@ export const AutoCaptionAiView: React.FC = () => {
 								onChange={(e) => setAudioSource(e.target.value as 'all' | 'selected' | 'range')}
 							>
 								<option value="all">Entire Sequence Mix</option>
-								<option value="selected">Selected Clips ({selection.clipIds.length})</option>
+								<option value="selected">Selected Clips ({selectedClipIds.length})</option>
 							</select>
 
 							{audioSource === 'all' && (
