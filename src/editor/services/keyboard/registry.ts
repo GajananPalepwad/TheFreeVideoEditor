@@ -496,6 +496,15 @@ export function createEditorShortcutRegistry(handlers: ShortcutHandlers): Shortc
 			preventDefault: true
 		},
 		{
+			id: 'reverse-clip',
+			keys: { mac: 'shift+r', other: 'shift+r' },
+			label: 'Reverse Clip',
+			group: 'Editing',
+			scope: 'editor',
+			handler: action('reverse-clip'),
+			preventDefault: true
+		},
+		{
 			id: 'add-freeze-frame',
 			keys: { mac: 'shift+f', other: 'shift+f' },
 			label: 'Add Freeze Frame',

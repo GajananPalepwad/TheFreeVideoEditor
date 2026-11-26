@@ -26,6 +26,11 @@ export default function TimeRemapSection({
 
 	const isRemapEnabled = Boolean(clip.timeRemap);
 	const exceedsMedia = asset ? isSpeedExceedingMedia(clip, asset) : false;
+	const isReversed = clip.timeRemap
+		? 'keyframes' in clip.timeRemap
+			? clip.timeRemap.keyframes.some((k) => k.value < 0)
+			: clip.timeRemap.value < 0
+		: (clip.speed ?? 1) < 0;
 
 	const handleToggleRemap = () => {
 		if (isRemapEnabled) {
@@ -46,6 +51,43 @@ export default function TimeRemapSection({
 
 	return (
 		<div style={{ display: 'grid', gap: 'var(--spacing-xs)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					gap: 'var(--spacing-xs)'
+				}}
+			>
+				<button
+					type="button"
+					className={`secondary-button ${isReversed ? 'is-active' : ''}`}
+					aria-pressed={isReversed}
+					aria-label="Reverse Clip"
+					style={{
+						fontSize: '0.75rem',
+						padding: '4px 8px',
+						...(isReversed
+							? {
+									borderColor: 'var(--color-accent, #3b82f6)',
+									color: 'var(--color-accent, #3b82f6)'
+								}
+							: {})
+					}}
+					onClick={() => store.getState().reverseClips([clip.id])}
+				>
+					⇄ {isReversed ? 'Reversed' : 'Reverse Clip'}
+				</button>
+				<button
+					type="button"
+					className="secondary-button"
+					style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+					onClick={() => store.getState().openSpeedDialog(clip.id)}
+				>
+					Speed / Duration…
+				</button>
+			</div>
+
 			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 				<label
 					style={{

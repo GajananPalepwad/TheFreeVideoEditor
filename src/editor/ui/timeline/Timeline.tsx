@@ -3828,6 +3828,37 @@ function ActiveTimeline({ project }: { project: Project }) {
 							<button
 								type="button"
 								onClick={() => {
+									const targetIds =
+										selection.clipIds.length > 0 ? selection.clipIds : [context.clip!.id];
+									store.getState().reverseClips(targetIds);
+									closeContextMenu();
+								}}
+							>
+								<svg
+									className="menu-icon"
+									viewBox="0 0 16 16"
+									width="14"
+									height="14"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										fillRule="evenodd"
+										d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"
+										transform="scale(-1, 1) translate(-16, 0)"
+									/>
+								</svg>
+								<span>
+									{selection.clipIds.length > 1
+										? 'Reverse clips'
+										: (context.clip.speed ?? 1) < 0
+											? 'Reverse clip ✓'
+											: 'Reverse clip'}
+								</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => {
 									store.getState().addFreezeFrame(context.clip!.id);
 									closeContextMenu();
 								}}
