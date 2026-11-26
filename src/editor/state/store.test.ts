@@ -718,6 +718,32 @@ LUT_3D_SIZE 2
 		expect(clip?.speed).toBe(-2);
 		expect(clip?.sourceIn).toBeGreaterThan(clip?.sourceOut ?? 0);
 
+		// Reversing a text clip reverses its animations, and locked tracks are rejected
+		const textId = store.getState().addTextClip({ text: 'Animated Title' })!;
+		expect(textId).toBeTruthy();
+		expect(store.getState().applyTextAnimation(textId, 'typewriter')).toBe(true);
+		expect(store.getState().reverseClips([textId])).toBe(true);
+		const revText = store
+			.getState()
+			.project?.tracks.flatMap((t) => t.clips)
+			.find((c) => c.id === textId);
+		expect(revText?.speed).toBe(-1);
+		const textTrack = store
+			.getState()
+			.project?.tracks.find((t) => t.clips.some((c) => c.id === textId));
+		expect(textTrack).toBeDefined();
+		if (!textTrack) return;
+		store.getState().setTimelineTrackFlags(textTrack.id, { locked: true });
+		expect(store.getState().reverseClips([textId])).toBe(false);
+		store.getState().setTimelineTrackFlags(textTrack.id, { locked: false });
+		// Undo back to keep freeze-frame step clean
+		expect(store.getState().undo()).toBe(true); // undo unlock
+		expect(store.getState().undo()).toBe(true); // undo lock
+		expect(store.getState().undo()).toBe(true); // undo reverse text
+		expect(store.getState().undo()).toBe(true); // undo preset
+		expect(store.getState().undo()).toBe(true); // undo add text
+		store.getState().selectClips([solidId]);
+
 		// enableTimeRemap / disableTimeRemap
 		expect(store.getState().enableTimeRemap(solidId)).toBe(true);
 		clip = store.getState().project?.tracks[0]?.clips[0];

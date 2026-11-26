@@ -3,6 +3,7 @@ import {
 	mapAnimatedRecord,
 	retimeAnimatedValue,
 	retimeAnimatedValueTail,
+	reverseAnimatedValue,
 	shiftAnimatedValue,
 	splitAnimatedValue
 } from './animation';
@@ -74,4 +75,20 @@ export function retimeClipTail(
 ): AnimatedFields {
 	if (oldDuration === newDuration) return {};
 	return mapFields(clip, (value) => retimeAnimatedValueTail(value, oldDuration, newDuration));
+}
+
+/** Reverses keyframed properties, effects, and masks across `[0, duration]` (excluding timeRemap). */
+export function reverseClipAnimation(
+	clip: Omit<AnimatedFields, 'timeRemap'>,
+	duration: Time
+): Omit<AnimatedFields, 'timeRemap'> {
+	const transform: Transform = (value) => reverseAnimatedValue(value, duration);
+	const properties = mapAnimatedRecord(clip.properties, transform);
+	const effects = mapEffects(clip.effects, transform);
+	const masks = mapMasks(clip.masks, transform);
+	return {
+		...(properties ? { properties } : {}),
+		...(effects ? { effects } : {}),
+		...(masks ? { masks } : {})
+	};
 }

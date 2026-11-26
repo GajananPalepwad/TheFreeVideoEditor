@@ -17,6 +17,10 @@ The editor supports two complementary speed modification models:
   - Offers a **Ripple** toggle to push or pull later clips on the track when clip duration changes.
   - Offers a **Reverse** toggle ($s \to -s$).
   - Offers a **Maintain Audio Pitch** toggle (`clip.maintainPitch`).
+- **One-Click Reverse Any Clip (`Shift+R`, Timeline Context Menu, Edit Menu, Inspector)**:
+  - Reverses **any clip type** (video, audio, image, text, shape, solid/gradient, adjustment layer, or nested sequence / template).
+  - Negates playback direction (`speed` or `timeRemap`), swaps `sourceIn`/`sourceOut`, reverses keyframed animations on `properties`, `effects`, and `masks` across `clip.duration` via `reverseAnimatedValue`, and swaps `fadeInUs`/`fadeOutUs`.
+  - Automatically includes linked A/V and grouped clips, respects locked tracks and nested sequence scopes, and updates filmstrip thumbnails and audio waveforms to reflect reversed playback.
 
 ### Time Remapping (`clip.timeRemap`)
 
@@ -114,5 +118,6 @@ Two freeze operations are available via shortcut, context menu, and Edit menu:
 | Action                  | Shortcut (Mac / Other) | Scope   |
 | :---------------------- | :--------------------- | :------ |
 | Speed / Duration Dialog | `Alt+R`                | Editing |
+| Reverse Clip            | `Shift+R`              | Editing |
 | Add Freeze Frame        | `Shift+F`              | Editing |
 | Freeze Frame to End     | `Alt+Shift+F`          | Editing |

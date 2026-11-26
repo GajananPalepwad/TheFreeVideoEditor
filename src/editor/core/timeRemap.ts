@@ -1,5 +1,11 @@
-import { evaluate, isAnimated, retimeAnimatedValue, shiftAnimatedValue } from './animation';
-import { splitClipAnimation } from './clipAnimation';
+import {
+	evaluate,
+	isAnimated,
+	retimeAnimatedValue,
+	reverseAnimatedValue,
+	shiftAnimatedValue
+} from './animation';
+import { reverseClipAnimation, splitClipAnimation } from './clipAnimation';
 import { framesToTicks, ticksToFrames } from './time';
 import { clipEnd } from './timeline';
 import type { AnimatedValue, Clip, ClipId, Project, Time } from './types';
@@ -207,7 +213,8 @@ export interface SetConstantSpeedOptions {
 
 /**
  * Changes constant clip speed (duration = sourceRange / |speed|).
- * Rejects speeds outside [0.01, 100]. Snaps timeline duration to project frame boundaries.
+ * Rejects speeds whose magnitude falls outside [0.01, 100]. Negative multipliers reverse playback.
+ * Snaps timeline duration to project frame boundaries.
  */
 export function setConstantSpeed(
 	project: Project,
@@ -215,8 +222,9 @@ export function setConstantSpeed(
 	speedMultiplier: number,
 	options?: SetConstantSpeedOptions
 ): Project {
-	if (!Number.isFinite(speedMultiplier) || speedMultiplier < 0.01 || speedMultiplier > 100) {
-		throw new RangeError('Speed multiplier must be between 0.01 and 100 (1% to 10000%).');
+	const absSpeed = Math.abs(speedMultiplier);
+	if (!Number.isFinite(speedMultiplier) || absSpeed < 0.01 || absSpeed > 100) {
+		throw new RangeError('Speed multiplier magnitude must be between 0.01 and 100 (1% to 10000%).');
 	}
 
 	const fps = project.settings.fps;
@@ -238,21 +246,38 @@ export function setConstantSpeed(
 				continue;
 			}
 
+			const prevSpeed = clip.speed || 1;
+			const flipped = prevSpeed < 0 !== speedMultiplier < 0;
 			const sourceSpan = Math.abs(clip.sourceOut - clip.sourceIn);
-			const rawDuration = Math.round(sourceSpan / speedMultiplier);
+			const rawDuration = Math.round(sourceSpan / absSpeed);
 			const snappedFrames = Math.max(1, ticksToFrames(rawDuration, fps));
 			const newDuration = framesToTicks(snappedFrames, fps);
-			const newSourceOut = clip.sourceIn + Math.round(newDuration * speedMultiplier);
+			const newSourceIn = flipped ? clip.sourceOut : clip.sourceIn;
+			const newSourceOut = Math.max(0, newSourceIn + Math.round(newDuration * speedMultiplier));
 			const durationDelta = newDuration - clip.duration;
+			const reversedAnim = flipped ? reverseClipAnimation(clip, clip.duration) : {};
+			const swappedFades =
+				flipped && (clip.fadeInUs !== undefined || clip.fadeOutUs !== undefined)
+					? { fadeInUs: clip.fadeOutUs, fadeOutUs: clip.fadeInUs }
+					: {};
 
 			const updatedClip: Clip = {
 				...clip,
+				...reversedAnim,
+				...swappedFades,
 				start: clip.start + rippleShift,
 				duration: newDuration,
 				speed: speedMultiplier,
+				sourceIn: newSourceIn,
 				sourceOut: newSourceOut,
 				...(options?.maintainPitch !== undefined ? { maintainPitch: options.maintainPitch } : {})
 			};
+			if (swappedFades.fadeInUs === undefined && 'fadeInUs' in swappedFades) {
+				delete updatedClip.fadeInUs;
+			}
+			if (swappedFades.fadeOutUs === undefined && 'fadeOutUs' in swappedFades) {
+				delete updatedClip.fadeOutUs;
+			}
 			delete updatedClip.timeRemap;
 
 			newClips.push(updatedClip);
@@ -274,47 +299,63 @@ function generateId(): string {
 }
 
 /**
- * Reverses clip playback direction.
- * If already constant speed: sets speed to -clip.speed and swaps sourceIn/sourceOut.
- * If timeRemap is already present: inverts the speed curve and swaps anchor sourceIn/sourceOut.
+ * Reverses clip playback direction, keyframed animations (properties, effects, masks),
+ * audio/video fades, and speed curves for any clip type.
  */
 export function reverseClip(clip: Clip): Clip {
+	const reversedAnim = reverseClipAnimation(clip, clip.duration);
+	const hasFades = clip.fadeInUs !== undefined || clip.fadeOutUs !== undefined;
+	const fadePatch: Partial<Clip> = hasFades
+		? { fadeInUs: clip.fadeOutUs, fadeOutUs: clip.fadeInUs }
+		: {};
+	const cleanFades = (next: Clip): Clip => {
+		if (hasFades) {
+			if (next.fadeInUs === undefined) delete next.fadeInUs;
+			if (next.fadeOutUs === undefined) delete next.fadeOutUs;
+		}
+		return next;
+	};
+
 	if (!clip.timeRemap) {
-		return {
+		const speed = clip.speed || 1;
+		return cleanFades({
 			...clip,
-			speed: -clip.speed,
+			...reversedAnim,
+			...fadePatch,
+			speed: -speed,
 			sourceIn: clip.sourceOut,
 			sourceOut: clip.sourceIn
-		};
+		});
 	}
 
 	if (!isAnimated(clip.timeRemap)) {
 		const nextVal = -clip.timeRemap.value;
-		return {
+		return cleanFades({
 			...clip,
+			...reversedAnim,
+			...fadePatch,
 			sourceIn: clip.sourceOut,
 			sourceOut: clip.sourceIn,
 			timeRemap: { value: nextVal }
-		};
+		});
 	}
 
-	const reversedKeyframes = clip.timeRemap.keyframes
-		.map((k) => ({
-			...k,
-			time: clip.duration - k.time,
-			value: -k.value
-		}))
-		.sort((a, b) => a.time - b.time);
+	const flippedCurve = reverseAnimatedValue(clip.timeRemap, clip.duration);
+	const reversedKeyframes = isAnimated(flippedCurve)
+		? flippedCurve.keyframes.map((k) => ({ ...k, value: -k.value }))
+		: [];
 
 	const newSourceIn = timelineToSource(clip, clip.start + clip.duration);
 	const newSourceOut = timelineToSource(clip, clip.start);
 
-	return {
+	return cleanFades({
 		...clip,
+		...reversedAnim,
+		...fadePatch,
 		sourceIn: newSourceIn,
 		sourceOut: newSourceOut,
 		timeRemap: { keyframes: reversedKeyframes }
-	};
+	});
 }
 
 /**

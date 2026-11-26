@@ -61,11 +61,13 @@ interface KeyframeContextMenuState {
 
 function WaveformCanvas({
 	peaks,
-	clipDuration,
+	clip,
+	assetDuration,
 	pixelsPerSecond
 }: {
 	peaks: NonNullable<DerivedData['peaks']>;
-	clipDuration: Time;
+	clip: Clip;
+	assetDuration: Time;
 	pixelsPerSecond: number;
 }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,7 +84,7 @@ function WaveformCanvas({
 		const MAX_CANVAS_HEIGHT = 4096;
 		const rawWidth = Math.max(
 			1,
-			Math.floor(rect.width || timeToPixels(clipDuration, pixelsPerSecond))
+			Math.floor(rect.width || timeToPixels(clip.duration, pixelsPerSecond))
 		);
 		const rawHeight = Math.max(1, Math.floor(rect.height || 48));
 		const width = Math.min(rawWidth, Math.floor(MAX_CANVAS_WIDTH / dpr));
@@ -115,10 +117,28 @@ function WaveformCanvas({
 		// Premiere Pro waveform filled color
 		ctx.fillStyle = '#34d399';
 
+		const effectiveDuration =
+			assetDuration > 0 ? assetDuration : Math.max(clip.sourceIn, clip.sourceOut, clip.duration);
 		const step = Math.max(1, width / 400); // 1-2px per column
 		for (let x = 0; x < width; x += step) {
-			const startSample = Math.floor((x / width) * totalSamples);
-			const endSample = Math.min(totalSamples, Math.floor(((x + step) / width) * totalSamples));
+			let startSample: number;
+			let endSample: number;
+			if (effectiveDuration > 0 && clip.duration > 0) {
+				const t0 = Math.round((x / width) * clip.duration);
+				const t1 = Math.round(((x + step) / width) * clip.duration);
+				const s0 = timelineToSource(clip, clip.start + t0);
+				const s1 = timelineToSource(clip, clip.start + t1);
+				const loFrac = Math.max(0, Math.min(1, Math.min(s0, s1) / effectiveDuration));
+				const hiFrac = Math.max(0, Math.min(1, Math.max(s0, s1) / effectiveDuration));
+				startSample = Math.min(totalSamples - 1, Math.floor(loFrac * totalSamples));
+				endSample = Math.min(
+					totalSamples,
+					Math.max(startSample + 1, Math.ceil(hiFrac * totalSamples))
+				);
+			} else {
+				startSample = Math.floor((x / width) * totalSamples);
+				endSample = Math.min(totalSamples, Math.floor(((x + step) / width) * totalSamples));
+			}
 
 			let peakMax = -128;
 			let peakMin = 127;
@@ -142,7 +162,7 @@ function WaveformCanvas({
 			// Draw mirrored upper & lower bars from center
 			ctx.fillRect(x, midY - barH, colW, barH * 2);
 		}
-	}, [peaks, clipDuration, pixelsPerSecond]);
+	}, [peaks, clip, assetDuration, pixelsPerSecond]);
 
 	return <canvas ref={canvasRef} className="timeline-waveform-canvas" aria-hidden="true" />;
 }
@@ -271,7 +291,8 @@ function ClipArtwork({
 				<div className="timeline-waveform" aria-hidden="true">
 					<WaveformCanvas
 						peaks={peak}
-						clipDuration={clip.duration}
+						clip={clip}
+						assetDuration={asset.duration}
 						pixelsPerSecond={pixelsPerSecond}
 					/>
 				</div>

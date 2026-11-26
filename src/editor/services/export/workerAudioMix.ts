@@ -64,12 +64,20 @@ export class WorkerAudioMixer {
 		for (const schedule of schedules) {
 			if (signal?.aborted) throw new DOMException('Export cancelled.', 'AbortError');
 			if (this.failedAssets.has(schedule.assetId)) continue;
+			const decodeStartSeconds =
+				schedule.playbackRate < 0
+					? Math.max(0, schedule.sourceOffsetSeconds - schedule.sourceDurationSeconds)
+					: schedule.sourceOffsetSeconds;
+			const decodeDurationSeconds =
+				schedule.playbackRate < 0
+					? Math.max(0, schedule.sourceOffsetSeconds - decodeStartSeconds)
+					: schedule.sourceDurationSeconds;
 			let segments: DecodedSegment[];
 			try {
 				segments = await this.decodeRange(
 					schedule.assetId,
-					schedule.sourceOffsetSeconds,
-					schedule.sourceDurationSeconds,
+					decodeStartSeconds,
+					decodeDurationSeconds,
 					signal
 				);
 			} catch (error) {
@@ -194,19 +202,27 @@ export class WorkerAudioMixer {
 		left: Float32Array,
 		right: Float32Array
 	): void {
-		let segmentIndex = 0;
+		if (segments.length === 0) return;
+		const isReverse = playbackRate < 0;
+		let segmentIndex = isReverse ? segments.length - 1 : 0;
 		const firstFrame = Math.max(0, Math.floor(whenSeconds * outputSampleRate));
 		for (let frame = firstFrame; frame < outputFrameCount; frame += 1) {
 			const timelineSeconds = frame / outputSampleRate;
 			const sourceSeconds =
 				sourceOffsetSeconds + Math.max(0, timelineSeconds - whenSeconds) * playbackRate;
-			while (
-				segmentIndex < segments.length &&
-				sourceSeconds >=
-					(segments[segmentIndex]?.startSeconds ?? Number.POSITIVE_INFINITY) +
-						(segments[segmentIndex]?.frameCount ?? 0) / (segments[segmentIndex]?.sampleRate ?? 1)
-			) {
-				segmentIndex += 1;
+			if (isReverse) {
+				while (segmentIndex >= 0 && sourceSeconds < (segments[segmentIndex]?.startSeconds ?? 0)) {
+					segmentIndex -= 1;
+				}
+			} else {
+				while (
+					segmentIndex < segments.length &&
+					sourceSeconds >=
+						(segments[segmentIndex]?.startSeconds ?? Number.POSITIVE_INFINITY) +
+							(segments[segmentIndex]?.frameCount ?? 0) / (segments[segmentIndex]?.sampleRate ?? 1)
+				) {
+					segmentIndex += 1;
+				}
 			}
 			const segment = segments[segmentIndex];
 			if (

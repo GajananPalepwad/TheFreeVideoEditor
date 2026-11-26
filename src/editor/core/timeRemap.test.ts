@@ -200,4 +200,211 @@ describe('Gate M operations and helpers', () => {
 		expect(freezeClip.duration).toBe(2_000_000);
 		expect(freezeClip.timeRemap).toEqual({ value: 0 });
 	});
+
+	it('reverses animated properties, effects, masks, and fades on any clip type and round-trips', async () => {
+		const { reverseClip } = await import('./timeRemap');
+		const { evaluate } = await import('./animation');
+		const textClip: Clip = {
+			id: 'txt-1' as ClipId,
+			start: 0,
+			duration: 4_000_000,
+			sourceIn: 0,
+			sourceOut: 4_000_000,
+			speed: 1,
+			volume: 1,
+			fadeInUs: 500_000,
+			fadeOutUs: 250_000,
+			source: { type: 'text', text: 'Reverse Me' },
+			properties: {
+				'text.reveal': {
+					keyframes: [
+						{ time: 0, value: 0, interpolation: 'bezier', easeOut: { x: 0.42, y: 0 } },
+						{ time: 2_000_000, value: 1, interpolation: 'linear', easeIn: { x: 0.58, y: 1 } }
+					]
+				}
+			},
+			effects: [
+				{
+					id: 'fx-1',
+					type: 'blur',
+					params: {
+						radius: {
+							keyframes: [
+								{ time: 0, value: 0, interpolation: 'linear' },
+								{ time: 4_000_000, value: 12, interpolation: 'linear' }
+							]
+						}
+					}
+				}
+			]
+		};
+
+		const rev = reverseClip(textClip);
+		expect(rev.speed).toBe(-1);
+		expect(rev.sourceIn).toBe(4_000_000);
+		expect(rev.sourceOut).toBe(0);
+		expect(rev.fadeInUs).toBe(250_000);
+		expect(rev.fadeOutUs).toBe(500_000);
+
+		const origReveal = textClip.properties![
+			'text.reveal'
+		] as import('./types').AnimatedValue<number>;
+		const revReveal = rev.properties!['text.reveal'] as import('./types').AnimatedValue<number>;
+		expect(evaluate(revReveal, 4_000_000)).toBeCloseTo(evaluate(origReveal, 0), 4);
+		expect(evaluate(revReveal, 3_000_000)).toBeCloseTo(evaluate(origReveal, 1_000_000), 3);
+		expect(evaluate(revReveal, 2_000_000)).toBeCloseTo(evaluate(origReveal, 2_000_000), 4);
+
+		const revBlur = rev.effects![0]!.params.radius as import('./types').AnimatedValue<number>;
+		expect(evaluate(revBlur, 0)).toBeCloseTo(12, 5);
+		expect(evaluate(revBlur, 4_000_000)).toBeCloseTo(0, 5);
+
+		const revBack = reverseClip(rev);
+		expect(revBack.speed).toBe(1);
+		expect(revBack.fadeInUs).toBe(500_000);
+		expect(revBack.fadeOutUs).toBe(250_000);
+		expect(
+			evaluate(
+				revBack.properties!['text.reveal'] as import('./types').AnimatedValue<number>,
+				1_000_000
+			)
+		).toBeCloseTo(evaluate(origReveal, 1_000_000), 4);
+	});
+
+	it('supports negative speed multipliers in setConstantSpeed for reverse dialog', async () => {
+		const { setConstantSpeed } = await import('./timeRemap');
+		const project: Project = {
+			id: 'p1' as ProjectId,
+			schemaVersion: 2,
+			name: 'Speed Neg Test',
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			settings: { fps: 30, width: 1920, height: 1080, sampleRate: 48000 },
+			assets: {},
+			markers: [],
+			tracks: [
+				{
+					id: 't1' as TrackId,
+					name: 'Video 1',
+					kind: 'video',
+					muted: false,
+					locked: false,
+					hidden: false,
+					clips: [{ ...dummyClip, sourceIn: 0, sourceOut: 4_000_000, duration: 4_000_000 }]
+				}
+			]
+		};
+
+		const updated = setConstantSpeed(project, [dummyClip.id], -2);
+		const clip = updated.tracks[0]!.clips[0]!;
+		expect(clip.speed).toBe(-2);
+		expect(clip.duration).toBe(2_000_000);
+		expect(clip.sourceIn).toBe(4_000_000);
+		expect(clip.sourceOut).toBe(0);
+	});
+
+	it('renders the start frame of a reversed nested sequence clip instead of empty', async () => {
+		const { resolveFrame } = await import('./playback');
+		const { reverseClip } = await import('./timeRemap');
+		const { createSequence } = await import('./sequences/operations');
+		const { createSolidClip } = await import('./adjustment');
+		const baseProj: Project = {
+			id: 'p-seq' as ProjectId,
+			schemaVersion: 2,
+			name: 'Seq Reverse',
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			settings: { fps: 30, width: 1920, height: 1080, sampleRate: 48000 },
+			assets: {},
+			markers: [],
+			tracks: [
+				{
+					id: 't1' as TrackId,
+					name: 'Video 1',
+					kind: 'video',
+					muted: false,
+					locked: false,
+					hidden: false,
+					clips: []
+				}
+			]
+		};
+		const { project: withSeq, sequenceId } = createSequence(baseProj, 'Nested');
+		withSeq.sequences![sequenceId]!.tracks[0]!.clips.push(
+			createSolidClip(0, 3_000_000, { r: 1, g: 0, b: 0, a: 1 })
+		);
+		const seqClip = reverseClip({
+			id: 'seq-clip' as ClipId,
+			start: 0,
+			duration: 3_000_000,
+			sourceIn: 0,
+			sourceOut: 3_000_000,
+			speed: 1,
+			volume: 1,
+			source: { type: 'sequence', sequenceId }
+		});
+		withSeq.tracks[0]!.clips.push(seqClip);
+
+		const atStart = resolveFrame(withSeq, 0);
+		expect(atStart.videoLayers[0]?.nested?.layers.length).toBe(1);
+	});
+
+	it('trims head and tail cleanly on a reversed media clip within asset bounds', async () => {
+		const { trimClip } = await import('./operations');
+		const project: Project = {
+			id: 'p-trim' as ProjectId,
+			schemaVersion: 2,
+			name: 'Trim Reverse',
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			settings: { fps: 30, width: 1920, height: 1080, sampleRate: 48000 },
+			assets: {
+				['a1' as AssetId]: {
+					id: 'a1' as AssetId,
+					kind: 'video',
+					name: 'v.mp4',
+					mimeType: 'video/mp4',
+					size: 100,
+					duration: 6_000_000,
+					hasAudio: false,
+					opfsPath: 'v.mp4'
+				}
+			},
+			markers: [],
+			tracks: [
+				{
+					id: 't1' as TrackId,
+					name: 'Video 1',
+					kind: 'video',
+					muted: false,
+					locked: false,
+					hidden: false,
+					clips: [
+						{
+							id: 'rev-v' as ClipId,
+							assetId: 'a1' as AssetId,
+							start: 2_000_000,
+							duration: 4_000_000,
+							sourceIn: 5_000_000,
+							sourceOut: 1_000_000,
+							speed: -1,
+							volume: 1
+						}
+					]
+				}
+			]
+		};
+
+		const afterHead = trimClip(project, 'rev-v' as ClipId, 'start', 1_500_000);
+		const cHead = afterHead.tracks[0]!.clips[0]!;
+		expect(cHead.start).toBe(1_500_000);
+		expect(cHead.duration).toBe(4_500_000);
+		expect(cHead.sourceIn).toBe(5_500_000);
+		expect(cHead.sourceOut).toBe(1_000_000);
+
+		const afterTail = trimClip(project, 'rev-v' as ClipId, 'end', 6_500_000);
+		const cTail = afterTail.tracks[0]!.clips[0]!;
+		expect(cTail.duration).toBe(4_500_000);
+		expect(cTail.sourceIn).toBe(5_000_000);
+		expect(cTail.sourceOut).toBe(500_000);
+	});
 });

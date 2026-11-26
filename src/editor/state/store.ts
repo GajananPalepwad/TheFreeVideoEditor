@@ -2585,58 +2585,106 @@ export function createEditorStore() {
 				setClipSpeed(clipIds, speedMultiplier, options) {
 					const project = get().project;
 					if (!project || clipIds.length === 0) return false;
+					const activeSeqId = get().activeSequenceId;
+					const activeView = viewProject(project, activeSeqId);
 					const allIds = new Set<ClipId>();
 					for (const id of clipIds) {
-						for (const member of groupOf(project, id)) {
+						for (const member of groupOf(activeView, id)) {
 							allIds.add(member.id);
 						}
 					}
-					return Boolean(
-						mutateProject('Change clip speed', (current) => {
-							let updated = setConstantSpeed(current, Array.from(allIds), speedMultiplier, options);
-							if (options?.maintainPitch !== undefined) {
-								updated = {
-									...updated,
-									tracks: updated.tracks.map((track) => ({
-										...track,
-										clips: track.clips.map((clip) => {
-											if (allIds.has(clip.id)) {
-												return { ...clip, maintainPitch: options.maintainPitch };
-											}
-											return clip;
-										})
-									}))
-								};
-							}
-							return updated;
-						})
+					if (allIds.size === 0) return false;
+					const lockedTrack = activeView.tracks.find(
+						(t) => t.locked && t.clips.some((c) => allIds.has(c.id))
 					);
+					if (lockedTrack) {
+						set((state) => {
+							state.timeline.message = `Track “${lockedTrack.name}” is locked.`;
+						});
+						return false;
+					}
+					try {
+						return Boolean(
+							mutateProject('Change clip speed', (current) =>
+								applyToSequence(current, activeSeqId, (view) => {
+									let updated = setConstantSpeed(
+										view,
+										Array.from(allIds),
+										speedMultiplier,
+										options
+									);
+									if (options?.maintainPitch !== undefined) {
+										updated = {
+											...updated,
+											tracks: updated.tracks.map((track) => ({
+												...track,
+												clips: track.clips.map((clip) =>
+													allIds.has(clip.id)
+														? { ...clip, maintainPitch: options.maintainPitch }
+														: clip
+												)
+											}))
+										};
+									}
+									return updated;
+								})
+							)
+						);
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
 				},
 				reverseClips(clipIds) {
 					const project = get().project;
 					if (!project || clipIds.length === 0) return false;
+					const activeSeqId = get().activeSequenceId;
+					const activeView = viewProject(project, activeSeqId);
 					const allIds = new Set<ClipId>();
 					for (const id of clipIds) {
-						for (const member of groupOf(project, id)) {
+						for (const member of groupOf(activeView, id)) {
 							allIds.add(member.id);
 						}
 					}
-					return Boolean(
-						mutateProject('Reverse clip', (current) => {
-							return {
-								...current,
-								tracks: current.tracks.map((track) => ({
-									...track,
-									clips: track.clips.map((clip) => {
-										if (allIds.has(clip.id)) {
-											return reverseClip(clip);
-										}
-										return clip;
-									})
-								}))
-							};
-						})
+					if (allIds.size === 0) return false;
+					const lockedTrack = activeView.tracks.find(
+						(t) => t.locked && t.clips.some((c) => allIds.has(c.id))
 					);
+					if (lockedTrack) {
+						set((state) => {
+							state.timeline.message = `Track “${lockedTrack.name}” is locked.`;
+						});
+						return false;
+					}
+					try {
+						const changed = Boolean(
+							mutateProject('Reverse clip', (current) =>
+								applyToSequence(current, activeSeqId, (view) => ({
+									...view,
+									tracks: view.tracks.map((track) => ({
+										...track,
+										clips: track.clips.map((clip) =>
+											allIds.has(clip.id) ? reverseClip(clip) : clip
+										)
+									}))
+								}))
+							)
+						);
+						if (changed) {
+							set((state) => {
+								state.timeline.message = '';
+								state.projectMessage = `Reversed ${allIds.size} clip(s).`;
+							});
+						}
+						return changed;
+					} catch (error) {
+						set((state) => {
+							state.timeline.message = errorMessage(error);
+						});
+						return false;
+					}
 				},
 				enableTimeRemap(clipId) {
 					const project = get().project;
@@ -3137,17 +3185,18 @@ export function createEditorStore() {
 							const original = drag.original[0];
 							if (original) {
 								const delta = snappedTime - drag.pointerStartTime;
-								const candidateIn = Math.max(0, original.sourceIn + delta);
-								const candidateOut = candidateIn + original.duration;
 								previewProject = {
 									...previewBase,
 									tracks: previewBase.tracks.map((t) => ({
 										...t,
-										clips: t.clips.map((c) =>
-											c.id === drag.clipIds[0]
-												? { ...c, sourceIn: candidateIn, sourceOut: candidateOut }
-												: c
-										)
+										clips: t.clips.map((c) => {
+											if (c.id !== drag.clipIds[0]) return c;
+											const spanSigned = Math.round(original.duration * (c.speed || 1));
+											const minIn = spanSigned < 0 ? Math.abs(spanSigned) : 0;
+											const candidateIn = Math.max(minIn, original.sourceIn + delta);
+											const candidateOut = candidateIn + spanSigned;
+											return { ...c, sourceIn: candidateIn, sourceOut: candidateOut };
+										})
 									}))
 								};
 							}
@@ -3382,17 +3431,18 @@ export function createEditorStore() {
 										const original = drag.original[0];
 										if (!original) return view;
 										const delta = drag.pointerTime - drag.pointerStartTime;
-										const candidateIn = Math.max(0, original.sourceIn + delta);
-										const candidateOut = candidateIn + original.duration;
 										return {
 											...view,
 											tracks: view.tracks.map((t) => ({
 												...t,
-												clips: t.clips.map((c) =>
-													c.id === drag.clipIds[0]
-														? { ...c, sourceIn: candidateIn, sourceOut: candidateOut }
-														: c
-												)
+												clips: t.clips.map((c) => {
+													if (c.id !== drag.clipIds[0]) return c;
+													const spanSigned = Math.round(original.duration * (c.speed || 1));
+													const minIn = spanSigned < 0 ? Math.abs(spanSigned) : 0;
+													const candidateIn = Math.max(minIn, original.sourceIn + delta);
+													const candidateOut = candidateIn + spanSigned;
+													return { ...c, sourceIn: candidateIn, sourceOut: candidateOut };
+												})
 											}))
 										};
 									}

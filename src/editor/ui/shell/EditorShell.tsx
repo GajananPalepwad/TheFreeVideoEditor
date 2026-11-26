@@ -385,6 +385,11 @@ function EditorShell() {
 				const clipId = current.timeline.selection.clipIds[0];
 				if (clipId) current.openSpeedDialog(clipId);
 			},
+			'reverse-clip': () => {
+				const current = state();
+				const clipIds = current.timeline.selection.clipIds;
+				if (clipIds.length > 0) current.reverseClips(clipIds);
+			},
 			'add-freeze-frame': () => {
 				const current = state();
 				const clipId = current.timeline.selection.clipIds[0];
@@ -1013,6 +1018,19 @@ function EditorShell() {
 										}}
 									>
 										Speed / Duration… <span>⌥R / Alt+R</span>
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={!project || selectedClipIds.length === 0}
+										onClick={() => {
+											const current = editorStore.getState();
+											const clipIds = current.timeline.selection.clipIds;
+											if (clipIds.length > 0) current.reverseClips(clipIds);
+											setIsEditMenuOpen(false);
+										}}
+									>
+										Reverse Clip <span>⇧R / Shift+R</span>
 									</button>
 									<button
 										type="button"
