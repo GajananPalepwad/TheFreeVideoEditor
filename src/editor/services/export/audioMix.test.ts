@@ -158,4 +158,43 @@ describe('export audio mix scheduling', () => {
 			await mixer.dispose();
 		}
 	});
+
+	it('schedules positive source durations for reversed clips', () => {
+		const project = createEmptyProject({ name: 'Reverse Audio Schedule' });
+		const track = project.tracks.find((item) => item.kind === 'audio')!;
+		const assetId = 'rev-tone' as keyof typeof project.assets;
+		project.assets[assetId] = {
+			id: assetId,
+			kind: 'audio',
+			name: 'rev.wav',
+			mimeType: 'audio/wav',
+			size: 5,
+			duration: 4_000_000,
+			hasAudio: true,
+			opfsPath: 'rev.wav'
+		};
+		track.clips.push({
+			id: 'rev-clip' as (typeof track.clips)[number]['id'],
+			assetId,
+			start: 0,
+			duration: 2_000_000,
+			sourceIn: 3_000_000,
+			sourceOut: 1_000_000,
+			speed: -1,
+			volume: 1
+		});
+
+		const schedules = audioSchedulesForChunk(project, 0, 1_000_000);
+		expect(schedules).toEqual([
+			{
+				clipId: 'rev-clip',
+				assetId,
+				whenSeconds: 0,
+				sourceOffsetSeconds: 3,
+				sourceDurationSeconds: 1,
+				playbackRate: -1,
+				volume: 1
+			}
+		]);
+	});
 });

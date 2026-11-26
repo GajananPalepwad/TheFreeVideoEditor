@@ -124,13 +124,44 @@ async function activeAudioSources(
 	for (const schedule of schedules) {
 		const buffer = buffers.get(schedule.assetId);
 		if (!buffer) continue;
+		const clip = project.tracks.flatMap((t) => t.clips).find((c) => c.id === schedule.clipId);
 		const source = context.createBufferSource();
+		const when = context.currentTime + 0.15 + schedule.whenSeconds;
+		if (clip && (clip.timeRemap || clip.speed < 0)) {
+			const { renderRemappedAudio } = await import('../audio/renderRemappedAudio');
+			const sourceChannels: Float32Array[] = [];
+			for (let c = 0; c < buffer.numberOfChannels; c++) {
+				sourceChannels.push(buffer.getChannelData(c));
+			}
+			const remapped = renderRemappedAudio({
+				clip,
+				sourceChannels,
+				sourceSampleRate: buffer.sampleRate
+			});
+			const numChan = remapped.channels.length;
+			const numFrames = remapped.channels[0]?.length ?? 0;
+			if (numFrames > 0) {
+				const remappedBuffer = context.createBuffer(numChan, numFrames, remapped.sampleRate);
+				for (let c = 0; c < numChan; c++) {
+					remappedBuffer.copyToChannel(
+						remapped.channels[c] as unknown as Float32Array<ArrayBuffer>,
+						c
+					);
+				}
+				source.buffer = remappedBuffer;
+				source.playbackRate.value = 1;
+				const gain = context.createGain();
+				gain.gain.value = schedule.volume;
+				source.connect(gain).connect(destination);
+				source.start(when);
+			}
+			continue;
+		}
 		source.buffer = buffer;
 		source.playbackRate.value = schedule.playbackRate;
 		const gain = context.createGain();
 		gain.gain.value = schedule.volume;
 		source.connect(gain).connect(destination);
-		const when = context.currentTime + 0.15 + schedule.whenSeconds;
 		source.start(when, schedule.sourceOffsetSeconds, schedule.sourceDurationSeconds);
 	}
 }

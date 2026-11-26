@@ -275,11 +275,16 @@ export function trimClip(
 		if (clip.timeRemap) {
 			anchorNewStart = Math.max(0, Math.min(anchorEnd - anchorMin, requestedTime));
 		} else {
-			const isStillLike = !clip.assetId || project.assets[clip.assetId]?.kind === 'image';
+			const asset = clip.assetId ? project.assets[clip.assetId] : null;
+			const isStillLike = !asset || asset.kind === 'image';
 			if (isStillLike) {
 				anchorNewStart = Math.max(0, Math.min(anchorEnd - anchorMin, requestedTime));
 			} else {
-				const minStart = Math.max(0, clip.start - clip.sourceIn / clip.speed);
+				const maxHeadExtend =
+					clip.speed < 0
+						? Math.max(0, (asset.duration - clip.sourceIn) / Math.abs(clip.speed))
+						: clip.sourceIn / clip.speed;
+				const minStart = Math.max(0, clip.start - maxHeadExtend);
 				anchorNewStart = Math.max(minStart, Math.min(anchorEnd - anchorMin, requestedTime));
 			}
 		}
@@ -294,7 +299,9 @@ export function trimClip(
 		} else {
 			const maxDuration = isStillLike
 				? requestedEnd - clip.start
-				: Math.max(0, ((asset?.duration ?? 0) - clip.sourceIn) / clip.speed);
+				: clip.speed < 0
+					? Math.max(0, clip.sourceIn / Math.abs(clip.speed))
+					: Math.max(0, ((asset?.duration ?? 0) - clip.sourceIn) / clip.speed);
 			const duration = Math.max(
 				Math.min(frameDuration(project), maxDuration),
 				Math.min(requestedEnd - clip.start, maxDuration)
@@ -333,25 +340,23 @@ export function trimClip(
 				duration = end - start;
 				sourceIn = timelineToSource(member, start);
 				sourceOut = timelineToSource(member, end);
+			} else if (isStillLike) {
+				start = Math.max(0, Math.min(end - minimum, targetTime));
+				duration = end - start;
+				sourceIn = Math.max(0, member.sourceIn + Math.round((start - member.start) * member.speed));
+				sourceOut = Math.max(0, sourceIn + Math.round(duration * member.speed));
 			} else {
-				const minStart = Math.max(0, member.start - member.sourceIn / member.speed);
+				const maxHeadExtend =
+					member.speed < 0
+						? Math.max(0, (asset.duration - member.sourceIn) / Math.abs(member.speed))
+						: member.sourceIn / member.speed;
+				const minStart = Math.max(0, member.start - maxHeadExtend);
 				start = Math.max(minStart, Math.min(end - minimum, targetTime));
-				if (isStillLike) {
-					duration = end - start;
-					sourceIn = Math.max(
-						0,
-						member.sourceIn + Math.round((start - member.start) * member.speed)
-					);
-					sourceOut = sourceIn + Math.round(duration * member.speed);
-				} else {
-					sourceIn = Math.max(
-						0,
-						member.sourceIn + Math.round((start - member.start) * member.speed)
-					);
-					duration = Math.max(minimum, Math.round((member.sourceOut - sourceIn) / member.speed));
-					start = end - duration;
-					sourceOut = member.sourceOut;
-				}
+				const rawSourceIn = member.sourceIn + Math.round((start - member.start) * member.speed);
+				sourceIn = Math.max(0, Math.min(asset.duration, rawSourceIn));
+				duration = Math.max(minimum, Math.round((member.sourceOut - sourceIn) / member.speed));
+				start = end - duration;
+				sourceOut = member.sourceOut;
 			}
 		} else {
 			const requestedEnd = Math.max(member.start + frameDuration(project), targetTime);
@@ -363,14 +368,16 @@ export function trimClip(
 			} else {
 				const maxDuration = isStillLike
 					? requestedEnd - member.start
-					: Math.max(0, ((asset?.duration ?? 0) - member.sourceIn) / member.speed);
+					: member.speed < 0
+						? Math.max(0, member.sourceIn / Math.abs(member.speed))
+						: Math.max(0, ((asset?.duration ?? 0) - member.sourceIn) / member.speed);
 				duration = Math.max(
 					Math.min(frameDuration(project), maxDuration),
 					Math.min(requestedEnd - member.start, maxDuration)
 				);
 				start = member.start;
 				sourceIn = member.sourceIn;
-				sourceOut = sourceIn + Math.round(duration * member.speed);
+				sourceOut = Math.max(0, sourceIn + Math.round(duration * member.speed));
 			}
 		}
 		return {

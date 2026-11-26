@@ -454,6 +454,57 @@ export function mapAnimatedRecord(
 	return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, transform(value)]));
 }
 
+/**
+ * Reverses a keyframed animation curve across `[0, duration]`, mirroring keyframe times,
+ * segment interpolations, and cubic-bezier easing handles. Constants are returned unchanged.
+ */
+export function reverseAnimatedValue<T>(
+	animated: AnimatedValue<T>,
+	duration: Time
+): AnimatedValue<T> {
+	if (!isAnimated(animated)) return animated;
+	const keyframes = sortedKeyframes(animated.keyframes);
+	if (keyframes.length === 0) return animated;
+	const safeDuration = Math.max(0, duration);
+
+	if (keyframes.length === 1) {
+		const single = keyframes[0]!;
+		const { anchor: _a, ...rest } = single;
+		void _a;
+		return withKeyframes(animated, [{ ...rest, time: Math.max(0, safeDuration - single.time) }]);
+	}
+
+	const count = keyframes.length;
+	const reversed: Keyframe<T>[] = [];
+	for (let j = 0; j < count; j += 1) {
+		const oldIndex = count - 1 - j;
+		const oldKey = keyframes[oldIndex]!;
+		const nextOldKey = oldIndex > 0 ? keyframes[oldIndex - 1]! : undefined;
+		const prevSegmentBezier = oldIndex < count - 1 && oldKey.interpolation === 'bezier';
+		const nextSegmentBezier = nextOldKey?.interpolation === 'bezier';
+		const nextInterpolation: Interpolation = nextOldKey
+			? nextOldKey.interpolation
+			: oldKey.interpolation;
+		const time = Math.max(0, safeDuration - oldKey.time);
+		const entry: Keyframe<T> = {
+			time,
+			value: oldKey.value,
+			interpolation: nextInterpolation
+		};
+		if (nextSegmentBezier) {
+			const oldIn = oldKey.easeIn ?? DEFAULT_EASE_IN;
+			entry.easeOut = clampHandle({ x: 1 - oldIn.x, y: 1 - oldIn.y });
+		}
+		if (prevSegmentBezier) {
+			const oldOut = oldKey.easeOut ?? DEFAULT_EASE_OUT;
+			entry.easeIn = clampHandle({ x: 1 - oldOut.x, y: 1 - oldOut.y });
+		}
+		reversed.push(entry);
+	}
+
+	return withKeyframes(animated, sortedKeyframes(reversed));
+}
+
 export function isAnimatedValue(value: unknown): value is AnimatedValue<unknown> {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
 	return 'keyframes' in value || 'value' in value;

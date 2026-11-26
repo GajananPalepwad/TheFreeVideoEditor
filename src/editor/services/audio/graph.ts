@@ -581,7 +581,8 @@ export function buildAudioGraph(
 		offsetSeconds: number,
 		durationSeconds: number,
 		buffer?: AudioBuffer,
-		targetNode?: AudioNode
+		targetNode?: AudioNode,
+		timelineOffsetSeconds?: number
 	): AudioBufferSourceNode | null => {
 		const destInput = targetNode ?? trackNodes.get(track.id)?.input;
 		if (!destInput || !buffer) return null;
@@ -599,7 +600,7 @@ export function buildAudioGraph(
 				clip,
 				sourceChannels,
 				sourceSampleRate: buffer.sampleRate,
-				timelineStartTicks: Math.max(0, offsetSeconds * 1_000_000),
+				timelineStartTicks: Math.max(0, (timelineOffsetSeconds ?? offsetSeconds) * 1_000_000),
 				timelineDurationTicks: Math.max(1, durationSeconds * 1_000_000)
 			});
 			if (remapped.channels[0]?.length) {
@@ -802,6 +803,7 @@ export function buildAudioGraph(
 								const nOverlapDurUs = nOverlapEndUs - nOverlapStartUs;
 
 								const nWhenSec = whenSec + (nOverlapStartUs - nestedWindowStartUs) / 1_000_000;
+								const nLocalOffsetSec = (nOverlapStartUs - nClip.start) / 1_000_000;
 								const nOffsetSec =
 									(nClip.sourceIn + (nOverlapStartUs - nClip.start) * (nClip.speed || 1)) /
 									1_000_000;
@@ -814,7 +816,8 @@ export function buildAudioGraph(
 									nOffsetSec,
 									nDurSec,
 									nBuffer,
-									nNode.input
+									nNode.input,
+									nLocalOffsetSec
 								);
 								if (nSrc) sources.push(nSrc);
 							}
@@ -822,7 +825,7 @@ export function buildAudioGraph(
 						continue;
 					} else {
 						// BOUNCE PATH for remapped, speed != 1, or reverse
-						const cacheKey = `${seqId}:${clip.id}:${clip.speed ?? 1}:${clip.sourceIn}:${clip.duration}`;
+						const cacheKey = `${seqId}:${clip.id}:${clip.speed ?? 1}:${clip.sourceIn}:${clip.sourceOut}:${clip.duration}:${JSON.stringify(clip.timeRemap ?? null)}`;
 						let buffer = bouncedSequenceAudioCache.get(cacheKey);
 						const seqDur = sequenceDuration(project, seqId);
 						if (!buffer && seqDur > 0) {
@@ -834,7 +837,17 @@ export function buildAudioGraph(
 							bouncedSequenceAudioCache.set(cacheKey, buffer);
 						}
 						if (!buffer) continue;
-						const srcNode = scheduleClip(clip, track, whenSec, offsetSec, durSec, buffer);
+						const clipLocalOffsetSec = (overlapStartUs - clip.start) / 1_000_000;
+						const srcNode = scheduleClip(
+							clip,
+							track,
+							whenSec,
+							offsetSec,
+							durSec,
+							buffer,
+							undefined,
+							clipLocalOffsetSec
+						);
 						if (srcNode) sources.push(srcNode);
 						continue;
 					}
@@ -858,7 +871,17 @@ export function buildAudioGraph(
 				}
 				if (!buffer) continue;
 
-				const srcNode = scheduleClip(clip, track, whenSec, offsetSec, durSec, buffer);
+				const clipLocalOffsetSec = (overlapStartUs - clip.start) / 1_000_000;
+				const srcNode = scheduleClip(
+					clip,
+					track,
+					whenSec,
+					offsetSec,
+					durSec,
+					buffer,
+					undefined,
+					clipLocalOffsetSec
+				);
 				if (srcNode) sources.push(srcNode);
 			}
 		}

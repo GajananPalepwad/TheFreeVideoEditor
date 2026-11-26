@@ -1,4 +1,4 @@
-import { timelineToSource } from './timeRemap';
+import { speedAt, timelineToSource } from './timeRemap';
 import { clipEnd, timelineDuration } from './timeline';
 import { evaluateOr } from './animation';
 import { clampCrop, isCrop, isDefaultCrop, type Crop } from './crop';
@@ -9,7 +9,10 @@ import { transitionWindow, transitionProgress, transitionGain } from './transiti
 import { DEFAULT_CAPTION_STYLE } from './captions/presets';
 import { findWordSpanInText } from './captions/operations';
 import { viewProject, getSequence } from './sequences/access';
-import { applyParamOverridesToSequence, computeResponsiveTemplateTime } from './templates/templateService';
+import {
+	applyParamOverridesToSequence,
+	computeResponsiveTemplateTime
+} from './templates/templateService';
 import { evaluateLiveTrackingBinding } from './tracking/apply';
 import type {
 	AnimatedValue,
@@ -765,6 +768,10 @@ export function resolveFrame(
 					);
 				}
 
+				if (seqDur > 0 && rawSource === seqDur && speedAt(clip, t) < 0) {
+					rawSource = seqDur - 1;
+				}
+
 				// Past sequence end renders transparent (empty layers)
 				const isPastEnd = rawSource < 0 || (seqDur > 0 && rawSource >= seqDur);
 				let nestedView = viewProject(project, nestedSeqId);
@@ -1045,6 +1052,13 @@ export function resolveFrame(
 									clip.source.responsiveTiming
 								);
 							}
+						}
+						const nestedAudioDur = nestedSeq.tracks.reduce(
+							(d, trk) => trk.clips.reduce((lat, c) => Math.max(lat, clipEnd(c)), d),
+							0
+						);
+						if (nestedAudioDur > 0 && rawSource === nestedAudioDur && speedAt(clip, time) < 0) {
+							rawSource = nestedAudioDur - 1;
 						}
 						const hostInstanceKey = instancePrefix ? `${instancePrefix}/${clip.id}` : clip.id;
 						let nestedView = viewProject(project, nestedSeqId);

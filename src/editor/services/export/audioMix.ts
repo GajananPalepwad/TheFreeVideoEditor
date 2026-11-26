@@ -48,10 +48,13 @@ export function audioSchedulesForChunk(
 			const overlapEnd = Math.min(chunkEnd, clipEnd(clip));
 			if (overlapEnd <= overlapStart) continue;
 			const timelineDuration = overlapEnd - overlapStart;
-			const sourceOffset = clip.sourceIn + (overlapStart - clip.start) * clip.speed;
+			const speed = clip.speed || 1;
+			const sourceOffset = clip.sourceIn + (overlapStart - clip.start) * speed;
 			const sourceDuration = clip.timeRemap
-				? timelineDuration * Math.abs(clip.speed || 1)
-				: Math.min(timelineDuration * clip.speed, Math.max(0, clip.sourceOut - sourceOffset));
+				? timelineDuration * Math.abs(speed)
+				: speed < 0
+					? Math.min(timelineDuration * Math.abs(speed), Math.max(0, sourceOffset - clip.sourceOut))
+					: Math.min(timelineDuration * speed, Math.max(0, clip.sourceOut - sourceOffset));
 			if (sourceDuration <= 0 && !clip.timeRemap) continue;
 			const midPoint = overlapStart + Math.floor(timelineDuration / 2);
 			let effectiveVolume = clipGainAt(clip, midPoint);
